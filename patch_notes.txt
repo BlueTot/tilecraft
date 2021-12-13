@@ -326,3 +326,22 @@ Title Screen:
     - Added How to Play Menu
 
 - Fixed bugs
+------------------------------------------------------------
+Patch Alpha 1.7.1 Release ---- Dec 13
+
+Title Screen:
+    - Updated How to Play Menu
+    - Changed Title Screen Background
+
+World Generation:
+    - Structure generation method changed
+    - Structures are now more common
+    - World seeds now fully control structure generation
+    - Villages now have a library that can contain 1 - 2 bookshelves and 7 - 14 books.
+    - Books removed from village blacksmith loot table.
+
+Accessory Functions:
+    - World Seed info added to F3 Screen
+    - Added on-screen Speedrun Timer for God Gear and Music Player speedruns
+
+- Fixed bugs

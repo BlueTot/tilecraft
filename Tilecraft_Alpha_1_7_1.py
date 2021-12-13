@@ -17,7 +17,7 @@ def print_cheats(name):
     screen.print("CODE   ITEM NAME")
     screen.print('-' * 25)
     for i in range(len(name)):
-        screen.print((str(i) + ' ' * (5 - len(str(i))) + str(name[i])))
+        screen.print((str(i) + ' ' * (7 - len(str(i))) + str(name[i])))
 
 # /GIVE COMMAND
 def give(name, stack, Type, item_id):
@@ -63,7 +63,7 @@ def teleport(internalX, internalY, coords):
 '''Advancements Section'''
 
 def advancements_update(advancements, inventory_list, armour_list, dimension, load, start):
-    global screen
+    global screen, TimerRunning
     name_list = []
     enchantments_list = []
     for i in inventory_list: #Compile list of item names and enchantments
@@ -132,36 +132,45 @@ def advancements_update(advancements, inventory_list, armour_list, dimension, lo
     if max_t1 and max_t2 and max_t3 and 'God Gear' not in advancements: #Get a full set of Protection V Unbreaking III Diamond Armour
         advancements.append("God Gear")
         screen.print("Advancement unlocked: God Gear")
-        GodGearSpeedrun(load, start)
+        TimerRunning = False
 
     return advancements
 
-def MusicPlayer(advancements, load, start):
-    global screen
+def MusicPlayer(advancements):
+    global screen, speedrun_timer, TimerRunning
     if "Music Player" not in advancements:  # Music Player: Play Pigstep
         advancements.append("Music Player")
         screen.print("Advancement unlocked: Music Player")
-        MusicPlayerSpeedrun(load, start)
+        TimerRunning = False
 
         return advancements
 
-def MusicPlayerSpeedrun(loaded, start_time):
-    global screen
-    if loaded == 'Music Player' and start_time != 0:
-        end = time.time()
-        speedrun_time = end - start_time
-        minute = int(speedrun_time // 60)
-        seconds = int(round(speedrun_time % 60))
-        screen.print(f"Your time is {minute}m {seconds}s")
-
-def GodGearSpeedrun(loaded, start_time):
-    global screen
-    if loaded == 'God Gear' and start_time != 0:
-        end = time.time()
-        speedrun_time = end - start_time
-        minute = int(speedrun_time // 60)
-        seconds = int(round(speedrun_time % 60))
-        screen.print(f"Your time is {minute}m {seconds}s")
+def SpeedrunTimer(display, PlayTime):
+    global speedrun_time, TimerRunning
+    font = pygame.font.Font('images_vA1_7_1/monofur/monof55.ttf', 25)
+    if load == 'Music Player' or load == 'God Gear':
+        if TimerRunning:
+            if PlayTime // 3600 >= 10:  # HOURS 2 digits
+                HourTime = str(int(PlayTime // 3600))
+            else:  # HOURS 1 digit
+                HourTime = f"0{int(PlayTime // 3600)}"
+            if PlayTime // 60 >= 10:  # MINUTES 2 digits
+                MinuteTime = str(int(PlayTime // 60))
+            else:  # MINUTES 1 digit
+                MinuteTime = f"0{int(PlayTime // 60)}"
+            if PlayTime % 60 >= 10:  # SECONDS 2 digits
+                SecondTime = str(round(PlayTime % 60))
+            else:  # SECONDS 1 digit
+                SecondTime = f"0{round(PlayTime % 60)}"
+            MSecondTime = (round(PlayTime, 3) - math.floor(PlayTime)) * 1000  # Milliseconds
+            if MSecondTime >= 100:  # 3 digits
+                MSecondTime = str(int(MSecondTime))
+            elif MSecondTime >= 10:  # 2 digits
+                MSecondTime = f"0{int(MSecondTime)}"
+            else:  # 1 digit
+                MSecondTime = f"00{int(MSecondTime)}"
+            speedrun_time = HourTime + ":" + MinuteTime + ":" + SecondTime + '.' + MSecondTime  # Current in-game time
+        display.blit(font.render(speedrun_time, True, (0, 0, 0), (255, 255, 255)), (504 - (13 * len(speedrun_time)), 0)) #Render Speedrun Timer
 
 '''World Generation Classes and Functions'''
 
@@ -183,6 +192,12 @@ class Chunk:
         self.value = value
         self.biome = None
 
+def StructureSeed(seed, val):
+    try:
+        return abs((seed * math.sin(val) + val * seed + val % 12) % 25) // 2
+    except ZeroDivisionError:
+        return 1
+
 def OverworldGeneratedList():
     generated_list = []
     for i in range(-64, 65, 16):
@@ -192,31 +207,32 @@ def OverworldGeneratedList():
 
 
 def OverworldGenerate(ChunkX, ChunkY, villages, caves, waters, deep_caves, lavas, ruined_portals, obsidian_counts,
-                      generated_list, bound_village, bound_village2, bound_village3, bound_cave, bound_cave2,
+                      generated_list, bound_village, bound_village2, bound_village3, bound_village4, bound_cave, bound_cave2,
                       bound_water, bound_water2, bound_lava, bound_deep_cave, bound_deep_cave2, bound_ruined_portal,
                       bound_ruined_portal2, seed, biomes, BlockList):
-    num = random.randint(1, 25)
-    if num == 1:
+    num = StructureSeed(seed, ChunkX) + StructureSeed(seed, ChunkY)
+    if num == 1 or num == 2:
         villages.append([ChunkX - 12, ChunkY - 12])  # Village
         bound_village.append([[ChunkX - 12 - 10 / 24, ChunkX - 12, ChunkX - 12 + 10 / 24], [ChunkY - 12 - 10 / 24, ChunkY - 12, ChunkY - 12 + 10 / 24]])  # Bounding box for village 1
         bound_village2.append([[ChunkX - 12 - 10 / 24, ChunkX - 12, ChunkX - 12 + 10 / 24], [ChunkY - 12 - 10 / 24, ChunkY - 12, ChunkY - 12 + 10 / 24]])  # Bounding box for village 2
         bound_village3.append([[ChunkX - 12 - 10 / 24, ChunkX - 12, ChunkX - 12 + 10 / 24], [ChunkY - 12 - 10 / 24, ChunkY - 12, ChunkY - 12 + 10 / 24]])  # Bounding box for village 3
-    elif num == 2 or num == 3 or num == 4:
+        bound_village4.append([[ChunkX - 12 - 10 / 24, ChunkX - 12, ChunkX - 12 + 10 / 24], [ChunkY - 12 - 10 / 24, ChunkY - 12, ChunkY - 12 + 10 / 24]])  # Bounding box for village 4
+    elif num == 3 or num == 4 or num == 5 or num == 6:
         caves.append([ChunkX - 10, ChunkY - 10])  # Cave
         bound_cave.append([[ChunkX - 10 - 10 / 24, ChunkX - 10, ChunkX - 10 + 10 / 24], [ChunkY - 10 - 10 / 24, ChunkY - 10, ChunkY - 10 + 10 / 24]])  # Bounding box for cave 1
         bound_cave2.append([[ChunkX - 10 - 10 / 24, ChunkX - 10, ChunkX - 10 + 10 / 24], [ChunkY - 10 - 10 / 24, ChunkY - 10, ChunkY - 10 + 10 / 24]])  # Bounding box for cave 2
-    elif num == 5 or num == 6:
+    elif num == 7 or num == 8 or num == 9:
         waters.append([ChunkX - 14, ChunkY - 14])  # Water Pool
         bound_water.append([[ChunkX - 14 - 10 / 24, ChunkX - 14, ChunkX - 14 + 10 / 24], [ChunkY - 14 - 10 / 24, ChunkY - 14, ChunkY - 14 + 10 / 24]])  # Bounding box for water pool 1
         bound_water2.append([[ChunkX - 14 - 10 / 24, ChunkX - 14, ChunkX - 14 + 10 / 24], [ChunkY - 14 - 10 / 24, ChunkY - 14, ChunkY - 14 + 10 / 24]])  # Bounding box for water pool 2
-    elif num == 7 or num == 8:
+    elif num == 10 or num == 11 or num == 12:
         lavas.append([ChunkX - 8, ChunkY - 8])  # Lava Pool
         bound_lava.append([[ChunkX - 8 - 10 / 24, ChunkX - 8, ChunkX - 8 + 10 / 24], [ChunkY - 8 - 10 / 24, ChunkY - 8, ChunkY - 8 + 10 / 24]])  # bounding box for lava pool
-    elif num == 9:
+    elif num == 13 or num == 14:
         deep_caves.append([ChunkX - 6, ChunkY - 6])  # Deep Cave
         bound_deep_cave.append([[ChunkX - 6 - 10 / 24, ChunkX - 6, ChunkX - 6 + 10 / 24], [ChunkY - 6 - 10 / 24, ChunkY - 6, ChunkY - 6 + 10 / 24]])  # Bounding box for deep cave 1
         bound_deep_cave2.append([[ChunkX - 6 - 10 / 24, ChunkX - 6, ChunkX - 6 + 10 / 24], [ChunkY - 6 - 10 / 24, ChunkY - 6, ChunkY - 6 + 10 / 24]])  # Bounding box for deep cave 2
-    elif num == 10 or num == 11:
+    elif num == 15 or num == 16 or num == 17:
         ruined_portals.append([ChunkX - 1, ChunkY - 1])  # Ruined Portal
         obsidian_counts.append(random.randint(5, 10))  # Obsidian remaining in ruined portal
         bound_ruined_portal.append([[ChunkX - 1 - 10 / 24, ChunkX - 1, ChunkX - 1 + 10 / 24], [ChunkY - 1 - 10 / 24, ChunkY - 1, ChunkY - 1 + 10 / 24]])  # Bounding box for ruined portal 1
@@ -248,7 +264,7 @@ def OverworldGenerate(ChunkX, ChunkY, villages, caves, waters, deep_caves, lavas
                 BlockList.append(Block('Stone', chunk.x + j, chunk.y + k))
 
     return villages, caves, waters, deep_caves, lavas, ruined_portals, obsidian_counts, generated_list, \
-           bound_village, bound_village2, bound_village3, bound_cave, bound_cave2, bound_water, \
+           bound_village, bound_village2, bound_village3, bound_village4, bound_cave, bound_cave2, bound_water, \
            bound_water2, bound_lava, bound_deep_cave, bound_deep_cave2, bound_ruined_portal, bound_ruined_portal2, biomes, BlockList
 
 
@@ -271,18 +287,19 @@ def SpawnOverworldGenerate(seed):
 
     for i in range(-64, 65, 16):
         for j in range(-64, 65, 16):
-            num = random.randint(1, 25)
-            if num == 1:
+            num = StructureSeed(seed, i) + StructureSeed(seed, j)
+            # print(i, j, num)
+            if num == 1 or num == 2:
                 li_vil.append([i, j])
-            elif num == 2 or num == 3 or num == 4:
+            elif num == 3 or num == 4 or num == 5 or num == 6:
                 li_c.append([i, j])
-            elif num == 5 or num == 6:
+            elif num == 7 or num == 8 or num == 9:
                 li_w.append([i, j])
-            elif num == 7 or num == 8:
+            elif num == 10 or num == 11 or num == 12:
                 li_l.append([i, j])
-            elif num == 9:
+            elif num == 13 or num == 14:
                 li_dc.append([i, j])
-            elif num == 10 or num == 11:
+            elif num == 15 or num == 16 or num == 17:
                 li_ruined_portal.append([i, j])
 
     # Village (Chunk Code: 4, 4)
@@ -435,7 +452,7 @@ def NetherGenerate(ChunkX, ChunkY, bastions, fortresses, generated_list, bound_b
 '''Main Part of Game Code'''
 
 class TilecraftWorld:
-    def __init__(self):
+    def __init__(self, seed):
 
         self.empty_cave1 = []
         self.empty_cave2 = []
@@ -443,6 +460,7 @@ class TilecraftWorld:
         self.empty_vil1 = []
         self.empty_vil2 = []
         self.empty_vil3 = []
+        self.empty_vil4 = []
         self.empty_vil_total = []
         self.empty_water = []
         self.empty_deep_cave1 = []
@@ -459,7 +477,8 @@ class TilecraftWorld:
         self.empty_ruined_portal1 = []
         self.empty_ruined_portal2 = []
         self.empty_ruined_portal_total = []
-        self.seed = random.randint(-65536, 65535) #Seed
+        self.seed = seed #World Seed
+        random.seed(self.seed)
 
         self.village, self.cave, self.water, self.lava, \
         self.deep_cave, self.ruined_portal, self.obsidian_counts, \
@@ -470,6 +489,7 @@ class TilecraftWorld:
         self.bound_cave2 = self.bound_cave.copy()
         self.bound_village2 = self.bound_village.copy()
         self.bound_village3 = self.bound_village.copy()
+        self.bound_village4 = self.bound_village.copy()
         self.bound_water2 = self.bound_water.copy()
         self.bound_deep_cave2 = self.bound_deep_cave.copy()
         self.bound_ruined_portal2 = self.bound_ruined_portal.copy()
@@ -481,11 +501,11 @@ class TilecraftWorld:
             for i in self.render_list:
                 if i not in self.overworld_generated_list:
                     self.village, self.cave, self.water, self.deep_cave, self.lava, self.ruined_portal, self.obsidian_counts, self.overworld_generated_list, \
-                    self.bound_village, self.bound_village2, self.bound_village3, self.bound_cave, self.bound_cave2, self.bound_water, \
+                    self.bound_village, self.bound_village2, self.bound_village3, self.bound_village4, self.bound_cave, self.bound_cave2, self.bound_water, \
                     self.bound_water2, self.bound_lava, self.bound_deep_cave, self.bound_deep_cave2, self.bound_ruined_portal, self.bound_ruined_portal2, self.biomes, self.BlockList = \
                     OverworldGenerate(i[0], i[1], self.village, self.cave, self.water, self.deep_cave, self.lava, self.ruined_portal,
                                                       self.obsidian_counts, self.overworld_generated_list, self.bound_village,
-                                                      self.bound_village2, self.bound_village3, self.bound_cave, self.bound_cave2,
+                                                      self.bound_village2, self.bound_village3, self.bound_village4, self.bound_cave, self.bound_cave2,
                                                       self.bound_water, self.bound_water2, self.bound_lava, self.bound_deep_cave,
                                                       self.bound_deep_cave2, self.bound_ruined_portal, self.bound_ruined_portal2, self.seed, self.biomes, self.BlockList)
         elif player.dimension == 'Nether':
@@ -531,44 +551,43 @@ class TilecraftWorld:
                     display.blit(block.image, (block.x * 24 - player.left, block.y * 24 - player.top))
             # DRAWING OVERWORLD STRUCTURES
             for k in range(len(self.village)):
-                if player.left / 24 <= self.village[k][0] <= player.right / 24 and player.top / 24 <= self.village[k][1] <= player.bottom / 24:
+                if -24 <= (self.village[k][0] * 24 - player.left) <= 528 and -24 <= (self.village[k][1] * 24 - player.top) <= 528:
                     pygame.draw.circle(world, (255, 165, 0), (self.village[k][0] * 24 - player.left, self.village[k][1] * 24 - player.top), 10, 10)
-                    # print(1)
             for k in range(len(self.lava)):
-                if player.left / 24 <= self.lava[k][0] <= player.right / 24 and player.top / 24 <= self.lava[k][1] <= player.bottom / 24:
+                if -24 <= (self.lava[k][0] * 24 - player.left) <= 528 and -24 <= (self.lava[k][1] * 24 - player.top) <= 528:
                     pygame.draw.circle(world, (255, 0, 0), (self.lava[k][0] * 24 - player.left, self.lava[k][1] * 24 - player.top), 10, 10)
             for k in range(len(self.cave)):
-                if player.left / 24 <= self.cave[k][0] <= player.right / 24 and player.top / 24 <= self.cave[k][1] <= player.bottom / 24:
+                if -24 <= (self.cave[k][0] * 24 - player.left) <= 528 and -24 <= (self.cave[k][1] * 24 - player.top) <= 528:
                     pygame.draw.circle(world, (211, 211, 211), (self.cave[k][0] * 24 - player.left, self.cave[k][1] * 24 - player.top), 10, 10)
             for k in range(len(self.water)):
-                if player.left / 24 <= self.water[k][0] <= player.right / 24 and player.top / 24 <= self.water[k][1] <= player.bottom / 24:
+                if -24 <= (self.water[k][0] * 24 - player.left) <= 528 and -24 <= (self.water[k][1] * 24 - player.top) <= 528:
                     pygame.draw.circle(world, (173, 216, 230), (self.water[k][0] * 24 - player.left, self.water[k][1] * 24 - player.top), 10, 10)
             for k in range(len(self.deep_cave)):
-                if player.left / 24 <= self.deep_cave[k][0] <= player.right / 24 and player.top / 24 <= self.deep_cave[k][1] <= player.bottom / 24:
+                if -24 <= (self.deep_cave[k][0] * 24 - player.left) <= 528 and -24 <= (self.deep_cave[k][1] * 24 - player.top) <= 528:
                     pygame.draw.circle(world, (160, 82, 45), (self.deep_cave[k][0] * 24 - player.left, self.deep_cave[k][1] * 24 - player.top), 10, 10)
             for k in range(len(self.ruined_portal)):
-                if player.left / 24 <= self.ruined_portal[k][0] <= player.right / 24 and player.top / 24 <= self.ruined_portal[k][1] <= player.bottom / 24:
+                if -24 <= (self.ruined_portal[k][0] * 24 - player.left) <= 528 and -24 <= (self.ruined_portal[k][1] * 24 - player.top) <= 528:
                     pygame.draw.circle(world, (56, 0, 89), (self.ruined_portal[k][0] * 24 - player.left, self.ruined_portal[k][1] * 24 - player.top), 10, 10)
 
             # DRAWING OVERWORLD EMPTY STRUCTURES
             for k in range(len(self.empty_vil_total)):
-                if player.left / 24 <= self.empty_vil_total[k][0] <= player.right / 24 and player.top / 24 <= self.empty_vil_total[k][1] <= player.bottom / 24:
+                if -24 <= (self.empty_vil_total[k][0] * 24 - player.left) <= 528 and -24 <= (self.empty_vil_total[k][1] * 24 - player.top) <= 528:
                     pygame.draw.circle(world, (153, 102, 0), (self.empty_vil_total[k][0] * 24 - player.left, self.empty_vil_total[k][1] * 24 - player.top), 10, 10)
             for k in range(len(self.empty_cave_total)):
-                if player.left / 24 <= self.empty_cave_total[k][0] <= player.right / 24 and player.top / 24 <= self.empty_cave_total[k][1] <= player.bottom / 24:
+                if -24 <= (self.empty_cave_total[k][0] * 24 - player.left) <= 528 and -24 <= (self.empty_cave_total[k][1] * 24 - player.top) <= 528:
                     pygame.draw.circle(world, (112, 112, 112), (self.empty_cave_total[k][0] * 24 - player.left, self.empty_cave_total[k][1] * 24 - player.top), 10, 10)
             for k in range(len(self.empty_water)):
-                if player.left / 24 <= self.empty_water[k][0] <= player.right / 24 and player.top / 24 <= self.empty_water[k][1] <= player.bottom / 24:
+                if -24 <= (self.empty_water[k][0] * 24 - player.left) <= 528 and -24 <= (self.empty_water[k][1] * 24 - player.top) <= 528:
                     pygame.draw.circle(world, (0, 0, 255), (self.empty_water[k][0] * 24 - player.left, self.empty_water[k][1] * 24 - player.top), 10, 10)
             for k in range(len(self.empty_deep_cave_total)):
-                if player.left / 24 <= self.empty_deep_cave_total[k][0] <= player.right / 24 and player.top / 24 <= self.empty_deep_cave_total[k][1] <= player.bottom / 24:
+                if -24 <= (self.empty_deep_cave_total[k][0] * 24 - player.left) <= 528 and -24 <= (self.empty_deep_cave_total[k][1] * 24 - player.top) <= 528:
                     pygame.draw.circle(world, (101, 67, 33), (self.empty_deep_cave_total[k][0] * 24 - player.left, self.empty_deep_cave_total[k][1] * 24 - player.top), 10, 10)
             for k in range(len(self.empty_ruined_portal_total)):
-                if player.left / 24 <= self.empty_ruined_portal_total[k][0] <= player.right / 24 and player.top / 24 <= self.empty_ruined_portal_total[k][1] <= player.bottom / 24:
+                if -24 <= (self.empty_ruined_portal_total[k][0] * 24 - player.left) <= 528 and -24 <= (self.empty_ruined_portal_total[k][1] * 24 - player.top) <= 528:
                     pygame.draw.circle(world, (255, 255, 255), (self.empty_ruined_portal_total[k][0] * 24 - player.left, self.empty_ruined_portal_total[k][1] * 24 - player.top), 12, 12)
             # DRAWING OVERWORLD NETHER PORTALS
             for k in range(len(self.overworld_portal)):
-                if player.left / 24 <= self.overworld_portal[k][0] <= player.right / 24 and player.top / 24 <= self.overworld_portal[k][1] <= player.bottom / 24:
+                if -24 <= (self.overworld_portal[k][0] * 24 - player.left) <= 528 and -24 <= (self.overworld_portal[k][1] * 24 - player.top) <= 528:
                     pygame.draw.circle(world, (128, 0, 128), (self.overworld_portal[k][0] * 24 - player.left, self.overworld_portal[k][1] * 24 - player.top), 10, 10)
 
         # DRAW NETHER DIMENSION
@@ -579,18 +598,18 @@ class TilecraftWorld:
                     display.blit(netherrack, (k, j))
             # DRAWING NETHER NETHER PORTALS
             for k in range(len(self.nether_portal)):
-                if player.left / 24 <= self.nether_portal[k][0] <= player.right / 24 and player.top / 24 <= self.nether_portal[k][1] <= player.bottom / 24:
+                if -24 <= (self.nether_portal[k][0] * 24 - player.left) <= 528 and -24 <= (self.nether_portal[k][1] * 24 - player.top) <= 528:
                     pygame.draw.circle(world, (128, 0, 128), (self.nether_portal[k][0] * 24 - player.left, self.nether_portal[k][1] * 24 - player.top), 10, 10)
             # DRAWING NETHER STRUCTURES
             for k in range(len(self.fortress)):
-                if player.left / 24 <= self.fortress[k][0] <= player.right / 24 and player.top / 24 <= self.fortress[k][1] <= player.bottom / 24:
+                if -24 <= (self.fortress[k][0] * 24 - player.left) <= 528 and -24 <= (self.fortress[k][1] * 24 - player.top) <= 528:
                     pygame.draw.circle(world, (134, 71, 71), (self.fortress[k][0] * 24 - player.left, self.fortress[k][1] * 24 - player.top), 10, 10)
             for k in range(len(self.bastion)):
-                if player.left / 24 <= self.bastion[k][0] <= player.right / 24 and player.top / 24 <= self.bastion[k][1] <= player.bottom / 24:
+                if -24 <= (self.bastion[k][0] * 24 - player.left) <= 528 and -24 <= (self.bastion[k][1] * 24 - player.top) <= 528:
                     pygame.draw.circle(world, (218, 165, 32), (self.bastion[k][0] * 24 - player.left, self.bastion[k][1] * 24 - player.top), 10, 10)
             # DRAWING NETHER EMPTY STRUCTURES
             for k in range(len(self.empty_bastion)):
-                if player.left / 24 <= self.empty_bastion[k][0] <= player.right / 24 and player.top / 24 <= self.empty_bastion[k][1] <= player.bottom / 24:
+                if -24 <= (self.empty_bastion[k][0] * 24 - player.left) <= 528 and -24 <= (self.empty_bastion[k][1] * 24 - player.top) <= 528:
                     pygame.draw.circle(world, (0, 0, 0), (self.empty_bastion[k][0] * 24 - player.left, self.empty_bastion[k][1] * 24 - player.top), 10, 10)
 
 class Grid:
@@ -616,7 +635,7 @@ class Button:
         self.rect = pygame.Rect((x, y), (length, width))
 
     def render(self, display, text, size):
-        self.font = pygame.font.Font('images_vA1_7/minecraft-font/MinecraftRegular-Bmg3.otf', size)
+        self.font = pygame.font.Font('images_vA1_7_1/minecraft-font/MinecraftRegular-Bmg3.otf', size)
         self.text = self.font.render(text, False, (0, 0, 0))
         pygame.draw.rect(display, self.colour, self.rect)
         pygame.draw.rect(display, (255, 255, 255), self.rect, 3)
@@ -669,7 +688,7 @@ def InventoryGrid(display):
         Grid((83, 83, 83), pygame.Rect((440, 425), (55, 55)), 2, player.image_list[35])
     ]
 
-    font = pygame.font.Font('images_vA1_7/minecraft-font/MinecraftRegular-Bmg3.otf', 20)
+    font = pygame.font.Font('images_vA1_7_1/minecraft-font/MinecraftRegular-Bmg3.otf', 20)
     numbers = [
         Text(font.render(player.number_list[0], False, (255, 255, 255)), 35, 295),
         Text(font.render(player.number_list[1], False, (255, 255, 255)), 90, 295),
@@ -757,8 +776,8 @@ def SmallCraftGrid(display):
         Grid((83, 83, 83), pygame.Rect((315, 105), (55, 55)), 2, player.craft_image_list[3]),
         Grid((83, 83, 83), pygame.Rect((425, 78), (55, 55)), 2, player.craft_image_list[4]),
     ]
-    font = pygame.font.Font('images_vA1_7/minecraft-font/MinecraftRegular-Bmg3.otf', 20)
-    arrow_font = pygame.font.Font('images_vA1_7/minecraft-font/MinecraftBold-nMK1.otf', 24)
+    font = pygame.font.Font('images_vA1_7_1/minecraft-font/MinecraftRegular-Bmg3.otf', 20)
+    arrow_font = pygame.font.Font('images_vA1_7_1/minecraft-font/MinecraftBold-nMK1.otf', 24)
     crafting_numbers = [
         Text(font.render(player.craft_number_list[0], False, (255, 255, 255)), 295, 85),
         Text(font.render(player.craft_number_list[1], False, (255, 255, 255)), 350, 85),
@@ -792,9 +811,9 @@ def CraftGrid(display):
         Grid((83, 83, 83), pygame.Rect((240, 160), (55, 55)), 2, player.grid_image_list[8]),
         Grid((83, 83, 83), pygame.Rect((380, 105), (55, 55)), 2, player.grid_image_list[9])
     ]
-    font = pygame.font.Font('images_vA1_7/minecraft-font/MinecraftRegular-Bmg3.otf', 20)
-    title_font = pygame.font.Font('images_vA1_7/minecraft-font/MinecraftRegular-Bmg3.otf', 27)
-    arrow_font = pygame.font.Font('images_vA1_7/minecraft-font/MinecraftBold-nMK1.otf', 27)
+    font = pygame.font.Font('images_vA1_7_1/minecraft-font/MinecraftRegular-Bmg3.otf', 20)
+    title_font = pygame.font.Font('images_vA1_7_1/minecraft-font/MinecraftRegular-Bmg3.otf', 27)
+    arrow_font = pygame.font.Font('images_vA1_7_1/minecraft-font/MinecraftBold-nMK1.otf', 27)
     crafting_numbers = [
         Text(font.render(player.grid_number_list[0], False, (255, 255, 255)), 165, 85),
         Text(font.render(player.grid_number_list[1], False, (255, 255, 255)), 220, 85),
@@ -827,10 +846,10 @@ def FurnaceInterface(display):
         Grid((83, 83, 83), pygame.Rect((150, 175), (55, 55)), 2, player.smelt_image_list[1]),
         Grid((83, 83, 83), pygame.Rect((300, 115), (55, 55)), 2, player.smelt_image_list[2]),
     ]
-    font = pygame.font.Font('images_vA1_7/minecraft-font/MinecraftRegular-Bmg3.otf', 20)
-    side_font = pygame.font.Font('images_vA1_7/minecraft-font/MinecraftRegular-Bmg3.otf', 24)
-    title_font = pygame.font.Font('images_vA1_7/minecraft-font/MinecraftRegular-Bmg3.otf', 27)
-    arrow_font = pygame.font.Font('images_vA1_7/minecraft-font/MinecraftBold-nMK1.otf', 30)
+    font = pygame.font.Font('images_vA1_7_1/minecraft-font/MinecraftRegular-Bmg3.otf', 20)
+    side_font = pygame.font.Font('images_vA1_7_1/minecraft-font/MinecraftRegular-Bmg3.otf', 24)
+    title_font = pygame.font.Font('images_vA1_7_1/minecraft-font/MinecraftRegular-Bmg3.otf', 27)
+    arrow_font = pygame.font.Font('images_vA1_7_1/minecraft-font/MinecraftBold-nMK1.otf', 30)
     smelting_numbers = [
         Text(font.render(player.smelt_number_list[0], False, (255, 255, 255)), 185, 80),
         Text(font.render(player.smelt_number_list[1], False, (255, 255, 255)), 185, 210),
@@ -860,7 +879,7 @@ def EnchantingInterface(display):
         Grid((83, 83, 83), pygame.Rect((75, 150), (55, 55)), 2, player.enchanting_image_list[1]),
         Grid((83, 83, 83), pygame.Rect((20, 95), (55, 55)), 2, player.enchanting_image_list[2])
     ]
-    font = pygame.font.Font('images_vA1_7/minecraft-font/MinecraftRegular-Bmg3.otf', 20)
+    font = pygame.font.Font('images_vA1_7_1/minecraft-font/MinecraftRegular-Bmg3.otf', 20)
     enchanting_numbers = [
         Text(font.render(str(player.enchanting_number_list[0]), False, (255, 255, 255)), 55, 185),
         Text(font.render(str(player.enchanting_number_list[1]), False, (255, 255, 255)), 110, 185),
@@ -888,10 +907,10 @@ def CompressorInterface(display):
         Grid((83, 83, 83), pygame.Rect((150, 95), (55, 55)), 2, player.compressor_image_list[0]),
         Grid((83, 83, 83), pygame.Rect((300, 95), (55, 55)), 2, player.compressor_image_list[1])
     ]
-    font = pygame.font.Font('images_vA1_7/minecraft-font/MinecraftRegular-Bmg3.otf', 20)
-    title_font = pygame.font.Font('images_vA1_7/minecraft-font/MinecraftRegular-Bmg3.otf', 27)
-    arrow_font = pygame.font.Font('images_vA1_7/minecraft-font/MinecraftBold-nMK1.otf', 30)
-    side_font = pygame.font.Font('images_vA1_7/minecraft-font/MinecraftRegular-Bmg3.otf', 24)
+    font = pygame.font.Font('images_vA1_7_1/minecraft-font/MinecraftRegular-Bmg3.otf', 20)
+    title_font = pygame.font.Font('images_vA1_7_1/minecraft-font/MinecraftRegular-Bmg3.otf', 27)
+    arrow_font = pygame.font.Font('images_vA1_7_1/minecraft-font/MinecraftBold-nMK1.otf', 30)
+    side_font = pygame.font.Font('images_vA1_7_1/minecraft-font/MinecraftRegular-Bmg3.otf', 24)
     compressor_numbers = [
         Text(font.render(player.compressor_number_list[0], False, (255, 255, 255)), 185, 130),
         Text(font.render(player.compressor_number_list[1], False, (255, 255, 255)), 335, 130)
@@ -927,7 +946,7 @@ def SetHotbarProperties(n):
 
 # Game Loop
 def Main(display, clock):
-    global screen, furnace_interface, crafting_grid, small_crafting_grid, inventory_grid, World, player, difference, individual_frame, previous_frame, second_time, mode, val, comma, number, called, world, frame, play_time, endTime, minute, seconds, true_play_time, PlayTime, hotbar_backgrounds, selected_hotbar
+    global TimerRunning, screen, furnace_interface, crafting_grid, small_crafting_grid, inventory_grid, World, player, difference, individual_frame, previous_frame, second_time, mode, val, comma, number, called, world, frame, play_time, endTime, minute, seconds, true_play_time, PlayTime, hotbar_backgrounds, selected_hotbar
 
     while True:
 
@@ -1061,21 +1080,24 @@ def Main(display, clock):
 
                 player.move()  # Move Player
             else:
+                keys = pygame.key.get_pressed()
+                if keys[pygame.K_UP]: #Scroll Up
+                    screen.scroll_up()
+                elif keys[pygame.K_DOWN]: #Scroll Down
+                    screen.scroll_down()
                 for event in events:
                     if event.type == pygame.KEYDOWN:
-                        if event.key == pygame.K_SPACE:
+                        if event.key == pygame.K_SPACE: #Type Space
                             screen.type(' ')
-                        elif event.key == pygame.K_RETURN:
+                        elif event.key == pygame.K_RETURN: #Enter Key
                             screen.stop_typing()
-                        elif event.key == pygame.K_BACKSPACE:
+                        elif event.key == pygame.K_BACKSPACE: #Delete
                             screen.delete()
-                        elif event.key == pygame.K_UP:
-                            screen.scroll_up()
-                        elif event.key == pygame.K_DOWN:
-                            screen.scroll_down()
                         else:
-                            char = str(pygame.key.name(event.key))
-                            screen.type(char)
+                            char = str(pygame.key.name(event.key)) #Get Key name
+                            if len(char) == 1: #Check to prevent non-alphabetical and non-number keys
+                                screen.type(char)
+
             display.fill((0, 0, 0))  # Fill world border black
             world.fill(background)  # Fill world background colour
             player.health_update()  # Update Player Health
@@ -1083,6 +1105,7 @@ def Main(display, clock):
             World.generate_chunks()  # Generate Chunks that are loaded but have not been generated before
             World.render(world)  # Render all world blocks to world
             player.render(world)  # Render player and player accessories to world
+            SpeedrunTimer(world, PlayTime)
             advancements_update(player.advancements, player.inventory_list, player.armour_list, player.dimension, load, start)  # Update Advancements
             screen.render(world) #Render Text Screen
 
@@ -1296,50 +1319,59 @@ def Main(display, clock):
 
 #Render the Item the User is Holding
 def RenderHoldingItem(display):
+    global glint_list
     x, y = pygame.mouse.get_pos()
-    font = pygame.font.Font('images_vA1_7/minecraft-font/MinecraftRegular-Bmg3.otf', 20)
+    font = pygame.font.Font('images_vA1_7_1/minecraft-font/MinecraftRegular-Bmg3.otf', 20)
     if player.holding_item is not None:
         display.blit(player.holding_item_image, (x, y))
         display.blit(font.render(player.holding_item_number, False, (255, 255, 255)), (x + 35, y + 35))
+        if player.holding_item[4] is not None:
+            index = item_name_list.index(player.holding_item[0])
+            display.blit(glint_list[index], (x, y))
+
+#Convert Numbers to Roman Numerals
+def DecimalToRoman(num):
+    if num == 1:
+        num = 'I'
+    elif num == 2:
+        num = 'II'
+    elif num == 3:
+        num = 'III'
+    elif num == 4:
+        num = 'IV'
+    elif num == 5:
+        num = 'V'
+    return num
 
 #Info Box for Items (with and without enchantments)
 def TextBox(List, x, y, font, box, display):
     try:
         if List[box] is not None: #Check to prevent crashes
             if List[box][4] is None: #No Enchantments
-                length = len(List[box][0]) * 10
+                length = len(List[box][0]) * 15
                 if x + length > 504:
                     x -= length
                 pygame.draw.rect(display, (0, 0, 0), (x, y, length, 25))
                 display.blit(font.render(List[box][0], False, (255, 255, 255)), (x + 10, y + 10))
             else: #With Enchantments
-                length = len(List[box][0] * 10)
+                length_list = [len(List[box][0] * 15)]
+                for i in List[box][4]:
+                    length_list.append(len(str(i[0]) + DecimalToRoman(str(i[1]))) * 10)
+                length = max(length_list)
                 if x + length > 504:
                     x -= length
                 width = (1 + len(List[box][4])) * 25
                 pygame.draw.rect(display, (0, 0, 0), (x, y, length, width))
                 display.blit(font.render(List[box][0], False, (0, 255, 255)), (x + 10, y + 10))
                 for i in range(len(List[box][4])):
-                    enchantment = List[box][4][i][0]
-                    level = List[box][4][i][1]
-                    if level == 1:
-                        level = 'I'
-                    elif level == 2:
-                        level = 'II'
-                    elif level == 3:
-                        level = 'III'
-                    elif level == 4:
-                        level = 'IV'
-                    elif level == 5:
-                        level = 'V'
-                    display.blit(font.render(f'{enchantment} {level}', False, (255, 255, 255)), (x + 10, y + 10 + (i + 1) * 15))
+                    display.blit(font.render(f'{List[box][4][i][0]} {DecimalToRoman(List[box][4][i][1])}', False, (255, 255, 255)), (x + 10, y + 10 + (i + 1) * 15))
     except IndexError:
         pass
 
 #Render the Item Label for the Item that the User is Hovering Over
 def RenderHoveringItem(display, Type, box):
     x, y = pygame.mouse.get_pos()
-    font = pygame.font.Font('images_vA1_7/minecraft-font/MinecraftRegular-Bmg3.otf', 15)
+    font = pygame.font.Font('images_vA1_7_1/monofur/monof55.ttf', 15)
     if box is not None:
         if Type == 'inventory grid': #Within 36 Inventory Slots
             TextBox(player.inventory_list, x, y, font, box, display)
@@ -1691,7 +1723,7 @@ class Screen:
         surface.fill((125, 125, 125))
         surface.set_alpha(200)
         display.blit(surface, (x, y))
-        font = pygame.font.Font('images_vA1_7/minecraft-font/MinecraftRegular-Bmg3.otf', 12)
+        font = pygame.font.Font('images_vA1_7_1/monofur/monof55.ttf', 12)
 
         for i in range(len(self.screen_list)):
             display.blit(font.render(self.screen_list[i], False, (255, 255, 255)), (x, y + height - (i + 1) * 10 - self.input_line))
@@ -1723,11 +1755,11 @@ class Player:
         # Setup Health Bar Images
         global health_vals, health_nums, heart1, heart2, heart3, heart4, heart5, heart6, heart7, heart8, heart9, heart10, full_heart, health, half_heart, empty_heart
         full_heart = pygame.image.load(
-            'images_vA1_7/FullHeart_20x20.png').convert()  # Full Heart (2)
+            'images_vA1_7_1/FullHeart_20x20.png').convert()  # Full Heart (2)
         half_heart = pygame.image.load(
-            'images_vA1_7/half_heart_20x20.png').convert()  # Half Heart (1)
+            'images_vA1_7_1/half_heart_20x20.png').convert()  # Half Heart (1)
         empty_heart = pygame.image.load(
-            'images_vA1_7/empty_heart_20x20.png').convert()  # Empty Heart (0)
+            'images_vA1_7_1/empty_heart_20x20.png').convert()  # Empty Heart (0)
         heart1 = info_bar(full_heart, 5, 395)
         heart2 = info_bar(full_heart, 28, 395)
         heart3 = info_bar(full_heart, 51, 395)
@@ -1745,11 +1777,11 @@ class Player:
         # Setup Hunger Bar Images
         global experience_bar, hunger_vals, backdrop, empty_hunger, distance, hunger_nums, full_hunger, hunger, half_hunger, dead, hunger1, hunger2, hunger3, hunger4, hunger5, hunger6, hunger7, hunger8, hunger9, hunger10
         full_hunger = pygame.image.load(
-            'images_vA1_7/hunger_20x20.png')  # Full Hunger (2)
+            'images_vA1_7_1/hunger_20x20.png')  # Full Hunger (2)
         half_hunger = pygame.image.load(
-            'images_vA1_7/half_hunger_20x20.png')  # Half Hunger (1)
+            'images_vA1_7_1/half_hunger_20x20.png')  # Half Hunger (1)
         empty_hunger = pygame.image.load(
-            'images_vA1_7/empty_hunger_20x20.png')  # Empty Hunger (0)
+            'images_vA1_7_1/empty_hunger_20x20.png')  # Empty Hunger (0)
         self.hunger = 20  # Set Hunger = 20
         self.hunger_nums = [2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
         self.distance = 0  # Set Distance Travelled
@@ -1766,7 +1798,7 @@ class Player:
         hunger9 = info_bar(full_hunger, 293, 395)
         hunger10 = info_bar(full_hunger, 270, 395)
         self.hunger_vals = [hunger1, hunger2, hunger3, hunger4, hunger5, hunger6, hunger7, hunger8, hunger9, hunger10]  # Hunger bar list
-        experience_bar = pygame.image.load('images_vA1_7/item_imgs/experience.png').convert()
+        experience_bar = pygame.image.load('images_vA1_7_1/item_imgs/experience.png').convert()
         backdrop = pygame.Rect((20, 395), (465, 20))  # Set Background for Hunger and Health Bar
 
         self.waiting_list = []
@@ -1810,7 +1842,7 @@ class Player:
 
         #Create Hotbar
         global slot
-        slot = pygame.image.load("images_vA1_7/item_imgs/slot.png").convert()
+        slot = pygame.image.load("images_vA1_7_1/item_imgs/slot.png").convert()
         bar1 = info_bar(slot, 5, 445)
         bar2 = info_bar(slot, 60, 445)
         bar3 = info_bar(slot, 115, 445)
@@ -2058,7 +2090,7 @@ class Player:
 
         # DRAW EXPERIENCE BAR
         display.blit(experience_bar, (3, 420))  # Experience Bar
-        fontx = pygame.font.Font('images_vA1_7/minecraft-font/MinecraftRegular-Bmg3.otf', 30)
+        fontx = pygame.font.Font('images_vA1_7_1/minecraft-font/MinecraftRegular-Bmg3.otf', 30)
         experience_number = fontx.render(str(self.experience), True, '#82b054', (255, 255, 255))
         experience_number_r = experience_number.get_rect()
         experience_number_r.center = (252, 410)
@@ -2093,7 +2125,7 @@ class Player:
 
         # SETUP HOTBAR NUMBERS
         font = pygame.font.Font(
-            'images_vA1_7/minecraft-font/MinecraftRegular-Bmg3.otf', 16)
+            'images_vA1_7_1/minecraft-font/MinecraftRegular-Bmg3.otf', 16)
 
         pygame_number_text = [
             Text(font.render(self.number_list[27], True, (255, 0, 0), (255, 255, 255)), 40, 480),
@@ -2114,15 +2146,17 @@ class Player:
         # RENDER F3 Screen
         if player.F3:
             font9 = pygame.font.Font(
-                'images_vA1_7/minecraft-font/MinecraftRegular-Bmg3.otf', 25)
+                'images_vA1_7_1/minecraft-font/MinecraftRegular-Bmg3.otf', 25)
             version = font9.render("Tilecraft vAlpha 1.7", True, (0, 0, 0), (255, 255, 255))
             display.blit(version, (0, 0))
             pygame_version = font9.render("Graphics: pygame v2.0.1", True, (0, 0, 0), (255, 255, 255))
             display.blit(pygame_version, (0, 25))
             FPS = font9.render(f"FPS: {previous_frame}", True, (0, 0, 0), (255, 255, 255))
-            display.blit(FPS, (0, 50))
+            display.blit(FPS, (0, 75))
             Coords = font9.render(f"X: {round(player.x, 3)}, Y: {round(player.y, 3)}", True, (0, 0, 0), (255, 255, 255))
-            display.blit(Coords, (0, 75))
+            display.blit(Coords, (0, 100))
+            SEEDs = font9.render(f"Seed: {World.seed}", True, (0, 0, 0), (255, 255, 255))
+            display.blit(SEEDs, (0, 50))
 
 def exit_death_screen():
     global death_window
@@ -2159,7 +2193,7 @@ def death_screen():
 def create_world():
     # Play Minecraft Music (Sweden)
     pygame.mixer.init()
-    pygame.mixer.music.load("images_vA1_7/sweden.mp3")
+    pygame.mixer.music.load("images_vA1_7_1/sweden.mp3")
     pygame.mixer.music.play()
 
     # Variables
@@ -2183,68 +2217,68 @@ def create_world():
 
     pygame.init()  # Initialise Pygame Module
     display = pygame.display.set_mode((504, 504))  # Set display
-    pygame.display.set_caption("Tilecraft Alpha 1.7")  # Set title
+    pygame.display.set_caption("Tilecraft Alpha 1.7.1")  # Set title
     clock = pygame.time.Clock()
 
     # Block Textures
     global grass, netherrack, stone
-    grass = pygame.image.load('images_vA1_7/grass.png').convert()  # Grass
-    netherrack = pygame.image.load('images_vA1_7/netherrack.png').convert()  # Netherrack
-    stone = pygame.image.load('images_vA1_7/stone.png').convert()  # Stone
+    grass = pygame.image.load('images_vA1_7_1/grass.png').convert()  # Grass
+    netherrack = pygame.image.load('images_vA1_7_1/netherrack.png').convert()  # Netherrack
+    stone = pygame.image.load('images_vA1_7_1/stone.png').convert()  # Stone
 
     global pygame_imgs, hotbar_imgs, pygame_enchant_imgs, hotbar_order, none_img, fire, no_fire
 
     # Create PYGAME inventory images for hotbar
-    gravel = pygame.image.load("images_vA1_7/item_imgs/gravel.png").convert_alpha()  # 0
-    flint = pygame.image.load("images_vA1_7/item_imgs/flint.png").convert_alpha()  # 1
-    shield = pygame.image.load("images_vA1_7/item_imgs/shield.png").convert_alpha()  # 2
-    water_bucket = pygame.image.load("images_vA1_7/item_imgs/water_bucket.png").convert_alpha()  # 3
-    bucket = pygame.image.load("images_vA1_7/item_imgs/bucket.png").convert_alpha()  # 4
-    iron_axe = pygame.image.load("images_vA1_7/item_imgs/iron_axe.png").convert_alpha()  # 5
-    iron_pickaxe = pygame.image.load("images_vA1_7/item_imgs/iron_pickaxe.png").convert_alpha()  # 6
-    iron_ore = pygame.image.load("images_vA1_7/item_imgs/iron_ore.png").convert_alpha()  # 7
-    coal = pygame.image.load("images_vA1_7/item_imgs/coal.png").convert_alpha()  # 8
-    iron_ingot = pygame.image.load("images_vA1_7/item_imgs/iron_ingot.png").convert_alpha()  # 9
-    furnace = pygame.image.load("images_vA1_7/item_imgs/furnace.png").convert_alpha()  # 10
-    stone_hoe = pygame.image.load("images_vA1_7/item_imgs/stone_hoe.png").convert_alpha()  # 11
-    stone_shovel = pygame.image.load("images_vA1_7/item_imgs/stone_shovel.png").convert_alpha()  # 12
-    stone_axe = pygame.image.load("images_vA1_7/item_imgs/stone_axe.png").convert_alpha()  # 13
-    stone_pickaxe = pygame.image.load("images_vA1_7/item_imgs/stone_pickaxe.png").convert_alpha()  # 14
-    wooden_pickaxe = pygame.image.load("images_vA1_7/item_imgs/wooden_pickaxe.png").convert_alpha()  # 15
-    stick = pygame.image.load("images_vA1_7/item_imgs/stick.png").convert_alpha()  # 16
-    planks = pygame.image.load("images_vA1_7/item_imgs/oak_planks.png").convert_alpha()  # 17
-    wood = pygame.image.load("images_vA1_7/item_imgs/oak_log.png").convert_alpha()  # 18
-    cobblestone = pygame.image.load("images_vA1_7/item_imgs/cobblestone.png").convert_alpha()  # 19
-    flint_and_steel = pygame.image.load("images_vA1_7/item_imgs/flint_and_steel.png").convert_alpha()  # 20
-    bed = pygame.image.load("images_vA1_7/item_imgs/bed.png").convert_alpha()  # 21
-    hay = pygame.image.load("images_vA1_7/item_imgs/hay_bale.png").convert_alpha()  # 22
-    diamond = pygame.image.load("images_vA1_7/item_imgs/diamond.png").convert_alpha()  # 23
-    jukebox = pygame.image.load("images_vA1_7/item_imgs/jukebox.png").convert_alpha()  # 24
-    bread = pygame.image.load("images_vA1_7/item_imgs/bread.png").convert_alpha()  # 25
-    obsidian = pygame.image.load("images_vA1_7/item_imgs/obsidian.png").convert_alpha()  # 26
-    diamond_pickaxe = pygame.image.load("images_vA1_7/item_imgs/diamond_pickaxe.png").convert_alpha()  # 27
-    diamond_axe = pygame.image.load("images_vA1_7/item_imgs/diamond_axe.png").convert_alpha()  # 28
-    pigstep_disc = pygame.image.load("images_vA1_7/item_imgs/pigstep_disc.png").convert_alpha()  # 29
-    book = pygame.image.load("images_vA1_7/item_imgs/book.png").convert_alpha()  # 30
-    enchanting_table = pygame.image.load("images_vA1_7/item_imgs/enchanting_table.png").convert_alpha()  # 31
-    bookshelf = pygame.image.load("images_vA1_7/item_imgs/bookshelf.png").convert_alpha()  # 32
-    lapis = pygame.image.load("images_vA1_7/item_imgs/lapis_lazuli.png").convert_alpha()  # 33
-    golden_carrot = pygame.image.load("images_vA1_7/item_imgs/golden_carrot.png").convert_alpha()  # 34
-    golden_apple = pygame.image.load("images_vA1_7/item_imgs/golden_apple.png")  # 35
-    crafting_table = pygame.image.load("images_vA1_7/item_imgs/crafting_table.png").convert_alpha()  # 436
-    iron_plate = pygame.image.load("images_vA1_7/item_imgs/iron_plate.png").convert_alpha() #37
-    tier1_iron_plate = pygame.image.load("images_vA1_7/item_imgs/tier1_iron_plate.png").convert_alpha() #38
-    tier2_iron_plate = pygame.image.load("images_vA1_7/item_imgs/tier2_iron_plate.png").convert_alpha() #39
-    tier3_iron_plate = pygame.image.load("images_vA1_7/item_imgs/tier3_iron_plate.png").convert_alpha() #40
-    compressor = pygame.image.load("images_vA1_7/item_imgs/compressor.png").convert_alpha() #41
-    diamond_plate = pygame.image.load("images_vA1_7/item_imgs/diamond_plate.png").convert_alpha() #42
-    tier1_diamond_plate = pygame.image.load("images_vA1_7/item_imgs/tier1_diamond_plate.png").convert_alpha() #43
-    tier2_diamond_plate = pygame.image.load("images_vA1_7/item_imgs/tier2_diamond_plate.png").convert_alpha() #44
-    tier3_diamond_plate = pygame.image.load("images_vA1_7/item_imgs/tier3_diamond_plate.png").convert_alpha() #45
+    gravel = pygame.image.load("images_vA1_7_1/item_imgs/gravel.png").convert_alpha()  # 0
+    flint = pygame.image.load("images_vA1_7_1/item_imgs/flint.png").convert_alpha()  # 1
+    shield = pygame.image.load("images_vA1_7_1/item_imgs/shield.png").convert_alpha()  # 2
+    water_bucket = pygame.image.load("images_vA1_7_1/item_imgs/water_bucket.png").convert_alpha()  # 3
+    bucket = pygame.image.load("images_vA1_7_1/item_imgs/bucket.png").convert_alpha()  # 4
+    iron_axe = pygame.image.load("images_vA1_7_1/item_imgs/iron_axe.png").convert_alpha()  # 5
+    iron_pickaxe = pygame.image.load("images_vA1_7_1/item_imgs/iron_pickaxe.png").convert_alpha()  # 6
+    iron_ore = pygame.image.load("images_vA1_7_1/item_imgs/iron_ore.png").convert_alpha()  # 7
+    coal = pygame.image.load("images_vA1_7_1/item_imgs/coal.png").convert_alpha()  # 8
+    iron_ingot = pygame.image.load("images_vA1_7_1/item_imgs/iron_ingot.png").convert_alpha()  # 9
+    furnace = pygame.image.load("images_vA1_7_1/item_imgs/furnace.png").convert_alpha()  # 10
+    stone_hoe = pygame.image.load("images_vA1_7_1/item_imgs/stone_hoe.png").convert_alpha()  # 11
+    stone_shovel = pygame.image.load("images_vA1_7_1/item_imgs/stone_shovel.png").convert_alpha()  # 12
+    stone_axe = pygame.image.load("images_vA1_7_1/item_imgs/stone_axe.png").convert_alpha()  # 13
+    stone_pickaxe = pygame.image.load("images_vA1_7_1/item_imgs/stone_pickaxe.png").convert_alpha()  # 14
+    wooden_pickaxe = pygame.image.load("images_vA1_7_1/item_imgs/wooden_pickaxe.png").convert_alpha()  # 15
+    stick = pygame.image.load("images_vA1_7_1/item_imgs/stick.png").convert_alpha()  # 16
+    planks = pygame.image.load("images_vA1_7_1/item_imgs/oak_planks.png").convert_alpha()  # 17
+    wood = pygame.image.load("images_vA1_7_1/item_imgs/oak_log.png").convert_alpha()  # 18
+    cobblestone = pygame.image.load("images_vA1_7_1/item_imgs/cobblestone.png").convert_alpha()  # 19
+    flint_and_steel = pygame.image.load("images_vA1_7_1/item_imgs/flint_and_steel.png").convert_alpha()  # 20
+    bed = pygame.image.load("images_vA1_7_1/item_imgs/bed.png").convert_alpha()  # 21
+    hay = pygame.image.load("images_vA1_7_1/item_imgs/hay_bale.png").convert_alpha()  # 22
+    diamond = pygame.image.load("images_vA1_7_1/item_imgs/diamond.png").convert_alpha()  # 23
+    jukebox = pygame.image.load("images_vA1_7_1/item_imgs/jukebox.png").convert_alpha()  # 24
+    bread = pygame.image.load("images_vA1_7_1/item_imgs/bread.png").convert_alpha()  # 25
+    obsidian = pygame.image.load("images_vA1_7_1/item_imgs/obsidian.png").convert_alpha()  # 26
+    diamond_pickaxe = pygame.image.load("images_vA1_7_1/item_imgs/diamond_pickaxe.png").convert_alpha()  # 27
+    diamond_axe = pygame.image.load("images_vA1_7_1/item_imgs/diamond_axe.png").convert_alpha()  # 28
+    pigstep_disc = pygame.image.load("images_vA1_7_1/item_imgs/pigstep_disc.png").convert_alpha()  # 29
+    book = pygame.image.load("images_vA1_7_1/item_imgs/book.png").convert_alpha()  # 30
+    enchanting_table = pygame.image.load("images_vA1_7_1/item_imgs/enchanting_table.png").convert_alpha()  # 31
+    bookshelf = pygame.image.load("images_vA1_7_1/item_imgs/bookshelf.png").convert_alpha()  # 32
+    lapis = pygame.image.load("images_vA1_7_1/item_imgs/lapis_lazuli.png").convert_alpha()  # 33
+    golden_carrot = pygame.image.load("images_vA1_7_1/item_imgs/golden_carrot.png").convert_alpha()  # 34
+    golden_apple = pygame.image.load("images_vA1_7_1/item_imgs/golden_apple.png")  # 35
+    crafting_table = pygame.image.load("images_vA1_7_1/item_imgs/crafting_table.png").convert_alpha()  # 436
+    iron_plate = pygame.image.load("images_vA1_7_1/item_imgs/iron_plate.png").convert_alpha() #37
+    tier1_iron_plate = pygame.image.load("images_vA1_7_1/item_imgs/tier1_iron_plate.png").convert_alpha() #38
+    tier2_iron_plate = pygame.image.load("images_vA1_7_1/item_imgs/tier2_iron_plate.png").convert_alpha() #39
+    tier3_iron_plate = pygame.image.load("images_vA1_7_1/item_imgs/tier3_iron_plate.png").convert_alpha() #40
+    compressor = pygame.image.load("images_vA1_7_1/item_imgs/compressor.png").convert_alpha() #41
+    diamond_plate = pygame.image.load("images_vA1_7_1/item_imgs/diamond_plate.png").convert_alpha() #42
+    tier1_diamond_plate = pygame.image.load("images_vA1_7_1/item_imgs/tier1_diamond_plate.png").convert_alpha() #43
+    tier2_diamond_plate = pygame.image.load("images_vA1_7_1/item_imgs/tier2_diamond_plate.png").convert_alpha() #44
+    tier3_diamond_plate = pygame.image.load("images_vA1_7_1/item_imgs/tier3_diamond_plate.png").convert_alpha() #45
 
-    none_img = pygame.image.load("images_vA1_7/item_imgs/slot.png").convert_alpha()  # White Space
-    fire = pygame.image.load("images_vA1_7/item_imgs/fire.png").convert_alpha() #Fire when smelting                                                                                                  1)  # Fire when smelting
-    no_fire = pygame.image.load("images_vA1_7/item_imgs/no_fire.png").convert_alpha()  # No fire when smelting
+    none_img = pygame.image.load("images_vA1_7_1/item_imgs/slot.png").convert_alpha()  # White Space
+    fire = pygame.image.load("images_vA1_7_1/item_imgs/fire.png").convert_alpha() #Fire when smelting                                                                                                  1)  # Fire when smelting
+    no_fire = pygame.image.load("images_vA1_7_1/item_imgs/no_fire.png").convert_alpha()  # No fire when smelting
 
     pygame_imgs = [gravel, flint, shield, water_bucket, bucket, iron_axe, iron_pickaxe, iron_ore, coal,
                    iron_ingot, furnace, stone_hoe, stone_shovel, stone_axe, stone_pickaxe,
@@ -2262,7 +2296,7 @@ def create_world():
     glint_num_list = []
     new_glint_name_list = []
     int_glint_num_list = []
-    for filename in os.listdir('images_vA1_7/glints'):
+    for filename in os.listdir('images_vA1_7_1/glints'):
         glint_num_list.append(filename[5:-4])
         glint_fullname_list.append(filename[:-4])
     for i in glint_num_list:
@@ -2272,7 +2306,7 @@ def create_world():
         index = glint_num_list.index(str(i))
         new_glint_name_list.append(glint_fullname_list[index])
     for i in new_glint_name_list:
-        image = pygame.image.load('images_vA1_7/glints/' + i + '.png').convert_alpha()
+        image = pygame.image.load('images_vA1_7_1/glints/' + i + '.png').convert_alpha()
         glint_list.append(image)
 
     # List for Hotbar Orders
@@ -2297,11 +2331,12 @@ def create_world():
     world = pygame.Surface((504, 504))  # Create Map Surface
     world.fill((0, 0, 0))  # Fill Map Surface Black
 
-    global player, World, Option1, Option2, Option3, Upgrade, screen
+    global player, World, Option1, Option2, Option3, Upgrade, screen, TimerRunning
 
     player = Player()  # Create Player
-    World = TilecraftWorld()  # Create World
+    World = TilecraftWorld(GetSeed())  # Create World
     screen = Screen() #Create Text Screen
+    TimerRunning = True
     Upgrade = Button(55, 55, 75, 95, (158, 145, 115))
     Option1 = Button(325, 55, 170, 50, (158, 145, 115))
     Option2 = Button(325, 55, 170, 105, (158, 145, 115))
@@ -2504,9 +2539,6 @@ def commands(number, val):
                         else:
                             blacksmith_bread = 0
 
-                        # GENERATE BOOK VALUES
-                        blacksmith_book = random.randint(5, 11)
-
                         # UPDATE AND PRINT INVENTORY VALUES
                         if blacksmith_iron > 0:
                             screen.print(f"+{blacksmith_iron} Iron Ingot")
@@ -2517,13 +2549,34 @@ def commands(number, val):
                         if blacksmith_bread > 0:
                             screen.print(f"+{blacksmith_bread} Bread")
                             inventory_add([["Bread", blacksmith_bread, 64, "Food", None]])
-                        screen.print(f"+{blacksmith_book} Books")
-                        inventory_add([["Book", blacksmith_book, 64, "Item", None]])
 
                         actualX = World.bound_village3[j][0][1]
                         actualY = World.bound_village3[j][1][1]
                         World.empty_vil3.append([actualX, actualY])
                         World.bound_village3.remove(World.bound_village3[j])
+                        call = True
+                        empty_vil()
+                        break
+                if call:
+                    call = False
+                else:
+                    screen.print("You are not at a village")
+            else:
+                screen.print("You are not in the overworld")
+        elif val == '/lootvillagelibrary':
+            if player.dimension == 'Overworld':
+                for j in range(len(World.bound_village4)):
+                    if (World.bound_village4[j][0][0] < player.x < World.bound_village4[j][0][2]) and (World.bound_village4[j][1][0] < player.y < World.bound_village4[j][1][2]):
+                        library_bookshelf = random.randint(1, 3)
+                        library_books = random.randint(7, 14)
+                        screen.print(f"+{library_bookshelf} Bookshelf")
+                        screen.print(f"+{library_books} Books")
+                        inventory_add([["Bookshelf", library_bookshelf, 64, "Item", None]])
+                        inventory_add([["Book", library_books, 64, "Item", None]])
+                        actualX = World.bound_village4[j][0][1]
+                        actualY = World.bound_village4[j][1][1]
+                        World.empty_vil4.append([actualX, actualY])
+                        World.bound_village4.remove(World.bound_village4[j])
                         call = True
                         empty_vil()
                         break
@@ -2779,10 +2832,10 @@ def commands(number, val):
 
             if pigstep_disc_bool and jukebox_bool:  # Play Pigstep
                 pygame.mixer.init()
-                pygame.mixer.music.load("images_vA1_7/pigstep.mp3")
+                pygame.mixer.music.load("images_vA1_7_1/pigstep.mp3")
                 pygame.mixer.music.set_volume(10)
                 pygame.mixer.music.play()
-                MusicPlayer(player.advancements, load, start) #Update Advancement and Speedrun Details
+                MusicPlayer(player.advancements) #Update Advancement and Speedrun Details
             else:
                 screen.print("Error: Not Enough Resources")
         elif val == "/mineobsidian":  # Mine Obsidian
@@ -2914,7 +2967,6 @@ def commands(number, val):
         elif val == '/give':
             if load == 'Cheats':
                 screen.start_typing("Item ID (0 - 45): ")
-                # inventory_add([give(item_name_list, stack_list, item_type_list)])
             else:
                 screen.print("REQUIRE CHEATS DATAPACK")
         elif val == '/tp':
@@ -2936,10 +2988,11 @@ class info_bar:
 
 # Displays empty village
 def empty_vil():
-    global actualX, actualY, bool_empty_vil1, bool_empty_vil2, empty_vil_total, bool_empty_vil3
+    global actualX, actualY, bool_empty_vil1, bool_empty_vil2, empty_vil_total, bool_empty_vil3, bool_empty_vil4
     bool_empty_vil1 = False
     bool_empty_vil2 = False
     bool_empty_vil3 = False
+    bool_empty_vil4 = False
     for i in range(len(World.empty_vil1)):
         if (actualX in World.empty_vil1[i]) and (actualY in World.empty_vil1[i]):
             bool_empty_vil1 = True
@@ -2949,7 +3002,10 @@ def empty_vil():
     for i in range(len(World.empty_vil3)):
         if (actualX in World.empty_vil3[i]) and (actualY in World.empty_vil3[i]):
             bool_empty_vil3 = True
-    if bool_empty_vil1 and bool_empty_vil2 and bool_empty_vil3:
+    for i in range(len(World.empty_vil4)):
+        if (actualX in World.empty_vil4[i]) and (actualY in World.empty_vil4[i]):
+            bool_empty_vil4 = True
+    if bool_empty_vil1 and bool_empty_vil2 and bool_empty_vil3 and bool_empty_vil4:
         World.empty_vil_total.append([actualX, actualY])
 
 
@@ -3013,6 +3069,24 @@ def optionData():
     else:
         return 'None'
 
+#Get the world seed
+def GetSeed():
+    global tkvar3
+    text = tkvar3.get()
+    if text != '':
+        try:
+            return int(text)
+        except ValueError:
+            return random.randint(-1 * 2**24, 2**24 - 1)
+    else:
+        return random.randint(-1 * 2 ** 24, 2 ** 24 - 1)
+
+#Get the user's first click on entry box
+def get_first_click(event):
+    global first_click, tkvar3
+    if first_click:
+        first_click = False
+        tkvar3.set('')
 
 # Quit screen
 def Quit():
@@ -3030,7 +3104,7 @@ def patchnotes():
     global window1
     Quit()
     window1 = tkinter.Tk()
-    window1.title('Tilecraft Alpha 1.7')
+    window1.title('Tilecraft Alpha 1.7.1')
     window1.geometry('500x500')
     bold_font = tkinter.font.Font(family='Minecraft Ten', size=40)
     font = tkinter.font.Font(family='Minecraft', size=24)
@@ -3061,7 +3135,7 @@ def howtoplay():
     global window2
     Quit()
     window2 = tkinter.Tk()
-    window2.title('Tilecraft Alpha 1.7')
+    window2.title('Tilecraft Alpha 1.7.1')
     window2.geometry('500x500')
     bold_font = tkinter.font.Font(family='Minecraft Ten', size=40)
     font = tkinter.font.Font(family='Minecraft', size=24)
@@ -3083,20 +3157,22 @@ def howtoplay():
 
 # Title Screen Function
 def title_screen():
-    global window, tkvar2, fontStyle2, fileMenu, startWorld, bg, bold_font, regular_font, fontStyle2, font4
+    global window, tkvar2, fontStyle2, fileMenu, startWorld, bg, bold_font, regular_font, fontStyle2, font4, tkvar3, first_click
+
+    first_click = True #Set Variable to track when the user first clicked on the seed box
 
     # Play Minecraft Music (Minecraft)
     pygame.mixer.init()
-    pygame.mixer.music.load("images_vA1_7/Minecraft.mp3")
+    pygame.mixer.music.load("images_vA1_7_1/Minecraft.mp3")
     pygame.mixer.music.play()
 
     # Create tkinter window
     window = tkinter.Tk()
-    window.title('Tilecraft Alpha 1.7')
+    window.title('Tilecraft Alpha 1.7.1')
     window.geometry('500x500')
 
     # Create background image
-    bg = tkinter.PhotoImage(file="images_vA1_7/A1_6_title_screen.png")
+    bg = tkinter.PhotoImage(file="images_vA1_7_1/A1_7_background.png")
 
     # Create fonts
     bold_font = tkinter.font.Font(family='Minecraft Ten', size=40)
@@ -3108,8 +3184,15 @@ def title_screen():
     canvas1 = tkinter.Canvas(window, width=500, height=500)
     canvas1.create_image(0, 0, image=bg, anchor="nw")
     canvas1.create_text(250, 25, fill="black", font=bold_font, text="Tilecraft")
-    canvas1.create_text(250, 50, fill="black", font=regular_font, text="Alpha 1.7")
+    canvas1.create_text(250, 50, fill="black", font=regular_font, text="Alpha 1.7.1")
     canvas1.place(x=0, y=0)
+
+    #Create Seed Box Entry Widget
+    tkvar3 = tkinter.StringVar(window)
+    tkvar3.set('World Seed: ')
+    SeedBox = tkinter.Entry(window, textvariable=tkvar3)
+    SeedBox.configure(width=38, fg='white', font=font4)
+    SeedBox.place(x=80, y=100)
 
     # Create a tkinter variable
     tkvar2 = tkinter.StringVar(window)
@@ -3120,45 +3203,31 @@ def title_screen():
 
     # Option menu for datapacks
     fileMenu = tkinter.OptionMenu(window, tkvar2, *choices)
-    fileMenu.configure(width=33, foreground='black', font=font4)
-    fileMenu.place(x=80, y=100)
+    fileMenu.configure(width=34, foreground='black', font=font4)
+    fileMenu.place(x=80, y=125)
 
     # New World button
     startWorld = tkinter.Button(window, text="New World", command=create_world, width="19", height="2", font=fontStyle2,
                                 foreground='black')
-    startWorld.place(x=80, y=120)
+    startWorld.place(x=80, y=145)
 
     # How to play button
     htp = tkinter.Button(window, text="How to Play", width="19", height="2", font=fontStyle2, foreground='black', command=howtoplay)
-    htp.place(x=80, y=180)
+    htp.place(x=80, y=205)
 
     # Patch Notes
     patch_notes = tkinter.Button(window, text="Patch Notes", width="19", height="2", font=fontStyle2, foreground='black', command=patchnotes)
-    patch_notes.place(x=80, y=240)
+    patch_notes.place(x=80, y=265)
 
     # Quit Button
     quit_button = tkinter.Button(window, text="Quit", command=Quit, width="19", height="2", font=fontStyle2, foreground='black')
-    quit_button.place(x=80, y=300)
+    quit_button.place(x=80, y=325)
 
-    # Trace option menu
-    tkvar2.trace('w', optionUpdate)
+    #Clicking on Seedbox entry widget
+    SeedBox.bind('<FocusIn>', get_first_click)
 
     # Tkinter main loop
     window.mainloop()
-
-# Selects options
-def optionUpdate(*args):
-    global load
-    if tkvar2.get() == 'Speedrun Data Pack':
-        print("Speedrun Data Pack activated")
-    elif tkvar2.get() == 'Cheats Data Pack':
-        print("Cheats Data Pack activated")
-    elif tkvar2.get() == '"Music Player" Speedrun Data Pack':
-        print('"Music Player" Speedrun Data Pack activated')
-    elif tkvar2.get() == '"God Gear" Speedrun Data Pack':
-        print('"God Gear" Speedrun Data Pack activated')
-    else:
-        print("No data pack selected")
 
 def EnchantRemoveItem():
     global player
