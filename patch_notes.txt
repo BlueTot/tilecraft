@@ -1,7 +1,7 @@
 PATCH NOTES FOR TILECRAFT
 
 ------------------------------------------------------------
-Patch Alpha 1.0_01 ---- Jan 11
+Patch Alpha 1.0 Pre-Release 1 ---- Jan 11 2021
 
 World Generation:
 	- Added Seed generator
@@ -10,7 +10,7 @@ World Generation:
 - Fixed bugs
 
 ------------------------------------------------------------
-Patch Alpha 1.0_02 ---- Jan 12
+Patch Alpha 1.0_02 Pre-Release 2 ---- Jan 12 2021
 
 World Generation:
 	- Added cave structure- Added Turtle screen
@@ -22,7 +22,7 @@ Graphics:
 - Fixed bugs
 
 ------------------------------------------------------------
-Patch Alpha 1.0 Release ---- Jan 13
+Patch Alpha 1.0 Release ---- Jan 13 2021
 
 World Generation:
 	- Added functionally for village
@@ -31,7 +31,7 @@ World Generation:
 - Fixed bugs
 
 ------------------------------------------------------------
-Patch Alpha 1.1_01 ---- Jan 16
+Patch Alpha 1.1 Pre-Release 1 ---- Jan 16 2021
 
 Game Engine:
 	- Added Tkinter GUI Input Box
@@ -39,7 +39,7 @@ Game Engine:
 - Fixed bugs
 
 ------------------------------------------------------------
-Patch Alpha 1.1_02 ---- Jan 17
+Patch Alpha 1.1 Pre-Release 2 ---- Jan 17 2021
 
 Commands:
 	- Added crafting recipes
@@ -51,8 +51,7 @@ Inventory:
 
 
 ------------------------------------------------------------
-
-Patch Alpha 1.1 Release ---- Jan 23
+Patch Alpha 1.1 Release ---- Jan 23 2021
 
 World Generation:
 	- Overhauled world generation
@@ -79,7 +78,7 @@ Advancements:
 - Fixed bugs
 
 ------------------------------------------------------------
-Patch Alpha 1.2 Pre-release ---- Jan 28
+Patch Alpha 1.2 Pre-Release 1 ---- Jan 28 2021
 
 World Generation:
 	- Added functionality to lava pools
@@ -100,13 +99,13 @@ Game Engine:
 - Fixed bugs
 
 ------------------------------------------------------------
-Patch Alpha 1.2 Release ---- Jan 29
+Patch Alpha 1.2 Release ---- Jan 29 2021
 
 Game Engine:
 	- REPLIT Minecraft Launched
 
 ------------------------------------------------------------
-Patch Alpha 1.3 Release ---- Feb 1
+Patch Alpha 1.3 Release ---- Feb 1 2021
 
 Game Engine:
 	- Reconfigured title screen
@@ -126,7 +125,7 @@ Music:
 - Fixed Bugs
 
 ------------------------------------------------------------
-Patch Alpha 1.4 Release ---- Mar 7
+Patch Alpha 1.4 Release ---- Mar 7 2021
 
 Game Engine:
 	- Removed turtle screen
@@ -148,12 +147,12 @@ Datapacks:
 - Fixed bugs
 
 ------------------------------------------------------------
-Patch Alpha 1.4.1 Release ---- Apr 26
+Patch Alpha 1.4.1 Release ---- Apr 26 2021
 
 - Fixed bugs
 
 ------------------------------------------------------------
-Patch Alpha 1.5 Release ---- Apr 30
+Patch Alpha 1.5 Release ---- Apr 30 2021
 
 Source Code Changes:
 	- Reworked source code files
@@ -186,7 +185,7 @@ Datapacks:
 - Fixed bugs
 
 ------------------------------------------------------------
-Patch Alpha 1.5.1 Release ---- May 2
+Patch Alpha 1.5.1 Release ---- May 2 2021
 
 Survival:
 	- Added natural regeneration of health
@@ -194,12 +193,12 @@ Survival:
 - Fixed more bugs
 
 ------------------------------------------------------------
-Patch Alpha 1.5.2 Release ---- May 10
+Patch Alpha 1.5.2 Release ---- May 10 2021
 
 - Fixed more bugs
 
 ------------------------------------------------------------
-Patch Alpha 1.6 Pre-release 1 ---- May 25
+Patch Alpha 1.6 Pre-release 1 ---- May 25 2021
 
 Game Engine:
 	- Worlds load infinitely
@@ -224,7 +223,7 @@ Datapacks:
 - Fixed bugs
 
 ------------------------------------------------------------
-Patch Alpha 1.6 Pre-release 2 ---- July 8
+Patch Alpha 1.6 Pre-release 2 ---- July 8 2021
 
 Commands:
 	- Removed crafting commands
@@ -259,7 +258,7 @@ Enchanting:
 - Fixed bugs
 
 ------------------------------------------------------------
-Patch Alpha 1.6 Release ---- July 8
+Patch Alpha 1.6 Release ---- July 8 2021
 
 Advancements:
 	- Added God Gear Advancement
@@ -267,7 +266,7 @@ Advancements:
 	- Added Music Player Advancement
 
 ------------------------------------------------------------
-Patch Alpha 1.6.1 Release ---- July 10
+Patch Alpha 1.6.1 Release ---- July 10 2021
 
 Commands:
 	- Commands with multiple whitespaces now work
@@ -279,7 +278,7 @@ Datapacks:
 - Fixed bugs
 
 ------------------------------------------------------------
-Patch Alpha 1.6.2 Release ---- July 12
+Patch Alpha 1.6.2 Release ---- July 12 2021
 
 Inventory:
 	- Added keybinds to move items to hotbar
@@ -287,7 +286,7 @@ Inventory:
 - Fixed bugs
 
 ------------------------------------------------------------
-Patch Alpha 1.7 Release ---- Dec 8
+Patch Alpha 1.7 Release ---- Dec 8 2021
 
 World Generation:
 	- Overworld and Nether structures generate infinitely
@@ -326,15 +325,16 @@ Title Screen:
     - Added How to Play Menu
 
 - Fixed bugs
+
 ------------------------------------------------------------
-Patch Alpha 1.7.1 Release ---- Dec 13
+Patch Alpha 1.7.1 Release ---- Dec 13 2021
 
 Title Screen:
     - Updated How to Play Menu
     - Changed Title Screen Background
 
 World Generation:
-    - Structure generation method changed
+    - Random number algorithm added to control structure generation
     - Structures are now more common
     - World seeds now fully control structure generation
     - Villages now have a library that can contain 1 - 2 bookshelves and 7 - 14 books.
@@ -344,4 +344,62 @@ Accessory Functions:
     - World Seed info added to F3 Screen
     - Added on-screen Speedrun Timer for God Gear and Music Player speedruns
 
-- Fixed bugs
+- Fixed bugs from Alpha 1.7:
+     - Issue related to rendering of blocks
+     - Enchantment glint not rendering in holding item
+     - Info box for text not big enough for text inside
+
+------------------------------------------------------------
+Patch Alpha 1.7.2 Release ---- Dec 22 2021
+
+World Generation:
+    - Ruined Portal Obsidian Remaining is now dependent on the seed
+    - Changed random number algorithm
+
+Survival:
+    - Added sprinting
+    - Sprinting speed is 5.625 m/s
+    - Increased walking speed to 3.75 m/s
+
+Inventory:
+    - Flint and Steel now can be crafted in 2x2 crafting grid
+
+- Fixed bugs from Alpha 1.7.1:
+     - Nether structures do not depend on seed
+     - Spawn Chunks not generated for nether dimension
+     - Chest loot RNG dependent on seed
+     - Integer overflow error for seed number
+     - Items can be overstacked by combining or dropping items in the inventory
+     - Items can be understacked by clicking with CPS higher than 60
+     - Game crashes when item is placed in the compressor
+
+------------------------------------------------------------
+Patch Alpha 1.7.3 Release ---- Dec 27 2021
+
+- Fixed bugs from Alpha 1.7.2:
+    - Advancements are not properly printed in chat
+    - Users can edit the Patch Notes and How to Play menus in-game
+    - Patch Notes and How to Play menus do not appear
+
+------------------------------------------------------------
+Patch Alpha 1.7.4 Release ---- Dec 28 2021
+
+Survival:
+    - Hunger mechanics tweaked again
+    - Death screen background is now light red
+
+- Fixed bugs from Alpha 1.7.3:
+    - Version numbers are not updated in death window and F3 Screen
+    - Game crashes when hunger reaches 0
+    - Item info boxes are too large
+
+------------------------------------------------------------
+P.S. SPOILERS for next major update to Tilecraft:
+
+Patch Beta 1.0 Release -- c. July 2022
+    - Breaking and Placing tiles
+    - Tile collisions
+    - Item durability
+    - Generation of physical caves, deep caves, water pools, lava pools and ruinecd portals
+    - Chests to store items
+    - New way to enter the nether
