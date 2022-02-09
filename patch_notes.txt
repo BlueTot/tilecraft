@@ -10,7 +10,7 @@ World Generation:
 - Fixed bugs
 
 ------------------------------------------------------------
-Patch Alpha 1.0_02 Pre-Release 2 ---- Jan 12 2021
+Patch Alpha 1.0 Pre-Release 2 ---- Jan 12 2021
 
 World Generation:
 	- Added cave structure- Added Turtle screen
@@ -102,7 +102,7 @@ Game Engine:
 Patch Alpha 1.2 Release ---- Jan 29 2021
 
 Game Engine:
-	- REPLIT Minecraft Launched
+	- REPLIT version launched
 
 ------------------------------------------------------------
 Patch Alpha 1.3 Release ---- Feb 1 2021
@@ -159,7 +159,7 @@ Source Code Changes:
 	- Reconfigured music files
 
 World Generation:
-	- Changd world generation for both dimensions
+	- Changed world generation for both dimensions
 	- World size is now 512x512 blocks and 8192x8192 pixels
 	- Added Grass and Netherrack textures
 
@@ -290,13 +290,11 @@ Patch Alpha 1.7 Release ---- Dec 8 2021
 
 World Generation:
 	- Overworld and Nether structures generate infinitely
+	- Added Stone and Plains Biomes
 
 Source Code Changes:
 	- Reorganised Code Again
-
-World Generation:
-	- Added Stone and Plains Biomes
-
+	
 Inventory:
 	- Changed Inventory, Crafting Table, Furnace and Enchanting Table Rendering Systems
 	- Added Drag and Drop Inventory Function
@@ -317,8 +315,8 @@ Armour:
 	- Changed in-inventory armour menu
 
 Accessory Functions:
-	- Added Debug Menu
-	- Added keybind '0' to access Debug Menu details
+	- Added F3 Screen
+	- Added keybind '0' to access F3 Screen details
 
 Title Screen:
     - Added Patch Notes Menu
@@ -341,7 +339,7 @@ World Generation:
     - Books removed from village blacksmith loot table.
 
 Accessory Functions:
-    - World Seed info added to Debug Menu
+    - World Seed info added to F3 Screen
     - Added on-screen Speedrun Timer for God Gear and Music Player speedruns
 
 - Fixed bugs from Alpha 1.7:
@@ -389,7 +387,7 @@ Survival:
     - Death screen background is now light red
 
 - Fixed bugs from Alpha 1.7.3:
-    - Version numbers are not updated in death window and Debug Menu
+    - Version numbers are not updated in death window and F3 Screen
     - Game crashes when hunger reaches 0
     - Item info boxes are too large
 
@@ -401,116 +399,12 @@ Patch Alpha 1.7.5 Release ---- Feb 9 2022
     - Prompt from cheat commands still visible after command has been executed
 
 ------------------------------------------------------------
-Patch Beta 1.0 Pre-Release 1 ---- Apr 7 2022
+P.S. SPOILERS for next major update to Tilecraft:
 
-Version Updates:
-    - Python updated to version v3.10.1
-    - Pygame updated to v2.1.2
-    - Python version number added to Debug Menu
-
-Source Code & Performance:
-    - Changed method of storing items in the inventory and tile data
-    - Changed method of accessing item details and tile details
-    - Changed method of storing crafting recipes in-game
-    - Changed window size to 1000 pixels
-    - Changed item size to 110 pixels, tile size to 32 pixels per tile
-    - Changed FPS to be unlimited depending on computer itself
-    - Updated title screen background
-    - Added loading screen for initial overworld generation and underground generation
-    - World generation is much more optimised
-
-Survival:
-    - Added player directions
-    - A & D keys used to turn left and right
-    - Player direction added to Debug Menu
-    - Added player target tile
-    - Target tile's border is darker on the screen
-    - Target tile's coordinates added to Debug Menu
-    - Reduced hunger loss from sprinting
-    - Changed method of calculating experience levels
-    - Experience level bar added
-    - Changed amount of experience gained from certain actions
-
-Breaking and Placing:
-    - Separated tile list into background and collision tiles
-    - Background tiles render with mild transparency
-    - Added placing and breaking of tiles in background and collision tiles
-    - Added collisions with tiles at surface level
-    - Added grey border around each tile
-    - Added breaking time and breaking animation of tiles
-    - Bedrock texture is rendered in places where background tile has been broken
-    - Each tile has a required tool type and tier
-    - Added breaking power and mining speed for each tool
-    - Every tier of tool gives +2 mining speed aside from wooden pickaxes, which give +1 mining speed
-    - Efficiency enchantment increases mining speed by level**2 + 1 per level
-    - Breaking time is multiplied by 1.5x if using correct tool type and tier, otherwise it is multiplied by 5x
-    - If breaking time exceeds 1/20 seconds, there is a 3/10 second delay between breaking tiles
-    - If breaking time is 1/20 seconds or below, players can break tiles without the delay (instant-breaking)
-
-World Generation:
-    - Removed Stone biome, added Desert and Snowy Tundra biomes
-    - Added tree and leaf tiles that generate, tree tiles drop 1 - 5 oak logs when broken
-    - Added Mine Entrance item, tile and crafting recipe
-    - Entering a mine entrance brings you to the underground dimension
-    - Returning mine entrance portal is generated in the underground in a 3x3 open space
-    - New mine entrance portal is generated if player enters a mine entrance placed after initial generation.
-    - Added coal, iron, lapis and diamond ores that generate in veins of size 1 - 4 in deep cave biomes.
-    - Added coal and iron ores that generate in veins of size 1 - 4 in regular cave biomes.
-    - Added lava in caves that generate in deep cave biomes.
-
-Structures & Commands:
-    - Removed Cave and Deep Cave structures
-    - Removed commands
-
-Inventory:
-    - Added dirt, sand, snow and lava bucket items
-    - Breaking power and mining speed stats added to item info box
-    - Added remaining wooden tools, iron tools and diamond tools
-    - Reordered item list
-    - Added rarity colours for every item (Common, Uncommon, Rare, Epic, Legendary)
-
-Datapacks:
-    - Added /enchant command to cheats datapack
-    - Added /experience command to cheats datapack
-
-Advancements:
-    - Added "Into the Depths" advancement when entering the underground
-
-Music:
-    - Added 8 new sound tracks to the game
-    - 2/10 songs play in the title screen, 8/10 songs play in-game
-    - Songs can now play randomly at random times during gameplay
-
-- Fixed bugs
-
-------------------------------------------------------------
-Patch Beta 1.0 Pre-Release 2 ---- Jun 9 2022
-
-Version Updates:
-    - Reverted version change to Python 3.10.1 due to a bug
-
-Source Code:
-    - Decreased window size to 750x750 pixels
-    - Decreased all UI sizes by 25%, item images resized to 82x82 pixels
-    - Added Display size details to Debug Menu
-
-Durability:
-    - Added durability attribute to all tools and armour
-    - Everytime a tool is used, its durability is decreased by 1
-    - Tool breaks when durability reaches 0
-    - Added durability bar that render over item textures
-    - Unbreaking enchantment increases chance of an item using durability
-
-Repairing and Disenchanting:
-    - Added grindstone item
-    - Added grindstone crafting recipe
-    - Added repairing function: durability of tools/armour can be combined
-    - Added disenchanting function: enchantments are removed from a tool/armour piece
-    - Experience is given back to the player when disenchanting
-
-- Fixed bugs:
-    - Game crashes when opened as app in Python 3.10.1
-    - Window doesn't fit on certain sized screens
-    - Smelting & Compressing times run past 5 seconds due to FPS glitch
-    - Diamond Shovel glint texture is glitched
-    - RNG for enchantment selection follows same RNG for world generation
+Patch Beta 1.0 Release -- c. July 2022
+    - Breaking and Placing tiles
+    - Tile collisions
+    - Item durability
+    - Generation of physical caves, deep caves, water pools, lava pools and ruinecd portals
+    - Chests to store items
+    - New way to enter the nether
