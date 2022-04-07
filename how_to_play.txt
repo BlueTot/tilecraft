@@ -1,11 +1,13 @@
-Welcome to Tilecraft vAlpha 1.7.4!
+!!! WARNING: The instructions guide is not updated as this version is only a pre-release !!!
+
+Welcome to Tilecraft vAlpha 1.7.5!
 
 This is the latest version of Tilecraft.
 Read the instructions below to learn how to play.
 
 STARTING UP THE GAME:
 
-- When starting up, you will enter the title screen for Tilecraft vAlpha 1.7.4.
+- When starting up, you will enter the title screen for Tilecraft vAlpha 1.7.5.
 
 - At the top, there is an input box where you can enter a seed. A seed is just a number that controls world generation, and worlds with the same seed are the same. If you leave it blank, the game will load up a random world.
 
@@ -335,6 +337,6 @@ ADVANCEMENTS
     - Music Player: Play the music disc 'Pigstep'
     - God Gear: Obtain Full Protection V Unbreaking III Diamond Armour
 
-PLAY FOR YOURSELF BY LAUNCHING vALPHA 1.7.4
+PLAY FOR YOURSELF BY LAUNCHING vALPHA 1.7.5
 
 -- Developer of Tilecraft: BlueTot

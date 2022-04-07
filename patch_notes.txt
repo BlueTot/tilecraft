@@ -394,12 +394,91 @@ Survival:
     - Item info boxes are too large
 
 ------------------------------------------------------------
-P.S. SPOILERS for next major update to Tilecraft:
+Patch Alpha 1.7.5 Release ---- Feb 9 2022
 
-Patch Beta 1.0 Release -- c. July 2022
-    - Breaking and Placing tiles
-    - Tile collisions
-    - Item durability
-    - Generation of physical caves, deep caves, water pools, lava pools and ruinecd portals
-    - Chests to store items
-    - New way to enter the nether
+- Fixed bugs from Alpha 1.7.4:
+    - Pre Alpha 1.7 armour crafting recipes still exist and crash the game when crafted
+    - Prompt from cheat commands still visible after command has been executed
+
+------------------------------------------------------------
+Patch Beta 1.0 Pre-Release 1 ---- Apr X 2022
+
+Version Updates:
+    - Python updated to version v3.10.1
+    - Pygame updated to v2.1.2
+    - Python version number added to F3 Screen
+
+Source Code & Performance:
+    - Changed method of storing items in the inventory and tile data
+    - Changed method of accessing item details and tile details
+    - Changed method of storing crafting recipes in-game
+    - Changed window size to 1000 pixels
+    - Changed item size to 110 pixels, tile size to 32 pixels per tile
+    - Changed FPS to be unlimited depending on computer itself
+    - Updated title screen background
+    - Added loading screen for initial overworld generation and underground generation
+    - World generation is much more optimised
+
+Survival:
+    - Added player directions
+    - A & D keys used to turn left and right
+    - Player direction added to F3 Screen
+    - Added player target tile
+    - Target tile's border is darker on the screen
+    - Target tile's coordinates added to F3 Screen
+    - Reduced hunger loss from sprinting
+    - Changed method of calculating experience levels
+    - Experience level bar added
+    - Changed amount of experience gained from certain actions
+
+Breaking and Placing:
+    - Separated tile list into background and collision tiles
+    - Background tiles render with mild transparency
+    - Added placing and breaking of tiles in background and collision tiles
+    - Added collisions with tiles at surface level
+    - Added grey border around each tile
+    - Added breaking time and breaking animation of tiles
+    - Bedrock texture is rendered in places where background tile has been broken
+    - Each tile has a required tool type and tier
+    - Added breaking power and mining speed for each tool
+    - Every tier of tool gives +2 mining speed aside from wooden pickaxes, which give +1 mining speed
+    - Efficiency enchantment increases mining speed by level**2 + 1 per level
+    - Breaking time is multiplied by 1.5x if using correct tool type and tier, otherwise it is multiplied by 5x
+    - If breaking time exceeds 1/20 seconds, there is a 3/10 second delay between breaking tiles
+    - If breaking time is 1/20 seconds or below, players can break tiles without the delay (instant-breaking)
+
+World Generation:
+    - Removed Stone biome, added Desert and Snowy Tundra biomes
+    - Added tree and leaf tiles that generate, tree tiles drop 1 - 5 oak logs when broken
+    - Added Mine Entrance item, tile and crafting recipe
+    - Entering a mine entrance brings you to the underground dimension
+    - Returning mine entrance portal is generated in the underground in a 3x3 open space
+    - New mine entrance portal is generated if player enters a mine entrance placed after initial generation.
+    - Added coal, iron, lapis and diamond ores that generate in veins of size 1 - 4 in deep cave biomes.
+    - Added coal and iron ores that generate in veins of size 1 - 4 in regular cave biomes.
+    - Added lava in caves that generate in deep cave biomes.
+
+Structures & Commands:
+    - Removed Cave and Deep Cave structures
+    - Removed commands
+
+Inventory:
+    - Added dirt, sand, snow and lava bucket items
+    - Breaking power and mining speed stats added to item info box
+    - Added remaining wooden tools, iron tools and diamond tools
+    - Reordered item list
+    - Added rarity colours for every item (Common, Uncommon, Rare, Epic, Legendary)
+
+Datapacks:
+    - Added /enchant command to cheats datapack
+    - Added /experience command to cheats datapack
+
+Advancements:
+    - Added "Into the Depths" advancement when entering the underground
+
+Music:
+    - Added 8 new sound tracks to the game
+    - 2/10 songs play in the title screen, 8/10 songs play in-game
+    - Songs can now play randomly at random times during gameplay
+
+- Fixed bugs
