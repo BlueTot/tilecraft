@@ -1,3 +1,5 @@
+!!! WARNING: The instructions guide is not updated as this version is only a pre-release !!!
+
 Welcome to Tilecraft vAlpha 1.7.5!
 
 This is the latest version of Tilecraft.

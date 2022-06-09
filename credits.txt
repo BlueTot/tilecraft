@@ -1,0 +1,115 @@
+CREDITS PAGE FOR TILECRAFT
+
+Version: Beta 1.0 Pre-release 2
+Project Start Date: 11/1/2021
+Version Release Date: 9/6/2022
+Developer: BlueTot
+
+Mojang Studios:
+    - 48 Item Textures include:
+        - Oak Log
+        - Oak Planks
+        - Stick
+        - Crafting Table
+        - Wooden Pickaxe
+        - Wooden Axe
+        - Wooden Shovel
+        - Wooden Hoe
+        - Cobblestone
+        - Stone Pickaxe
+        - Stone Axe
+        - Stone Shovel
+        - Stone Hoe
+        - Furnace
+        - Grindstone
+        - Coal
+        - Iron Ore
+        - Iron Ingot
+        - Iron Pickaxe
+        - Iron Axe
+        - Iron Shovel
+        - Iron Hoe
+        - Bucket
+        - Water Bucket
+        - Lava Bucket
+        - Shield
+        - Flint and Steel
+        - Diamond 
+        - Diamond Pickaxe 
+        - Diamond Axe
+        - Diamond Shovel 
+        - Diamond Hoe 
+        - Jukebox 
+        - Pigstep Disc 
+        - Obsidian 
+        - Enchanting Table 
+        - Book 
+        - Bookshelf 
+        - Lapis Lazuli 
+        - Bread 
+        - Golden Carrot
+        - Golden Apple 
+        - Dirt 
+        - Sand 
+        - Snow 
+        - Gravel 
+        - Flint 
+        - Bed
+        - Hay Bale
+    - 23 Tile Textures include:
+        - Grass
+        - Netherrack
+        - Sand
+        - Snow
+        - Bookshelf
+        - Coal Ore
+        - Cobblestone
+        - Diamond Ore
+        - Dirt
+        - Gravel
+        - Hay Bale
+        - Iron Ore
+        - Lapis Ore
+        - Lava
+        - Leaf
+        - Oak Log
+        - Oak Planks
+        - Obsidian
+        - Stone
+        - Water
+    - Enchantment Glint Texture
+    - Breaking Animation Textures
+        - Breaking 1
+        - Breaking 2
+        - Breaking 3
+        - Breaking 4
+        - Breaking 5
+        - Breaking 6
+    - Minecraft Fonts
+        - Minecraft Regular
+        - Minecraft Italic
+        - Minecraft Bold
+        - Minecraft Bold Italic
+        - Minecraft Ten
+    - Health and Hunger Textures include:
+        - Full Heart
+        - Half Heart
+        - Empty Heart
+        - Full Hunger
+        - Half Hunger
+        - Empty Hunger
+
+C418:
+    - Alpha Volume 3
+    - Alpha Volume 5
+    - Alpha Volume 6
+    - Alpha Volume 7
+    - Alpha Volume 8
+    - Alpha Volume 11
+    - Alpha Volume 12
+    - Alpha Volume 13
+    - Alpha Volume 14
+    - Alpha Volume 18
+
+Lena Raine:
+    - Pigstep
