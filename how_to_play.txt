@@ -1,0 +1,342 @@
+!!! WARNING: The instructions guide is not updated as this version is only a pre-release !!!
+
+Welcome to Tilecraft vAlpha 1.7.5!
+
+This is the latest version of Tilecraft.
+Read the instructions below to learn how to play.
+
+STARTING UP THE GAME:
+
+- When starting up, you will enter the title screen for Tilecraft vAlpha 1.7.5.
+
+- At the top, there is an input box where you can enter a seed. A seed is just a number that controls world generation, and worlds with the same seed are the same. If you leave it blank, the game will load up a random world.
+
+- You can enter seeds in the input box to load into a specific world.
+
+- There are three options for the DATAPACK SELECTOR:
+  1. Music Player Speedrun Datapack --- Starts a timer to time 'Music Player' Speedrun
+  2. God Gear Speedrun Datapack --- Starts a timer to time 'God Gear' Speedrun
+  3. Cheats Datapack --- Inventory editor
+  4. None --- No datapacks
+
+- Press 'NEW WORLD' to start up a new world.
+
+BASIC CONTROLS:
+
+- There are many controls to press when playing the game.
+- The movement controls are:
+   - W: Up
+   - A: Left
+   - S: Down
+   - D: Right
+   - R: Sprint
+- The other controls are:
+   - E: Enter and Exit Inventory
+   - Q: Eat
+   - T: Type Functions
+   - F: Advancements
+- The hotbar controls are:
+   - 1: Switch to Hotbar 1
+   - 2: Switch to Hotbar 2
+   - 3: Switch to Hotbar 3
+   - 4: Switch to Hotbar 4
+   - 5: Switch to Hotbar 5
+   - 6: Switch to Hotbar 6
+   - 7: Switch to Hotbar 7
+   - 8: Switch to Hotbar 8
+   - 9: Switch to Hotbar 9
+- Pressing the 'HOW TO PLAY' button will bring up this instructions file.
+
+FUNCTIONS:
+
+- The way you progress in tilecraft is by typing commands.
+- First press 't' in-game. An input space will show up at the bottom left of your screen. Type commands there.
+- There are many commands, those are all listed here:
+
+  Basic Resource Gathering:
+    /mine wood
+    /mine stone
+
+  Village Structure (ORANGE):
+    /loot village hay
+    /loot village beds
+    /loot village blacksmith
+
+  Cave Structure (LIGHT GREY):
+    /mine iron
+    /mine coal
+
+  Water Pool Structure (LIGHT BLUE):
+    /mine gravel
+    /fill bucket
+
+  Lava Pool Structure (RED):
+    /build nether portal
+    /mine obsidian
+
+  Deep Cave Structure (BROWN):
+    /mine diamonds
+    /mine lapis
+
+  Ruined Portal Structure (DARK PRUPLE):
+    /loot ruined portal
+    /portal complete
+
+  Nether Portals (PURPLE):
+    /dimension nether
+    /dimension overworld
+
+  Bastions (YELLOW):
+    /loot bastion
+
+  Other Functions:
+    /play pigstep
+
+  Cheat Functions:
+  - This can be activated by choosing the cheats datapack.
+  - There are three new commands available in the cheats datapack:
+        - /table: Prints a list of all items in the game with their respective item IDs
+        - /give: Allows you to edit your inventory -- syntax: {item id, quantity}
+        - /tp: Allows you to teleport to a specific coordinate -- syntax: {x, y}
+
+- You can repeat a function a multiple number of times.
+- The command-line syntax for commands in tilecraft is 'command, number of times', ex. '/mine wood, 4' or '/mine stone, 8'.
+- Just typing the command will be repeated once by default. Ex. '/mine wood' will repeat the command '/mine wood' once.
+- The number of times you can repeat a command ranges from 1 to 16.
+
+INVENTORY:
+
+- To access the inventory, press 'E' on the keyboard.
+- In the main inventory, there are 36 slots for items. Items you obtain from functions when looting structures will appear in your inventory.
+- To move items around, click to hold the item and place it in a slot to drop it.
+- Items like tools and armour only allow 1 item per stack, while other items stack to 64.
+- In the top right-hand corner, there is a 2x2 small crafting grid, where you can craft simple items. The items you can craft are:
+    - Oak Planks
+    - Stick
+    - Crafting Table
+    - Flint and Steel
+- In the top left-hand corner, there is a four-grid armour bar.
+- In Tilecraft, there are four types of armour which corresponds to each grid:
+    - Grid 1: Tier 1 Plate
+    - Grid 2: Tier 2 Plate
+    - Grid 3: Tier 3 Plate
+    - Grid 4: Shield
+- There are two types of materials ecah armour piece can be made of:
+    - Iron
+    - Diamond
+
+CRAFTING TABLE:
+
+- To craft more sophisticated items, you have to use a crafting table (crafted in the 2x2 crafting grid first).
+- Right-click the crafting table (outside of inventory) to enter the crafting table.
+- Arrange materials in a specific order on the 3x3 crafting grid to craft items.
+- These are the items you can craft in the crafting table:
+    - Oak Planks
+    - Stick
+    - Crafting Table
+    - Wooden Pickaxe
+    - Stone Pickaxe
+    - Stone Axe
+    - Stone Shovel
+    - Stone Hoe
+    - Furnace
+    - Compressor
+    - Iron Pickaxe
+    - Iron Axe
+    - Tier 1 Iron Plate
+    - Tier 2 Iron Plate
+    - Tier 3 Iron Plate
+    - Shield
+    - Diamond Pickaxe
+    - Diamond Axe
+    - Tier 1 Diamond Plate
+    - Tier 2 Diamond Plate
+    - Tier 3 Diamond Plate
+    - Bucket
+    - Flint and Steel
+    - Enchanting Table
+    - Bookshelf
+
+FURNACE:
+
+- To smelt ores you obtain from caves, you need a Furnace.
+- The furnace can be crafted using the Crafting Table.
+- Right-click the furnace (outside of inventory) to enter the furnace.
+- Place the ore in the top grid, fuel in the bottom grid, and the smelted item will appear on the grid on the right.
+- Items you can smelt:
+    - Iron Ore
+
+COMPRESSOR:
+
+- To make armour pieces from raw materials, you need a Compressor.
+- The copressor can be crafted using the Crafting Tbale.
+- Right-click the Compressor (outside of inventory) to enter the compressor.
+- Place the two pieces of raw material in the grid on the left, and a compressed plate of that respective material type will appear in the grid on the right.
+- Materials to Compress:
+    - 2 Iron Ingots --> 1 Iron Plate
+    - 2 Diamonds --> 1 Diamond Plate
+
+ENCHANTING:
+
+- To obtain more powerful armour pieces and tools in the game, you need to enchant them using an Enchanting Table.
+- The enchanting table can be crafted using the Crafting Table.
+- Right-click the Enchanting Table (outside of inventory) to enter the enchanting table.
+- There are three grids in the enchanting table:
+    - Bottom Left Grid: Put the item you want to enchant there
+    - Bottom Right Grid: Lapis
+    - Top Left Grid: Bookshelves
+- The first time you craft an enchanting table, its level is 0. To get higher enchantment levels, you need to upgrade it.
+- Upgrade the enchanting table by putting bookshelves in the top left grid. Click the 'Upgrade' button, and every 4 bookshelves will add one level to the enchanting table.
+- The maximum enchanting level is 5.
+- On the right, there are three boxes, where three enchantment possibilities are given:
+    - First box: Requires 1 XP and 1 Lapis
+    - Second box: Requires 2 XP and 2 Lapis
+    - Third box: Requires 3 Xp and 3 Lapis
+- Tools will be enchanted with the 'Efficiency' enchantment.
+- Armour pieces will be enchanted with the 'Protection' enchantment.
+- An optional enchantment of 'Unbreaking' can be applied to the item if you click:
+    - The Second Box at Level 4 or above
+    - The Third Box at Level 3 or above
+- The maximum enchantments a tool can have is Effiency V and Unbreaking III.
+- The maximum enchantments an armour piece can have is Protection V and Unbreaking III.
+
+HEALTH AND HUNGER:
+
+- At the bottom of your screen, you can see a health and hunger bar.
+- The more you walk, the lower your hunger bar will be.
+- Replenish your hunger by eating food.
+- The three food types are:
+    - Bread (crafted using hay)
+    - Golden Carrots (obtained from ruined portals)
+    - Golden Apples (obtained from ruined portals)
+- Aside from increasing your hunger points, golden apples also regenerate your health much faster without the need of 17 hunger points for regular regeneration.
+- Once your hunger reaches 0, you will start taking damage. If your health is 0, you will die and have to start a new world.
+
+GATHERING BASIC RESOURCES:
+
+- Once you spawn into your world, you spawn in with a full health and hunger bar and an empty inventory.
+- Your first step is to gather wood by entering the command '/mine wood'.
+- Craft the logs into planks by running the command '/craft planks'. You will be meeted with an error message if you tried to craft materials when you don't have enough crafting materials.
+- Craft sticks by running the command '/craft sticks'. Craft a wooden pickaxe by running the command '/craft wooden pickaxe'. You are now ready to mine stone.
+- The next tier up is stone. You can only mine stone if you have at least a wooden pickaxe. Run the command '/mine stone' to mine stone. You will get cobblestone.
+- You can now craft stone tools. Pickaxes are to mine stone type blocks, shovels to mine gravel, hoes to mine hay and axes to mine wood.
+- Different tiers of pickaxes and axes mine different amounts of wood everytime you run the command:
+    Pickaxe:
+        - Wooden Pickaxe: 1 Cobblestone
+        - Stone Pickaxe: 2 Cobblestone
+        - Iron Pickaxe: 3 Cobblestone
+        - Diamond Pickaxe: 4 Cobblestone
+    Axe:
+        - Nothing: 1 Oak Log
+        - Stone Axe: 2 Oak Logs
+        - Iron Axe: 3 Oak Logs
+        - Diamond Axe: 4 Oak Logs
+
+USING STRUCTURES: CAVES
+
+- When you spawn into your world, you may see dots around you. These are structures. There are 5 types of structures in the overworld dimension:
+  - Cave (GREY)
+  - Village (ORANGE)
+  - Water Pool (LIGHT BLUE)
+  - Lava Pool (RED)
+  - Deep Cave (BROWN)
+
+- Find a cave (grey dot), walk up to it and place the top left corner of your player anywhere in the dot.
+- Run the command '/mine iron' and '/mine coal' to mine iron ore and coal. You can only run each command once as the cave is empty. The colour of the dot will change when all resources have been looted.
+- Smelt up the iron ore by running the command '/smelt iron'. You will get iron ingots.
+- You can craft iron armour and tools from the iron ingots. These are the required materials and the command needed.
+
+USING STRUCTURES: VILLAGES
+
+- When you see an orange dot, it is a village.
+- Villages can be looted by these 3 commands
+  - /loot village hay {NEED STONE HOE}
+  - /loot village beds
+  - /loot village blacksmith
+- '/loot village hay' will give you hay.
+- '/loot village beds' will give you beds.
+- '/loot village blacksmith' can give you iron ingots, diamonds, bread and books.
+- The colour of the village should change after all commands have been entered.
+
+USING STRUCTURES: WATER POOLS
+
+- When you see a light blue dot, it is a water pool.
+- You can mine gravel by having a stone shovel in your inventory and running the command '/mine gravel'. You can get gravel and flint.
+- Using flint, you can craft a flint and steel.
+- You can fill your bucket by having a bucket in your inventory and running the command '/fill bucket'.
+- The colour of the water pool should change after running the command '/mine gravel'.
+
+USING STRUCTURES: DEEP CAVES
+
+- When you see a brown dot, it is a deep cave.
+- You can mine diamonds by holding an iron pickaxe and running the command '/mine diamonds'.
+- You can mine lapis by having a stone pickaxe in your inventory and running the command '/mine lapis'.
+- Diamonds are used to craft diamond tools and armour. Lapis is used to enchant.
+- The colour of the deep cave should change after running the commands.
+
+USING STRUCTURES: LAVA POOLS
+
+- When you see a red dot, it is a lava pool.
+- You can mine obsidian having a water bucket and a diamond pickaxe in your inventory and running the command '/mine obsidian'.
+- You can also build a nether portal by having 6 Cobblestone, 1 Water Bucket and 1 Flint and Steel in your inventory and running the command '/build nether portal'.
+- After building a nether portal, the red dot will turn purple.
+
+USING STRUCTURES: RUINED PORTALS
+
+- When you see a dark purple dot, it is a ruined portal.
+- You can loot a ruined portal by running the command '/loot ruined portal'.
+- You can complete a ruined portal by running the command '/portal complete'.
+- Each ruined portal can require 0 to 5 pieces of obsidian to complete.
+
+THE NETHER DIMENSION
+
+- There is another dimension within Tilecraft --- The Nether!
+- There are two structures unique to the Nether:
+  - Nether Fortress (RED-BROWN)
+  - Bastion (YELLOW)
+- Nether fortresses do not have a use, but bastions do.
+- By entering the command '/loot bastion' at a bastion, you get a pigstep disc.
+- You can play pigstep in-game by entering the command '/play pigstep' and having a jukebox and the pigstep disc in your inventory.
+
+DATAPACKS
+
+- There are three in-game datapacks:
+  - Music Player Speedrun datapack
+  - God Gear Speedrun datapack
+  - Cheats datapack
+- Random Seed Glitchless Speedruns:
+    - The Music Player Speedrun datapack starts a timer and stops it when you run the command '/play pigstep'.
+    - The God Gear Speedrun datapack starts a timer and stops it when you get full Protection V Unbreaking III diamond armour.
+    - Remember to leave the seed input box BLANK!
+- Set Seed Glitchless Speedruns:
+    - For the Music Player speedrun, choose the Music Player Speedrun Datapack.
+    - For the God Gear speedrun, choose the God Gear Speedrun Datapack/
+    - Put in your desired seed in the seed input box.
+- The Cheats datapack comes with three functions:
+  - /give
+  - /table
+  - /tp
+- You can type these functions into the function box (use T)
+- '/table' shows all item names and their codes in a table format.
+- '/give' allows you to give yourself items. It will ask you for the item code and number of items, in the format 'item code, number'.
+
+ADVANCEMENTS
+
+- In Tilecraft, there are specific goals or advancements in the game for you to complete.
+- Here is the list of all the advancements in the game:
+    - Stone Age: Get Cobblestone
+    - Getting an Upgrade: Craft a Stone Pickaxe
+    - Acquire Hardware: Get an Iron Ingot
+    - Isn't it Iron Pick: Craft an Iron Pickaxe
+    - Suit Up: Craft Iron Armour
+    - Diamonds!: Get Diamonds
+    - Cover Me with Diamonds: Craft Diamond Armour
+    - Ice Bucket Challenge: Get Obsidian
+    - We Need to Go Deeper: Enter the Nether
+    - Enchanter: Enchant an Item
+    - Music Player: Play the music disc 'Pigstep'
+    - God Gear: Obtain Full Protection V Unbreaking III Diamond Armour
+
+PLAY FOR YOURSELF BY LAUNCHING vALPHA 1.7.5
+
+-- Developer of Tilecraft: BlueTot
