@@ -1,0 +1,546 @@
+PATCH NOTES FOR TILECRAFT
+
+------------------------------------------------------------
+Patch Alpha 1.0 Pre-Release 1 ---- Jan 11 2021
+
+World Generation:
+	- Added Seed generator
+	- Added naturally generating village and lava pool
+
+- Fixed bugs
+
+------------------------------------------------------------
+Patch Alpha 1.0_02 Pre-Release 2 ---- Jan 12 2021
+
+World Generation:
+	- Added cave structure- Added Turtle screen
+
+Graphics:
+	- Added Turtle screen
+	- Added walking
+
+- Fixed bugs
+
+------------------------------------------------------------
+Patch Alpha 1.0 Release ---- Jan 13 2021
+
+World Generation:
+	- Added functionally for village
+	- Added functionally for cave
+
+- Fixed bugs
+
+------------------------------------------------------------
+Patch Alpha 1.1 Pre-Release 1 ---- Jan 16 2021
+
+Game Engine:
+	- Added Tkinter GUI Input Box
+
+- Fixed bugs
+
+------------------------------------------------------------
+Patch Alpha 1.1 Pre-Release 2 ---- Jan 17 2021
+
+Commands:
+	- Added crafting recipes
+
+Inventory:
+	- Added inventory system
+
+- Fixed bugs
+
+
+------------------------------------------------------------
+Patch Alpha 1.1 Release ---- Jan 23 2021
+
+World Generation:
+	- Overhauled world generation
+	- Reconfigured functionality to villages and caves
+	- Added water pools
+	- Added functionality to water pools
+
+Commands:
+	- Added commands to gather resources
+	- Added more crafting recipes
+	- Added smelting command
+
+Inventory:
+	- Added more items
+	- Added iron tools and armour
+
+Game Engine:
+	- Added empty graphical display
+	- Reconfigured TKINTER buttons
+
+Advancements:
+	- Added advancements system
+
+- Fixed bugs
+
+------------------------------------------------------------
+Patch Alpha 1.2 Pre-Release 1 ---- Jan 28 2021
+
+World Generation:
+	- Added functionality to lava pools
+	- Added nether dimension
+	- Added saving of overworld dimension
+Commands:
+	- Added new commands
+
+Inventory:
+	- Added new items
+
+Advancements:
+	- Added new advancements
+
+Game Engine:
+	- Added title screen
+
+- Fixed bugs
+
+------------------------------------------------------------
+Patch Alpha 1.2 Release ---- Jan 29 2021
+
+Game Engine:
+	- REPLIT Minecraft Launched
+
+------------------------------------------------------------
+Patch Alpha 1.3 Release ---- Feb 1 2021
+
+Game Engine:
+	- Reconfigured title screen
+
+World Generation:
+	- Added Nether Fortresses
+	- Added Bastions
+	- Added Deep Caves
+
+Inventory:
+	- Added Diamonds and Diamond Armour
+
+Music:
+	- Added Wet Hands soundtrack to play in-game
+	- Added jukebox and pigstep disc
+
+- Fixed Bugs
+
+------------------------------------------------------------
+Patch Alpha 1.4 Release ---- Mar 7 2021
+
+Game Engine:
+	- Removed turtle screen
+	- Removed Tkinter GUI Box and Buttons
+	- Added pygame game engine
+	- Added Python Console User-Input
+	- Added User-Input command-line syntax
+	- Reconfigured Title Screen
+	- Reconfigured controls
+
+World Generation:
+	- Changed player positioning and cross-dimensional travel
+	- Added structure bounding boxes
+	- Added saving of nether structures
+
+Datapacks:
+	- Added Speedrun datapack to time speedruns
+
+- Fixed bugs
+
+------------------------------------------------------------
+Patch Alpha 1.4.1 Release ---- Apr 26 2021
+
+- Fixed bugs
+
+------------------------------------------------------------
+Patch Alpha 1.5 Release ---- Apr 30 2021
+
+Source Code Changes:
+	- Reworked source code files
+	- Reconfigured music files
+
+World Generation:
+	- Changd world generation for both dimensions
+	- World size is now 512x512 blocks and 8192x8192 pixels
+	- Added Grass and Netherrack textures
+
+Inventory:
+	- Reworked the inventory system
+	- Added new items
+
+Game Engine:
+	- Reworked the Title Screen
+	- Game name changed from 'Minecraft' to 'Tilecraft'
+
+Survival:
+	- Added health and hunger system
+	- Added death screen
+
+Commands:
+	- Added new commands
+	- Added enchanting
+
+Datapacks:
+	- Added cheats datapack
+
+- Fixed bugs
+
+------------------------------------------------------------
+Patch Alpha 1.5.1 Release ---- May 2 2021
+
+Survival:
+	- Added natural regeneration of health
+
+- Fixed more bugs
+
+------------------------------------------------------------
+Patch Alpha 1.5.2 Release ---- May 10 2021
+
+- Fixed more bugs
+
+------------------------------------------------------------
+Patch Alpha 1.6 Pre-release 1 ---- May 25 2021
+
+Game Engine:
+	- Worlds load infinitely
+	- Render distance is set to 8 chunks diameter
+
+Survival:
+	- Added golden carrot and golden apple food items
+	- Golden carrots give player regeneration effect for 180 frames (c. 3 seconds)
+
+Commands:
+	- Game can differentiate between chat messages and functions
+	- Added new commands
+
+World Generation:
+	- Added ruined portal
+	- Ruined portal loot chest
+	- Ability to complete the portal to access nether dimension
+
+Datapacks:
+	- Added /tp command to cheats datapack
+
+- Fixed bugs
+
+------------------------------------------------------------
+Patch Alpha 1.6 Pre-release 2 ---- July 8 2021
+
+Commands:
+	- Removed crafting commands
+	- FPS counter moved from command interface to screen
+	- Item held affects output of command
+
+Inventory:
+	- Reworked inventory system
+	- Added inventory, crafting, smelting and enchanting modes
+	- Added item textures
+	- Added item stacking and type
+	- Items can be moved around in the inventory
+	- Crafting table item added
+	- Inventory is capped at 36 slots
+	- Hotbar added
+	- Item info now displays above the inventory
+	- Roman numeral enchanting system implemented
+	- Crafting recipes added
+	- 2x2 crafting grid (inventory) and 3x3 crafting grid added (crafting table)
+
+Smelting:
+	- Smelting takes 5 seconds
+	- Fuel level reset to 8 when coal added
+	- 8 Iron Ore is smelted for every piece of coal
+
+Enchanting:
+	- Enchanting system reworked
+	- Experience Bar added
+	- Experience is required for enchanting
+	- Multiple enchantments can exist on a single item
+
+- Fixed bugs
+
+------------------------------------------------------------
+Patch Alpha 1.6 Release ---- July 8 2021
+
+Advancements:
+	- Added God Gear Advancement
+	- Added Enchanter Advancement
+	- Added Music Player Advancement
+
+------------------------------------------------------------
+Patch Alpha 1.6.1 Release ---- July 10 2021
+
+Commands:
+	- Commands with multiple whitespaces now work
+
+Datapacks:
+	- Renamed original Tilecraft speedrun to 'Music Player' Speedrun
+	- Added 'God Gear' Speedrun Data Pack
+
+- Fixed bugs
+
+------------------------------------------------------------
+Patch Alpha 1.6.2 Release ---- July 12 2021
+
+Inventory:
+	- Added keybinds to move items to hotbar
+
+- Fixed bugs
+
+------------------------------------------------------------
+Patch Alpha 1.7 Release ---- Dec 8 2021
+
+World Generation:
+	- Overworld and Nether structures generate infinitely
+
+Source Code Changes:
+	- Reorganised Code Again
+
+World Generation:
+	- Added Stone and Plains Biomes
+
+Inventory:
+	- Changed Inventory, Crafting Table, Furnace and Enchanting Table Rendering Systems
+	- Added Drag and Drop Inventory Function
+	- Removed most inventory hotkeys
+	- Enchantment Glint rendering system implemented
+
+Compressor:
+	- Added compressor item
+	- Added crafting recipe for compressor
+	- Added interface for compressor
+	- Added iron plate and diamond plate
+	- Every 2 Iron Ingots is compressed into an iron plate every 5 seconds
+	- Every 2 Diamonds is compressed into a diamond plate every 5 seconds
+
+Armour:
+	- Added Tier 1, 2, 3 Iron Plates
+	- Added Tier 1, 2, 3 Diamond Plates
+	- Changed in-inventory armour menu
+
+Accessory Functions:
+	- Added Debug Menu
+	- Added keybind '0' to access Debug Menu details
+
+Title Screen:
+    - Added Patch Notes Menu
+    - Added How to Play Menu
+
+- Fixed bugs
+
+------------------------------------------------------------
+Patch Alpha 1.7.1 Release ---- Dec 13 2021
+
+Title Screen:
+    - Updated How to Play Menu
+    - Changed Title Screen Background
+
+World Generation:
+    - Random number algorithm added to control structure generation
+    - Structures are now more common
+    - World seeds now fully control structure generation
+    - Villages now have a library that can contain 1 - 2 bookshelves and 7 - 14 books.
+    - Books removed from village blacksmith loot table.
+
+Accessory Functions:
+    - World Seed info added to Debug Menu
+    - Added on-screen Speedrun Timer for God Gear and Music Player speedruns
+
+- Fixed bugs from Alpha 1.7:
+     - Issue related to rendering of blocks
+     - Enchantment glint not rendering in holding item
+     - Info box for text not big enough for text inside
+
+------------------------------------------------------------
+Patch Alpha 1.7.2 Release ---- Dec 22 2021
+
+World Generation:
+    - Ruined Portal Obsidian Remaining is now dependent on the seed
+    - Changed random number algorithm
+
+Survival:
+    - Added sprinting
+    - Sprinting speed is 5.625 m/s
+    - Increased walking speed to 3.75 m/s
+
+Inventory:
+    - Flint and Steel now can be crafted in 2x2 crafting grid
+
+- Fixed bugs from Alpha 1.7.1:
+     - Nether structures do not depend on seed
+     - Spawn Chunks not generated for nether dimension
+     - Chest loot RNG dependent on seed
+     - Integer overflow error for seed number
+     - Items can be overstacked by combining or dropping items in the inventory
+     - Items can be understacked by clicking with CPS higher than 60
+     - Game crashes when item is placed in the compressor
+
+------------------------------------------------------------
+Patch Alpha 1.7.3 Release ---- Dec 27 2021
+
+- Fixed bugs from Alpha 1.7.2:
+    - Advancements are not properly printed in chat
+    - Users can edit the Patch Notes and How to Play menus in-game
+    - Patch Notes and How to Play menus do not appear
+
+------------------------------------------------------------
+Patch Alpha 1.7.4 Release ---- Dec 28 2021
+
+Survival:
+    - Hunger mechanics tweaked again
+    - Death screen background is now light red
+
+- Fixed bugs from Alpha 1.7.3:
+    - Version numbers are not updated in death window and Debug Menu
+    - Game crashes when hunger reaches 0
+    - Item info boxes are too large
+
+------------------------------------------------------------
+Patch Alpha 1.7.5 Release ---- Feb 9 2022
+
+- Fixed bugs from Alpha 1.7.4:
+    - Pre Alpha 1.7 armour crafting recipes still exist and crash the game when crafted
+    - Prompt from cheat commands still visible after command has been executed
+
+------------------------------------------------------------
+Patch Beta 1.0 Pre-Release 1 ---- Apr 7 2022
+
+Version Updates:
+    - Python updated to version v3.10.1
+    - Pygame updated to v2.1.2
+    - Python version number added to Debug Menu
+
+Source Code & Performance:
+    - Changed method of storing items in the inventory and tile data
+    - Changed method of accessing item details and tile details
+    - Changed method of storing crafting recipes in-game
+    - Changed window size to 1000 pixels
+    - Changed item size to 110 pixels, tile size to 32 pixels per tile
+    - Changed FPS to be unlimited depending on computer itself
+    - Updated title screen background
+    - Added loading screen for initial overworld generation and underground generation
+    - World generation is much more optimised
+
+Survival:
+    - Added player directions
+    - A & D keys used to turn left and right
+    - Player direction added to Debug Menu
+    - Added player target tile
+    - Target tile's border is darker on the screen
+    - Target tile's coordinates added to Debug Menu
+    - Reduced hunger loss from sprinting
+    - Changed method of calculating experience levels
+    - Experience level bar added
+    - Changed amount of experience gained from certain actions
+
+Breaking and Placing:
+    - Separated tile list into background and collision tiles
+    - Background tiles render with mild transparency
+    - Added placing and breaking of tiles in background and collision tiles
+    - Added collisions with tiles at surface level
+    - Added grey border around each tile
+    - Added breaking time and breaking animation of tiles
+    - Bedrock texture is rendered in places where background tile has been broken
+    - Each tile has a required tool type and tier
+    - Added breaking power and mining speed for each tool
+    - Every tier of tool gives +2 mining speed aside from wooden pickaxes, which give +1 mining speed
+    - Efficiency enchantment increases mining speed by level**2 + 1 per level
+    - Breaking time is multiplied by 1.5x if using correct tool type and tier, otherwise it is multiplied by 5x
+    - If breaking time exceeds 1/20 seconds, there is a 3/10 second delay between breaking tiles
+    - If breaking time is 1/20 seconds or below, players can break tiles without the delay (instant-breaking)
+
+World Generation:
+    - Removed Stone biome, added Desert and Snowy Tundra biomes
+    - Added tree and leaf tiles that generate, tree tiles drop 1 - 5 oak logs when broken
+    - Added Mine Entrance item, tile and crafting recipe
+    - Entering a mine entrance brings you to the underground dimension
+    - Returning mine entrance portal is generated in the underground in a 3x3 open space
+    - New mine entrance portal is generated if player enters a mine entrance placed after initial generation.
+    - Added coal, iron, lapis and diamond ores that generate in veins of size 1 - 4 in deep cave biomes.
+    - Added coal and iron ores that generate in veins of size 1 - 4 in regular cave biomes.
+    - Added lava in caves that generate in deep cave biomes.
+
+Structures & Commands:
+    - Removed Cave and Deep Cave structures
+    - Removed commands
+
+Inventory:
+    - Added dirt, sand, snow and lava bucket items
+    - Breaking power and mining speed stats added to item info box
+    - Added remaining wooden tools, iron tools and diamond tools
+    - Reordered item list
+    - Added rarity colours for every item (Common, Uncommon, Rare, Epic, Legendary)
+
+Datapacks:
+    - Added /enchant command to cheats datapack
+    - Added /experience command to cheats datapack
+
+Advancements:
+    - Added "Into the Depths" advancement when entering the underground
+
+Music:
+    - Added 8 new sound tracks to the game
+    - 2/10 songs play in the title screen, 8/10 songs play in-game
+    - Songs can now play randomly at random times during gameplay
+
+- Fixed bugs
+
+------------------------------------------------------------
+Patch Beta 1.0 Pre-Release 2 ---- Jun 9 2022
+
+Version Updates:
+    - Reverted version change to Python 3.10.1 due to a bug
+
+Source Code:
+    - Decreased window size to 750x750 pixels
+    - Decreased all UI sizes by 25%, item images resized to 82x82 pixels
+    - Added Display size details to Debug Menu
+
+Durability:
+    - Added durability attribute to all tools and armour
+    - Everytime a tool is used, its durability is decreased by 1
+    - Tool breaks when durability reaches 0
+    - Added durability bar that render over item textures
+    - Unbreaking enchantment increases chance of an item using durability
+
+Repairing and Disenchanting:
+    - Added grindstone item
+    - Added grindstone crafting recipe
+    - Added repairing function: durability of tools/armour can be combined
+    - Added disenchanting function: enchantments are removed from a tool/armour piece
+    - Experience is given back to the player when disenchanting
+
+- Fixed bugs from Beta 1.0 Pre-Release 1:
+    - Game crashes when opened as app in Python 3.10.1
+    - Window doesn't fit on certain sized screens
+    - Smelting & Compressing times run past 5 seconds due to FPS glitch
+    - Diamond Shovel glint texture is glitched
+    - RNG for enchantment selection follows same RNG for world generation
+
+------------------------------------------------------------
+Patch Beta 1.0 Pre-Release 3 ---- Early August
+
+World Generation:
+    - Added physical water pools
+    - Added sand and gravel that generate around water pools
+    - Added physical lava pools
+    - Added stone that generate around lava pools
+
+Breaking and Placing:
+    - There is a 1 in 10 chance that flint drops from gravel tiles when broken
+    - Non-liquid tiles can now be placed in the place of water/lava tiles
+
+Liquid Mechanics:
+    - Water and lava tiles can be picked up by an empty bucket
+    - Water and lava buckets can be placed down
+
+Strucutures & Commands:
+    - Removed water and lava pool structures
+    - Removed commands
+
+- Fixed bugs from Beta 1.0 Pre-Release 2:
+    - Overworld structures get cut off by new generated chunks
+    - Datapacks drop-down menu options jumbled up every time game is launched
+
+- Things to add:
+    - lava damage
+    - forming of obsidian
+
