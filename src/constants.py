@@ -422,6 +422,19 @@ CRAFTING_RECIPES = {
         None, None, None], Item("Bread", 3, None, ITEM_TYPES["Bread"].max_durability)),
 }
 
+class RandomNumberGenerator:
+    def __init__(self, initial_value: int):
+        self.value = initial_value
+
+    def next_random(self, start: int, stop: int) -> int:
+        self.value = (self.value * 63) % 3301667478 #multiplication and modulo
+        self.value = self.value ^ 24465343 #XOR
+        self.value = (self.value * 255) % 4294967296 #multiplication and modulo
+        self.value = self.value ^ 573522635 #XOR
+        self.value = self.value | 78187493520 #OR
+        self.value = ((self.value + 14351514) * 32) % 7777333 #addition, multplication, modulo
+        return self.value % (stop - 1) + start
+
 @dataclass
 class Context:
     """
