@@ -9,95 +9,9 @@ import sys #SYS module
 
 from constants import *
 from generation import *
+from cheats import *
 
 title_screen_mode = 'normal'
-
-
-'''Cheats Datapack Section'''
-
-#Print Item List
-def print_cheats(name):
-    global screen
-    screen.print("CODE   ITEM NAME")
-    screen.print('-' * 25)
-    for i in range(len(name)):
-        screen.print((str(i) + ' ' * (7 - len(str(i))) + str(name[i])))
-
-#/give command
-def give(item_id):
-    global screen
-    item_id = item_id.replace(' ', '') #REMOVE WHITESPACES
-    # CALCULATE CODE AND AMOUNT
-    if ',' in item_id and item_id[-1] != ',':
-        comma = item_id.index(',')
-        code = item_id[0:comma]
-        amount = item_id[comma + 1:len(item_id)]
-    else:
-        code = item_id
-        amount = 1
-    try:
-        code = int(code)
-        amount = int(amount)
-        length = len(list(ITEM_TYPES.keys())) - 1
-        if 0 <= code <= length:
-            add_item = Item(list(ITEM_TYPES.keys())[code], amount, None, list(ITEM_TYPES.values())[code].max_durability)
-            return add_item
-        else:
-            screen.print(f"Please enter a number between 0 and {length}.")
-            return None
-    except ValueError:
-        screen.print("Invalid Input")
-
-#/teleport command
-def teleport(internalX, internalY, coords):
-    global screen
-    if ',' in coords:
-        try:
-            x = coords[0:coords.index(',')]
-            y = coords[coords.index(',') + 1:]
-            x = int(x)
-            y = int(y)
-            internalX = x
-            internalY = y
-        except ValueError:
-            screen.print("Invalid input")
-    else:
-        screen.print("Invalid input")
-    return internalX, internalY
-
-#/enchant command
-def enchant(enchantment):
-    global screen, player
-    if player.hotbar_item is not None:
-        enchantment = enchantment.replace(' ', '') #remove whitespaces
-        if ',' in enchantment and enchantment[-1] != ',':
-            comma = enchantment.index(',')
-            name = enchantment[0:comma]
-            lvl = enchantment[comma + 1:len(enchantment)]
-            try:
-                lvl = int(lvl)
-                if name == "protection" or name == "efficiency" or name == "unbreaking":
-                    enchantments = player.hotbar_item.enchantments
-                    if enchantments is not None:
-                        enchantments.append([name.capitalize(), lvl])
-                    else:
-                        enchantments = [[name.capitalize(), lvl]]
-                    return Item(player.hotbar_item.name, player.hotbar_item.number, enchantments, player.hotbar_item.durability)
-            except ValueError:
-                screen.print("Invalid Input")
-    else:
-        screen.print("No item in selected hotbar slot")
-    return None
-
-#/experience command
-def experience(level):
-    global player, screen
-    try:
-        level = int(level)
-        if level > 0:
-            player.experience_points += level
-    except ValueError:
-        screen.print("Invalid Input")
 
 '''Advancements Section'''
 
@@ -1651,19 +1565,19 @@ class Screen:
         self.isTyping = False
         length = len(list(ITEM_TYPES.keys())) - 1
         if self.foretext == f'Item ID (0 - {length}): ':
-            inventory_add(give(self.typingText))
+            inventory_add(give(self, self.typingText))
             self.foretext = ''
         elif self.foretext == 'Coordinates (X,Y): ':
-            player.x, player.y = teleport(player.x, player.y, self.typingText)
+            player.x, player.y = teleport(self, player.x, player.y, self.typingText)
             self.foretext = ''
         elif self.foretext == "Enchantment (Name, Lvl): ":
             index = HOTBAR_ORDER.index(player.selected_hotbar)
-            item = enchant(self.typingText)
+            item = enchant(self, player, self.typingText)
             if item is not None:
                 player.inventory_list[27 + index] = item
             self.foretext = ''
         elif self.foretext == "Experience Level: ":
-            experience(self.typingText)
+            experience(self, player, self.typingText)
             self.foretext = ''
         else:
             self.text_validate()
@@ -3369,7 +3283,7 @@ def commands(number, val, rng: RandomNumberGenerator):
                 screen.print("You are not in the overworld")
         elif val == '/table':
             if load == 'Cheats':
-                print_cheats(list(ITEM_TYPES.keys()))
+                print_cheats(screen, list(ITEM_TYPES.keys()))
             else:
                 screen.print("REQUIRE CHEATS DATAPACK")
         elif val == '/give':
