@@ -445,3 +445,6 @@ class Context:
     TC_GLINTS: dict[any, any]
     TILE_IMAGES: dict[str, pygame.Surface] 
     BREAKING_LIST: list[pygame.Surface]
+    INFOBAR_IMAGES: dict[str, pygame.Surface]
+
+

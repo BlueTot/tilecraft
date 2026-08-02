@@ -340,7 +340,7 @@ class TilecraftWorld:
 
     def render(self, display, context: Context):
         global netherrack_tile, hotbar_imgs, slot, number_list, experience, pygame_enchant_imgs, enchant_name_list, player, hasGeneratedUnderground, bedrock_tile
-        player.health_hunger_update()
+        # player.health_hunger_update()
 
         def tile_image(tile_name: str) -> pygame.Surface:
             return context.TILE_IMAGES[TILE_IMAGE_MAPPING[tile_name].alpha_image_name]
@@ -799,18 +799,16 @@ def GrindstoneInterface(context: Context, display):
     display.blit(arrow_font.render('-->', False, (0, 0, 0)), (367, 152))  # Render Arrow
 
 def hotbar_identify():
-    global selected_hotbar, hotbar_item, hotbar_index
-    hotbar_index = HOTBAR_ORDER.index(player.selected_hotbar)
-    player.hotbar_item = player.inventory_list[hotbar_index + 27]
+    player.hotbar_item = player.inventory_list[player.selected_hotbar + 27]
 
-def SetHotbarProperties(n):
-    global player
-    player.hotbar_backgrounds[n].colour = (255, 255, 255)
-    player.hotbar_backgrounds[n].width = 3
-    for i in range(9):
-        if i != n:
-            player.hotbar_backgrounds[i].colour = (83, 83, 83)
-            player.hotbar_backgrounds[i].width = 2
+# def SetHotbarInfoProperties(n):
+#     global player
+#     player.hotbar_backgrounds[n].colour = (255, 255, 255)
+#     player.hotbar_backgrounds[n].width = 3
+#     for i in range(9):
+#         if i != n:
+#             player.hotbar_backgrounds[i].colour = (83, 83, 83)
+#             player.hotbar_backgrounds[i].width = 2
 
 # Game Loop
 def Main():
@@ -894,46 +892,37 @@ def Main():
                                                 player.regenerate_val = True
                                             else:
                                                 screen.print("You are not holding a food item!")
-                                            player.health_hunger_update()  # UPDATE HEALTH / HUNGER
+                                            # player.health_hunger_update()  # UPDATE HEALTH / HUNGER
                                     else:
                                         screen.print("You are not holding a food item!")
                                 else:
                                     screen.print("You are not holding a food item!")
                             if event.key == pygame.K_1:
-                                SetHotbarProperties(0)
-                                player.selected_hotbar = 'Hotbar1'
+                                player.selected_hotbar = 0
                                 hotbar_identify()
                             if event.key == pygame.K_2:
-                                SetHotbarProperties(1)
-                                player.selected_hotbar = 'Hotbar2'
+                                player.selected_hotbar = 1
                                 hotbar_identify()
                             if event.key == pygame.K_3:
-                                SetHotbarProperties(2)
-                                player.selected_hotbar = 'Hotbar3'
+                                player.selected_hotbar = 2
                                 hotbar_identify()
                             if event.key == pygame.K_4:
-                                SetHotbarProperties(3)
-                                player.selected_hotbar = 'Hotbar4'
+                                player.selected_hotbar = 3
                                 hotbar_identify()
                             if event.key == pygame.K_5:
-                                SetHotbarProperties(4)
-                                player.selected_hotbar = 'Hotbar5'
+                                player.selected_hotbar = 4
                                 hotbar_identify()
                             if event.key == pygame.K_6:
-                                SetHotbarProperties(5)
-                                player.selected_hotbar = 'Hotbar6'
+                                player.selected_hotbar = 5
                                 hotbar_identify()
                             if event.key == pygame.K_7:
-                                SetHotbarProperties(6)
-                                player.selected_hotbar = 'Hotbar7'
+                                player.selected_hotbar = 6
                                 hotbar_identify()
                             if event.key == pygame.K_8:
-                                SetHotbarProperties(7)
-                                player.selected_hotbar = 'Hotbar8'
+                                player.selected_hotbar = 7
                                 hotbar_identify()
                             if event.key == pygame.K_9:
-                                SetHotbarProperties(8)
-                                player.selected_hotbar = 'Hotbar9'
+                                player.selected_hotbar = 8
                                 hotbar_identify()
                             if event.key == pygame.K_0:
                                 player.debug_menu = not player.debug_menu
@@ -1018,23 +1007,23 @@ def Main():
                             player.mode = 'game'
                             break
                         elif event.key == pygame.K_1: #1
-                            SwitchToHotbar(Type, box, 1)
+                            SwitchToHotbarInfo(Type, box, 1)
                         elif event.key == pygame.K_2: #2
-                            SwitchToHotbar(Type, box, 2)
+                            SwitchToHotbarInfo(Type, box, 2)
                         elif event.key == pygame.K_3: #3
-                            SwitchToHotbar(Type, box, 3)
+                            SwitchToHotbarInfo(Type, box, 3)
                         elif event.key == pygame.K_4: #4
-                            SwitchToHotbar(Type, box, 4)
+                            SwitchToHotbarInfo(Type, box, 4)
                         elif event.key == pygame.K_5: #5
-                            SwitchToHotbar(Type, box, 5)
+                            SwitchToHotbarInfo(Type, box, 5)
                         elif event.key == pygame.K_6: #6
-                            SwitchToHotbar(Type, box, 6)
+                            SwitchToHotbarInfo(Type, box, 6)
                         elif event.key == pygame.K_7: #7
-                            SwitchToHotbar(Type, box, 7)
+                            SwitchToHotbarInfo(Type, box, 7)
                         elif event.key == pygame.K_8: #8
-                            SwitchToHotbar(Type, box, 8)
+                            SwitchToHotbarInfo(Type, box, 8)
                         elif event.key == pygame.K_9: #9
-                            SwitchToHotbar(Type, box, 9)
+                            SwitchToHotbarInfo(Type, box, 9)
                     elif event.type == pygame.MOUSEBUTTONDOWN: #Mouse Button Down Clicking Event
                         if pygame.mouse.get_pressed(3)[0]: #Left Click
                             ClickItem(Type, box, rng)
@@ -1060,23 +1049,23 @@ def Main():
                             player.mode = 'game'
                             break
                         elif event.key == pygame.K_1:  # 1
-                            SwitchToHotbar(Type, box, 1)
+                            SwitchToHotbarInfo(Type, box, 1)
                         elif event.key == pygame.K_2:  # 2
-                            SwitchToHotbar(Type, box, 2)
+                            SwitchToHotbarInfo(Type, box, 2)
                         elif event.key == pygame.K_3:  # 3
-                            SwitchToHotbar(Type, box, 3)
+                            SwitchToHotbarInfo(Type, box, 3)
                         elif event.key == pygame.K_4:  # 4
-                            SwitchToHotbar(Type, box, 4)
+                            SwitchToHotbarInfo(Type, box, 4)
                         elif event.key == pygame.K_5:  # 5
-                            SwitchToHotbar(Type, box, 5)
+                            SwitchToHotbarInfo(Type, box, 5)
                         elif event.key == pygame.K_6:  # 6
-                            SwitchToHotbar(Type, box, 6)
+                            SwitchToHotbarInfo(Type, box, 6)
                         elif event.key == pygame.K_7:  # 7
-                            SwitchToHotbar(Type, box, 7)
+                            SwitchToHotbarInfo(Type, box, 7)
                         elif event.key == pygame.K_8:  # 8
-                            SwitchToHotbar(Type, box, 8)
+                            SwitchToHotbarInfo(Type, box, 8)
                         elif event.key == pygame.K_9:  # 9
-                            SwitchToHotbar(Type, box, 9)
+                            SwitchToHotbarInfo(Type, box, 9)
                     elif event.type == pygame.MOUSEBUTTONDOWN:  # Mouse Button Down Clicking Event
                         if pygame.mouse.get_pressed(3)[0]:  # Left Click
                             ClickItem(Type, box, rng)
@@ -1101,23 +1090,23 @@ def Main():
                             player.mode = 'game'
                             break
                         elif event.key == pygame.K_1:  # 1
-                            SwitchToHotbar(Type, box, 1)
+                            SwitchToHotbarInfo(Type, box, 1)
                         elif event.key == pygame.K_2:  # 2
-                            SwitchToHotbar(Type, box, 2)
+                            SwitchToHotbarInfo(Type, box, 2)
                         elif event.key == pygame.K_3:  # 3
-                            SwitchToHotbar(Type, box, 3)
+                            SwitchToHotbarInfo(Type, box, 3)
                         elif event.key == pygame.K_4:  # 4
-                            SwitchToHotbar(Type, box, 4)
+                            SwitchToHotbarInfo(Type, box, 4)
                         elif event.key == pygame.K_5:  # 5
-                            SwitchToHotbar(Type, box, 5)
+                            SwitchToHotbarInfo(Type, box, 5)
                         elif event.key == pygame.K_6:  # 6
-                            SwitchToHotbar(Type, box, 6)
+                            SwitchToHotbarInfo(Type, box, 6)
                         elif event.key == pygame.K_7:  # 7
-                            SwitchToHotbar(Type, box, 7)
+                            SwitchToHotbarInfo(Type, box, 7)
                         elif event.key == pygame.K_8:  # 8
-                            SwitchToHotbar(Type, box, 8)
+                            SwitchToHotbarInfo(Type, box, 8)
                         elif event.key == pygame.K_9:  # 9
-                            SwitchToHotbar(Type, box, 9)
+                            SwitchToHotbarInfo(Type, box, 9)
                     elif event.type == pygame.MOUSEBUTTONDOWN:  # Mouse Button Down Clicking Event
                         if pygame.mouse.get_pressed(3)[0]:  # Left Click
                             ClickItem(Type, box, rng)
@@ -1142,23 +1131,23 @@ def Main():
                             player.mode = 'game'
                             break
                         elif event.key == pygame.K_1:  # 1
-                            SwitchToHotbar(Type, box, 1)
+                            SwitchToHotbarInfo(Type, box, 1)
                         elif event.key == pygame.K_2:  # 2
-                            SwitchToHotbar(Type, box, 2)
+                            SwitchToHotbarInfo(Type, box, 2)
                         elif event.key == pygame.K_3:  # 3
-                            SwitchToHotbar(Type, box, 3)
+                            SwitchToHotbarInfo(Type, box, 3)
                         elif event.key == pygame.K_4:  # 4
-                            SwitchToHotbar(Type, box, 4)
+                            SwitchToHotbarInfo(Type, box, 4)
                         elif event.key == pygame.K_5:  # 5
-                            SwitchToHotbar(Type, box, 5)
+                            SwitchToHotbarInfo(Type, box, 5)
                         elif event.key == pygame.K_6:  # 6
-                            SwitchToHotbar(Type, box, 6)
+                            SwitchToHotbarInfo(Type, box, 6)
                         elif event.key == pygame.K_7:  # 7
-                            SwitchToHotbar(Type, box, 7)
+                            SwitchToHotbarInfo(Type, box, 7)
                         elif event.key == pygame.K_8:  # 8
-                            SwitchToHotbar(Type, box, 8)
+                            SwitchToHotbarInfo(Type, box, 8)
                         elif event.key == pygame.K_9:  # 9
-                            SwitchToHotbar(Type, box, 9)
+                            SwitchToHotbarInfo(Type, box, 9)
                     elif event.type == pygame.MOUSEBUTTONDOWN:  # Mouse Button Down Clicking Event
                         if pygame.mouse.get_pressed(3)[0]:  # Left Click
                             ClickItem(Type, box, rng)
@@ -1182,23 +1171,23 @@ def Main():
                             player.mode = 'game'
                             break
                         elif event.key == pygame.K_1:  # 1
-                            SwitchToHotbar(Type, box, 1)
+                            SwitchToHotbarInfo(Type, box, 1)
                         elif event.key == pygame.K_2:  # 2
-                            SwitchToHotbar(Type, box, 2)
+                            SwitchToHotbarInfo(Type, box, 2)
                         elif event.key == pygame.K_3:  # 3
-                            SwitchToHotbar(Type, box, 3)
+                            SwitchToHotbarInfo(Type, box, 3)
                         elif event.key == pygame.K_4:  # 4
-                            SwitchToHotbar(Type, box, 4)
+                            SwitchToHotbarInfo(Type, box, 4)
                         elif event.key == pygame.K_5:  # 5
-                            SwitchToHotbar(Type, box, 5)
+                            SwitchToHotbarInfo(Type, box, 5)
                         elif event.key == pygame.K_6:  # 6
-                            SwitchToHotbar(Type, box, 6)
+                            SwitchToHotbarInfo(Type, box, 6)
                         elif event.key == pygame.K_7:  # 7
-                            SwitchToHotbar(Type, box, 7)
+                            SwitchToHotbarInfo(Type, box, 7)
                         elif event.key == pygame.K_8:  # 8
-                            SwitchToHotbar(Type, box, 8)
+                            SwitchToHotbarInfo(Type, box, 8)
                         elif event.key == pygame.K_9:  # 9
-                            SwitchToHotbar(Type, box, 9)
+                            SwitchToHotbarInfo(Type, box, 9)
                     elif event.type == pygame.MOUSEBUTTONDOWN:  # Mouse Button Down Clicking Event
                         if pygame.mouse.get_pressed(3)[0]:  # Left Click
                             ClickItem(Type, box, rng)
@@ -1223,23 +1212,23 @@ def Main():
                             player.mode = 'game'
                             break
                         elif event.key == pygame.K_1:  # 1
-                            SwitchToHotbar(Type, box, 1)
+                            SwitchToHotbarInfo(Type, box, 1)
                         elif event.key == pygame.K_2:  # 2
-                            SwitchToHotbar(Type, box, 2)
+                            SwitchToHotbarInfo(Type, box, 2)
                         elif event.key == pygame.K_3:  # 3
-                            SwitchToHotbar(Type, box, 3)
+                            SwitchToHotbarInfo(Type, box, 3)
                         elif event.key == pygame.K_4:  # 4
-                            SwitchToHotbar(Type, box, 4)
+                            SwitchToHotbarInfo(Type, box, 4)
                         elif event.key == pygame.K_5:  # 5
-                            SwitchToHotbar(Type, box, 5)
+                            SwitchToHotbarInfo(Type, box, 5)
                         elif event.key == pygame.K_6:  # 6
-                            SwitchToHotbar(Type, box, 6)
+                            SwitchToHotbarInfo(Type, box, 6)
                         elif event.key == pygame.K_7:  # 7
-                            SwitchToHotbar(Type, box, 7)
+                            SwitchToHotbarInfo(Type, box, 7)
                         elif event.key == pygame.K_8:  # 8
-                            SwitchToHotbar(Type, box, 8)
+                            SwitchToHotbarInfo(Type, box, 8)
                         elif event.key == pygame.K_9:  # 9
-                            SwitchToHotbar(Type, box, 9)
+                            SwitchToHotbarInfo(Type, box, 9)
                     elif event.type == pygame.MOUSEBUTTONDOWN:  # Mouse Button Down Clicking Event
                         if pygame.mouse.get_pressed(3)[0]:  # Left Click
                             ClickItem(Type, box, rng)
@@ -1447,7 +1436,7 @@ def SelectedBox():
 def ClickItem(Type, box, rng: RandomNumberGenerator):
     global small_crafting_grid
     if Type is not None and box is not None:
-        if Type == 'inventory grid': #Inventory Grid and Hotbar
+        if Type == 'inventory grid': #Inventory Grid and HotbarInfo
             if player.holding_item is not None and player.inventory_list[box] is not None:
                 if player.holding_item.name == player.inventory_list[box].name and (player.inventory_list[box].number + player.holding_item.number <= player.holding_item.stackNum): #Items can be combined
                     player.inventory_list[box].number += player.holding_item.number
@@ -1580,7 +1569,7 @@ def ClickItem(Type, box, rng: RandomNumberGenerator):
             player.grindstone_list[0], player.grindstone_list[1], player.grindstone_list[2] = None, None, None
 
 #Switch items in inventory straight to hotbar
-def SwitchToHotbar(Type, box, key_pressed):
+def SwitchToHotbarInfo(Type, box, key_pressed):
     if Type is not None and box is not None:
         if Type == 'inventory grid':
             player.inventory_list[key_pressed + 26], player.inventory_list[box] = player.inventory_list[box], player.inventory_list[key_pressed + 26]
@@ -1648,12 +1637,152 @@ def NumberLimit(number, val, rng: RandomNumberGenerator, screen: Screen, timer: 
         commands(number, val, rng, screen, timer)
 
 
-# Create Hotbar Outline
-class Hotbar:
+# Create HotbarInfo Outline
+class HotbarInfo:
     def __init__(self, colour, rect, width):
         self.colour = colour
         self.rect = rect
         self.width = width
+
+#Health and Hunger Info Bar Class
+class InfoBar:
+    def __init__(self, img, x, y):
+        self.img = img
+        self.x = x
+        self.y = y
+
+@dataclass
+class Coordinate:
+    x: int
+    y: int
+
+class HealthBar:
+    def __init__(self):
+        self.__COORDINATES: list[Coordinate] = []
+        for i in range(10):
+            self.__COORDINATES.append(Coordinate(7 + 35*i, 592))
+
+    def render(self, display: pygame.Surface, context: Context, health_value: int):
+        curr = health_value
+        for coordinate in self.__COORDINATES:
+            if curr >= 2:
+                image = context.INFOBAR_IMAGES["full_heart"]
+                curr -= 2
+            elif curr == 1:
+                image = context.INFOBAR_IMAGES["half_heart"] 
+                curr -= 1
+            else:
+                image = context.INFOBAR_IMAGES["empty_heart"] 
+            display.blit(image, (coordinate.x, coordinate.y))
+
+class HungerBar:
+    def __init__(self):
+        self.__COORDINATES: list[Coordinate] = []
+        for i in range(10):
+            self.__COORDINATES.append(Coordinate(715 - 34*i, 592))
+
+    def render(self, display: pygame.Surface, context: Context, hunger_value: int):
+        curr = hunger_value
+        for coordinate in self.__COORDINATES:
+            if curr >= 2:
+                image = context.INFOBAR_IMAGES["full_hunger"]
+                curr -= 2
+            elif curr == 1:
+                image = context.INFOBAR_IMAGES["half_hunger"] 
+                curr -= 1
+            else:
+                image = context.INFOBAR_IMAGES["empty_hunger"] 
+            display.blit(image, (coordinate.x, coordinate.y))
+
+class Hotbar:
+    def __init__(self):
+        self.__COORDINATES: list[Coordinate] = []
+        for i in range(9):
+            self.__COORDINATES.append(Coordinate(7 + 82*i, 667))
+
+        self.__HOTBAR_BACKGROUNDS: list[pygame.Rect] = []
+        for i in range(9):
+            self.__HOTBAR_BACKGROUNDS.append(pygame.Rect((7 + 82*i, 667), (82, 82)))
+
+        self.__font = pygame.font.Font("assets/minecraft-font/MinecraftRegular-Bmg3.otf", 24)
+        
+    def render(self, display: pygame.Surface, context: Context, items: list[Item], selected: int):
+
+        images = [None]*9
+        numbers = ['']*9
+        
+        # populate images and numbers arrays
+        for i in range(9):
+            if items[i] is None: # Set White Background for NONE Slots
+                images[i] = context.INFOBAR_IMAGES["slot"]
+            else: # no enchantments
+                images[i] = context.ITEM_IMAGES[ITEM_IMAGE_MAPPING[items[i].name]]
+                if items[i].number != 1:
+                    numbers[i] = str(items[i].number)
+
+        # draw images
+        for i, coordinate in enumerate(self.__COORDINATES):
+            display.blit(context.INFOBAR_IMAGES["slot"], (coordinate.x, coordinate.y)) # background
+            display.blit(images[i], (coordinate.x, coordinate.y))
+            if items[i] is not None:
+                if items[i].enchantments is not None:
+                    display.blit(context.TC_GLINTS[items[i].name], (coordinate.x, coordinate.y))
+                if items[i].durability is not None:
+                    RenderDurabilityBar(display, coordinate.x, coordinate.y, items[i].durability, items[i].max_durability)
+
+        # draw background rects based on selected hotbar value
+        for i in range(9):
+            if selected == i:
+                pygame.draw.rect(display, (255, 255, 255), self.__HOTBAR_BACKGROUNDS[i], 3)
+            else:
+                pygame.draw.rect(display, (83, 83, 83), self.__HOTBAR_BACKGROUNDS[i], 2)
+
+        # draw numbers
+        for i in range(9):
+            surface = self.__font.render(numbers[i], True, (255, 0, 0), (255, 255, 255))
+            x = 60 + 82*i
+            y = 720
+            display.blit(surface, (x, y))
+
+
+class Experience:
+    def __init__(self) -> None:
+        self.__levels: float = 0
+
+    def add_points(self, experience_points: int) -> None:
+        self.__levels += (-1 + (1 + 4 * (experience_points + self.__levels ** 2 + self.__levels)) ** 0.5) / 2 - self.__levels
+
+    @property
+    def levels(self) -> float:
+        return self.__levels
+
+    def subtract(self, levels: int) -> None:
+        if self.__levels - levels < 0:
+            return
+        self.__levels -= levels
+
+
+class ExperienceBar:
+    def __init__(self):
+        self.__font = pygame.font.Font('assets/minecraft-font/MinecraftRegular-Bmg3.otf', 45)
+
+    def render(self, display: pygame.Surface, levels: float):
+        try:
+            percent_xp_to_next_level = (levels - math.floor(levels))
+        except ZeroDivisionError:
+            percent_xp_to_next_level = 0
+
+        # DRAW EXPERIENCE BAR
+        pygame.draw.rect(display, "#72a34c", (5, 630, round(percent_xp_to_next_level * 738), 30))
+        pygame.draw.rect(display, "#424d42", (round(percent_xp_to_next_level * 738) + 5, 630, round((1 - percent_xp_to_next_level) * 738), 30))
+        for i in range(18):
+            pygame.draw.rect(display, (0, 0, 0), (i * 41 + 5, 630, 41, 30), 2)
+        experience_number = self.__font.render(str(math.floor(levels)), True, '#82b054', (255, 255, 255))
+        experience_number_r = experience_number.get_rect()
+        experience_number_r.center = (378, 615)
+        display.blit(experience_number, experience_number_r)  # Experience Number
+        
+
 
 #Player Class and Methods
 class Player:
@@ -1691,84 +1820,59 @@ class Player:
             else:
                 break #tile is air so the loop ends
 
-        # Setup Health Bar Images
-        global health_vals, health_nums, heart1, heart2, heart3, heart4, heart5, heart6, heart7, heart8, heart9, heart10, full_heart, health, half_heart, empty_heart
-        full_heart = pygame.image.load(
-            'assets/FullHeart_20x20.png').convert()  # Full Heart (2)
-        half_heart = pygame.image.load(
-            'assets/half_heart_20x20.png').convert()  # Half Heart (1)
-        empty_heart = pygame.image.load(
-            'assets/empty_heart_20x20.png').convert()  # Empty Heart (0)
-        heart1 = info_bar(full_heart, 7, 592)
-        heart2 = info_bar(full_heart, 42, 592)
-        heart3 = info_bar(full_heart, 76, 592)
-        heart4 = info_bar(full_heart, 111, 592)
-        heart5 = info_bar(full_heart, 145, 592)
-        heart6 = info_bar(full_heart, 180, 592)
-        heart7 = info_bar(full_heart, 214, 592)
-        heart8 = info_bar(full_heart, 249, 592)
-        heart9 = info_bar(full_heart, 283, 592)
-        heart10 = info_bar(full_heart, 318, 592)
-        self.health_vals = [heart1, heart2, heart3, heart4, heart5, heart6, heart7, heart8, heart9, heart10]
-        self.health_nums = [2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
-        self.health = 20  # Set Health = 20
+        self.health = 20
+        self.health_bar = HealthBar()
+        
+        self.hunger = 20
+        self.hunger_bar = HungerBar()
 
-        # Setup Hunger Bar Images
-        global experience_bar, hunger_vals, backdrop, empty_hunger, distance, hunger_nums, full_hunger, hunger, half_hunger, dead, hunger1, hunger2, hunger3, hunger4, hunger5, hunger6, hunger7, hunger8, hunger9, hunger10
-        full_hunger = pygame.image.load(
-            'assets/hunger_20x20.png')  # Full Hunger (2)
-        half_hunger = pygame.image.load(
-            'assets/half_hunger_20x20.png')  # Half Hunger (1)
-        empty_hunger = pygame.image.load(
-            'assets/empty_hunger_20x20.png')  # Empty Hunger (0)
-        self.hunger = 20  # Set Hunger = 20
-        self.hunger_nums = [2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+        self.experience = Experience()
+        self.experience_bar = ExperienceBar()
+
+        global backdrop, distance
         self.distance = 0  # Set Distance Travelled
         self.dead = False
         self.hunger_subtracted = 0
 
-        hunger1 = info_bar(full_hunger, 715, 592)
-        hunger2 = info_bar(full_hunger, 681, 592)
-        hunger3 = info_bar(full_hunger, 646, 592)
-        hunger4 = info_bar(full_hunger, 612, 592)
-        hunger5 = info_bar(full_hunger, 577, 592)
-        hunger6 = info_bar(full_hunger, 543, 592)
-        hunger7 = info_bar(full_hunger, 508, 592)
-        hunger8 = info_bar(full_hunger, 474, 592)
-        hunger9 = info_bar(full_hunger, 439, 592)
-        hunger10 = info_bar(full_hunger, 405, 592)
-        self.hunger_vals = [hunger1, hunger2, hunger3, hunger4, hunger5, hunger6, hunger7, hunger8, hunger9, hunger10]  # Hunger bar list
-        experience_bar = pygame.image.load('assets/item_imgs/experience.png').convert()
         backdrop = pygame.Rect((30, 592), (697, 30))  # Set Background for Hunger and Health Bar
 
+        # inventory
         self.waiting_list = []
         self.selected_slot = 'slot1'
-        self.inventory_list = [None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-                          None,
-                          None, None, None, None, None, None, None, None, None, None, None, None, None, None, None,
-                          None,
-                          None, None, None, None]
+        self.inventory_list = [None]*36
         self.image_list = []
-        self.number_list = ['', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',
-                       '', '', '', '', '', '', '', '', '', '', '']
-        self.armour_list = [None, None, None, None]
+        self.number_list = ['']*36
+
+        # hotbar
+        self.hotbar = Hotbar()
+        self.selected_hotbar = 0
+        self.hotbar_item = None
+
+        # armour
+        self.armour_list = [None]*4
         self.armour_image_list = []
         self.layer_list = []
-        self.craft_list = [None, None, None, None, None]
+
+        # small crafting grid
+        self.craft_list = [None]*5
         self.craft_image_list = []
         self.craft_number_list = []
-        self.grid_list = [None, None, None, None, None, None, None, None, None, None]
+
+        # crafting table
+        self.grid_list = [None]*10
         self.grid_image_list = []
         self.grid_number_list = []
-        self.smelting_list = [None, None, None]
+
+        # furnace
+        self.smelting_list = [None]*3
         self.smelt_image_list = []
         self.smelt_number_list = []
         self.fuel_val = 0
         self.fuel_img = context.ITEM_IMAGES["no_fire"]
         self.smelting_time = 0
-        self.experience_points = 0
-        self.experience_levels = 0
-        self.enchanting_list = [None, None, None]
+
+        # enchanting table
+        self.enchanting_list = [None]*3
         self.enchanting_image_list = []
         self.enchanting_number_list = []
         self.option_list = ['', '', '']
@@ -1779,45 +1883,6 @@ class Player:
         self.optional_enchant2 = None
         self.optional_enchant3 = None
 
-        #Create Hotbar
-        global slot
-        slot = pygame.image.load("assets/item_imgs/slot.png").convert()
-        bar1 = info_bar(slot, 7, 667)
-        bar2 = info_bar(slot, 89, 667)
-        bar3 = info_bar(slot, 171, 667)
-        bar4 = info_bar(slot, 253, 667)
-        bar5 = info_bar(slot, 335, 667)
-        bar6 = info_bar(slot, 417, 667)
-        bar7 = info_bar(slot, 499, 667)
-        bar8 = info_bar(slot, 581, 667)
-        bar9 = info_bar(slot, 663, 667)
-        self.hotbar_imgs = [bar1, bar2, bar3, bar4, bar5, bar6, bar7, bar8, bar9]
-
-        # Set Background Rects
-        background_1 = pygame.Rect((7, 667), (82, 82))
-        background_2 = pygame.Rect((89, 667), (82, 82))
-        background_3 = pygame.Rect((171, 667), (82, 82))
-        background_4 = pygame.Rect((253, 667), (82, 82))
-        background_5 = pygame.Rect((335, 667), (82, 82))
-        background_6 = pygame.Rect((417, 667), (82, 82))
-        background_7 = pygame.Rect((499, 667), (82, 82))
-        background_8 = pygame.Rect((581, 667), (82, 82))
-        background_9 = pygame.Rect((663, 667), (82, 82))
-
-        # Set Hotbar Classes
-        global Hotbar1, Hotbar2, Hotbar3, Hotbar4, Hotbar5, Hotbar6, Hotbar7, Hotbar8, Hotbar9, hotbar_backgrounds, hotbar_item, mode, hotbar_order
-        Hotbar1 = Hotbar((255, 255, 255), background_1, 3)
-        Hotbar2 = Hotbar((83, 83, 83), background_2, 2)
-        Hotbar3 = Hotbar((83, 83, 83), background_3, 2)
-        Hotbar4 = Hotbar((83, 83, 83), background_4, 2)
-        Hotbar5 = Hotbar((83, 83, 83), background_5, 2)
-        Hotbar6 = Hotbar((83, 83, 83), background_6, 2)
-        Hotbar7 = Hotbar((83, 83, 83), background_7, 2)
-        Hotbar8 = Hotbar((83, 83, 83), background_8, 2)
-        Hotbar9 = Hotbar((83, 83, 83), background_9, 2)
-        self.hotbar_backgrounds = [Hotbar1, Hotbar2, Hotbar3, Hotbar4, Hotbar5, Hotbar6, Hotbar7, Hotbar8, Hotbar9]
-        self.selected_hotbar = 'Hotbar1'
-        self.hotbar_item = None
         self.mode = 'game'
         self.holding_item = None
         self.holding_item_image = None
@@ -1830,62 +1895,12 @@ class Player:
         self.grindstone_image_list = []
         self.grindstone_number_list = []
 
-    #Method to convert health and hunger integers to image lists
-    def health_hunger_update(self):
-        # UPDATE HUNGER LIST
-        self.hunger_nums = []
-        if self.hunger > 20:
-            self.hunger = 20
-        hunger_difference = self.hunger
-        while hunger_difference > 0:
-            if hunger_difference >= 2:
-                hunger_difference -= 2
-                self.hunger_nums.append(2)
-            elif hunger_difference == 1:
-                hunger_difference -= 1
-                self.hunger_nums.append(1)
-        while len(self.hunger_nums) < 10:
-            self.hunger_nums.append(0)
-
-        # UPDATE HUNGER BAR IMAGES
-        for i in range(len(self.hunger_vals)):
-            if self.hunger_nums[i] == 2:
-                self.hunger_vals[i].img = full_hunger
-            elif self.hunger_nums[i] == 1:
-                self.hunger_vals[i].img = half_hunger
-            else:
-                self.hunger_vals[i].img = empty_hunger
-
-        # UPDATE HEALTH LIST
-        self.health_nums = []
-        if self.health > 20:
-            self.health = 20
-        health_difference = self.health
-        while health_difference > 0:
-            if health_difference >= 2:
-                health_difference -= 2
-                self.health_nums.append(2)
-            elif health_difference == 1:
-                health_difference -= 1
-                self.health_nums.append(1)
-        while len(self.health_nums) < 10:
-            self.health_nums.append(0)
-
-        # UPDATE HEALTH BAR IMAGES
-        for i in range(len(self.health_vals)):
-            if self.health_nums[i] == 2:
-                self.health_vals[i].img = full_heart
-            elif self.health_nums[i] == 1:
-                self.health_vals[i].img = half_heart
-            else:
-                self.health_vals[i].img = empty_heart
 
     # Hunger mechanism to decrease hunger as distance travelled increases
     def hunger_mechanism(self):
         if self.hunger > 0 and self.distance != 0 and self.distance // 512 != self.hunger_subtracted:
             self.hunger -= 1
             self.hunger_subtracted += 1
-        self.health_hunger_update()
 
     #Update Health and Regeneration
     def health_update(self):
@@ -1903,7 +1918,6 @@ class Player:
                 self.regenerate_start_time += 1
             else:
                 self.regenerate_val = False
-        self.health_hunger_update()
 
     def collide(self): #Collisions with tiles
         global hasGeneratedUnderground
@@ -2140,10 +2154,10 @@ class Player:
             self.fuel_val -= 1
             if self.smelting_list[2] is None:
                 self.smelting_list[2] = Item("Iron Ingot", 1, None, None)
-                self.experience_points += 12
+                self.experience.add_points(12)
             else:
                 self.smelting_list[2] = Item("Iron Ingot", self.smelting_list[2].number + 1, None, None)
-                self.experience_points += 12
+                self.experience.add_points(12)
 
         # Render Fire
         if self.fuel_val > 0:
@@ -2206,7 +2220,7 @@ class Player:
     def disenchant(self):
         enchantments = self.grindstone_list[0].enchantments
         for i in enchantments:
-            self.experience_points += int(i[1]) * 8
+            self.experience.add_points(int(i[1]) * 8)
 
     def place_tile(self): #Place tiles
         if self.isShifting: #is shifting = can edit background tiles
@@ -2393,13 +2407,13 @@ class Player:
                     inventory_add(Item("Cobblestone", 1, None, None))
                 elif value.tile == "Coal Ore":
                     inventory_add(Item("Coal", 1, None, None))
-                    self.experience_points += 12
+                    self.experience.add_points(12)
                 elif value.tile == "Lapis Ore":
                     inventory_add(Item("Lapis Lazuli", 1, None, None))
-                    self.experience_points += 12
+                    self.experience.add_points(12)
                 elif value.tile == "Diamond Ore":
                     inventory_add(Item("Diamond", 1, None, None))
-                    self.experience_points += 12
+                    self.experience.add_points(12)
                 elif value.tile == "Grass":
                     inventory_add(Item("Dirt", 1, None, None))
                 elif value.tile == "Gravel":
@@ -2417,13 +2431,13 @@ class Player:
                     inventory_add(Item("Cobblestone", 1, None, None))
                 elif value.tile == "Coal Ore":
                     inventory_add(Item("Coal", 1, None, None))
-                    self.experience_points += 12
+                    self.experience.add_points(12)
                 elif value.tile == "Lapis Ore":
                     inventory_add(Item("Lapis Lazuli", 1, None, None))
-                    self.experience_points += 12
+                    self.experience.add_points(12)
                 elif value.tile == "Diamond Ore":
                     inventory_add(Item("Diamond", 1, None, None))
-                    self.experience_points += 12
+                    self.experience.add_points(12)
                 elif value.tile == "Grass":
                     inventory_add(Item("Dirt", 1, None, None))
                 elif value.tile == "Gravel":
@@ -2595,23 +2609,13 @@ class Player:
                     inventory_add(Item("Bucket", 1, None, None))
                     World.UndergroundTiles[(self.target[0], self.target[1])] = Tile("Lava", self.target[0], self.target[1])
 
-    def render(self, context: Context, display):
-        global backdrop, experience_bar, FPS, BREAKING_LIST
-
-        def item_image(item_name: str) -> pygame.Surface:
-            return context.ITEM_IMAGES[ITEM_IMAGE_MAPPING[item_name]]
+    def render(self, context: Context, display: pygame.Surface):
+        global backdrop, FPS 
 
         if self.breaking_delay > 0:
             self.breaking_delay -= 1
         else:
             self.breaking_delay = 0
-
-        self.experience_levels += (-1 + (1 + 4 * (self.experience_points + self.experience_levels ** 2 + self.experience_levels)) ** 0.5) / 2 - self.experience_levels
-        self.experience_points = 0
-        try:
-            self.percent_xp_to_next_level = (self.experience_levels - math.floor(self.experience_levels))
-        except ZeroDivisionError:
-            self.percent_xp_to_next_level = 0
 
         # DRAW BACKDROP FOR HUNGER AND HEALTH BARS
         pygame.draw.rect(display, (255, 255, 255), backdrop)
@@ -2627,71 +2631,15 @@ class Player:
         elif player.direction == 'West':
             pygame.draw.line(display, (0, 0, 0), (375, 375), (359, 375), width=4)
 
-        # DRAW HEALTH BAR
-        for j in self.health_vals:
-            display.blit(j.img, (j.x, j.y))
+        # render health and hunger bars
+        self.health_bar.render(display, context, self.health)
+        self.hunger_bar.render(display, context, self.hunger)
 
-        # DRAW HUNGER BAR
-        for j in self.hunger_vals:
-            display.blit(j.img, (j.x, j.y))
+        # render experience bar
+        self.experience_bar.render(display, self.experience.levels)
 
-        # DRAW EXPERIENCE BAR
-        fontx = pygame.font.Font('assets/minecraft-font/MinecraftRegular-Bmg3.otf', 45)
-        pygame.draw.rect(display, "#72a34c", (5, 630, round(self.percent_xp_to_next_level * 738), 30))
-        pygame.draw.rect(display, "#424d42", (round(self.percent_xp_to_next_level * 738) + 5, 630, round((1 - self.percent_xp_to_next_level) * 738), 30))
-        for i in range(18):
-            pygame.draw.rect(display, (0, 0, 0), (i * 41 + 5, 630, 41, 30), 2)
-        experience_number = fontx.render(str(math.floor(self.experience_levels)), True, '#82b054', (255, 255, 255))
-        experience_number_r = experience_number.get_rect()
-        experience_number_r.center = (378, 615)
-        display.blit(experience_number, experience_number_r)  # Experience Number
-
-        # GENERATE HOTBAR LIST
-        for i in range(27, 36):
-            if self.inventory_list[i] is None:  # Set White Background for NONE Slots
-                self.hotbar_imgs[i - 27].img = slot
-                self.number_list[i] = ''
-            else:  # No Enchantments
-                self.hotbar_imgs[i - 27].img = item_image(self.inventory_list[i].name)
-                self.number_list[i] = str(self.inventory_list[i].number)
-                if self.number_list[i] == '1':
-                    self.number_list[i] = ''
-                if self.inventory_list[i].number == 0:
-                    self.inventory_list[i] = None
-
-        # DRAW HOTBAR
-        for i in range(len(self.hotbar_imgs)):
-            display.blit(slot, (self.hotbar_imgs[i].x, self.hotbar_imgs[i].y))  # Background
-            display.blit(self.hotbar_imgs[i].img, (self.hotbar_imgs[i].x, self.hotbar_imgs[i].y))  #Item
-            if self.inventory_list[i+27] is not None:
-                if player.inventory_list[i+27].enchantments is not None:
-                    display.blit(context.TC_GLINTS[player.inventory_list[i+27].name], (self.hotbar_imgs[i].x, self.hotbar_imgs[i].y))
-                if player.inventory_list[i+27].durability is not None:
-                    RenderDurabilityBar(display, self.hotbar_imgs[i].x, self.hotbar_imgs[i].y, player.inventory_list[i+27].durability, player.inventory_list[i+27].max_durability)
-
-        # DRAW HOTBAR BACKGROUNDS
-        for j in self.hotbar_backgrounds:
-            pygame.draw.rect(display, j.colour, j.rect, j.width)
-
-        # SETUP HOTBAR NUMBERS
-        font = pygame.font.Font(
-            'assets/minecraft-font/MinecraftRegular-Bmg3.otf', 24)
-
-        pygame_number_text = [
-            Text(font.render(self.number_list[27], True, (255, 0, 0), (255, 255, 255)), 60, 720),
-            Text(font.render(self.number_list[28], True, (255, 0, 0), (255, 255, 255)), 142, 720),
-            Text(font.render(self.number_list[29], True, (255, 0, 0), (255, 255, 255)), 225, 720),
-            Text(font.render(self.number_list[30], True, (255, 0, 0), (255, 255, 255)), 307, 720),
-            Text(font.render(self.number_list[31], True, (255, 0, 0), (255, 255, 255)), 390, 720),
-            Text(font.render(self.number_list[32], True, (255, 0, 0), (255, 255, 255)), 472, 720),
-            Text(font.render(self.number_list[33], True, (255, 0, 0), (255, 255, 255)), 555, 720),
-            Text(font.render(self.number_list[34], True, (255, 0, 0), (255, 255, 255)), 637, 720),
-            Text(font.render(self.number_list[35], True, (255, 0, 0), (255, 255, 255)), 720, 720)
-        ]
-
-        # DRAW HOTBAR NUMBERS
-        for j in pygame_number_text:
-            display.blit(j.surface, (j.x, j.y))
+        # render hotbar
+        self.hotbar.render(display, context, self.inventory_list[27:36], self.selected_hotbar)
 
         # RENDER DEBUG MENU
         global screen_width, screen_height
@@ -2907,7 +2855,6 @@ def PygameInitialise() -> tuple[Context, RandomNumberGenerator]:
         "bedrock_tile": set_alpha("assets/tile_imgs/bedrock.png"),
     }
 
-
     # [EXPORT] Create Breaking Images
     BREAKING_LIST = [
         pygame.image.load('assets/breaking/breaking1.png').convert_alpha(),
@@ -2918,11 +2865,24 @@ def PygameInitialise() -> tuple[Context, RandomNumberGenerator]:
         pygame.image.load('assets/breaking/breaking6.png').convert_alpha()
     ]
 
+    # [EXPORT]
+    INFOBAR_IMAGES = {
+        "full_heart" : pygame.image.load('assets/FullHeart_20x20.png').convert(),  # Full Heart (2)
+        "half_heart" : pygame.image.load('assets/half_heart_20x20.png').convert(),  # Half Heart (1)
+        "empty_heart" : pygame.image.load('assets/empty_heart_20x20.png').convert(),  # Empty Heart (0)
+        "full_hunger" : pygame.image.load('assets/hunger_20x20.png'),  # Full Hunger (2)
+        "half_hunger" : pygame.image.load('assets/half_hunger_20x20.png'),  # Half Hunger (1)
+        "empty_hunger" : pygame.image.load('assets/empty_hunger_20x20.png'),  # Empty Hunger (0)
+        "slot": pygame.image.load("assets/item_imgs/slot.png").convert(),
+        "experience_bar": pygame.image.load('assets/item_imgs/experience.png').convert(),
+    }
+
     context = Context(
         ITEM_IMAGES = ITEM_IMAGES,
         TC_GLINTS = TC_GLINTS,
         TILE_IMAGES = TILE_IMAGES,
         BREAKING_LIST = BREAKING_LIST,
+        INFOBAR_IMAGES = INFOBAR_IMAGES
     )
 
     global player, World, Option1, Option2, Option3, Upgrade, screen, TimerRunning, world
@@ -3320,12 +3280,6 @@ def commands(number, val, rng: RandomNumberGenerator, screen: Screen, timer: Spe
         else:
             screen.print("Invalid Function")
 
-#Health and Hunger Info Bar Class
-class info_bar:
-    def __init__(self, img, x, y):
-        self.img = img
-        self.x = x
-        self.y = y
 
 '''Empty Structures'''
 
@@ -3717,18 +3671,18 @@ def EnchantSet(rng: RandomNumberGenerator):
 def Enchant1(rng: RandomNumberGenerator):  # First ENCHANTING BOX (Enchants start at LEVEL 1, MAX 5, no extras)
     global player
     if player.enchanting_list[1] is not None:
-        if player.enchanting_list[1].number > 0 and player.experience_levels > 0:  # REQUIRE 1 Lapis + 1 Experience
+        if player.enchanting_list[1].number > 0 and player.experience.levels > 0:  # REQUIRE 1 Lapis + 1 Experience
             if player.option_list[0] != 'N/A' and player.enchanting_list[0] is not None:
                 player.enchanting_list[0] = Item(player.enchanting_list[0].name, player.enchanting_list[0].number, [[player.option_list[0][0:-2], int(player.option_list[0][-1])]], player.enchanting_list[0].number)
                 player.enchanting_list[1].number -= 1
-                player.experience_levels -= 1
+                player.experience.subtract(1)
                 EnchantSet(rng)  # Remove Enchants
 
 
 def Enchant2(rng: RandomNumberGenerator):  # Second ENCHANTING BOX (Enchants start at LEVEL 1, MAX 5, extras start LEVEL 4, MAX 2)
     global player
     if player.enchanting_list[1] is not None:
-        if player.enchanting_list[1].number > 1 and player.experience_levels > 1:  # REQUIRE 2 Lapis + 2 Experience
+        if player.enchanting_list[1].number > 1 and player.experience.levels > 1:  # REQUIRE 2 Lapis + 2 Experience
             if player.option_list[1] != 'N/A' and player.enchanting_list[0] is not None:  # Test for None
                 if player.optional_enchant2 is not None:  # Extra enchantment
                     if player.optional_enchant2 > 0:  # Enchantment level > 0
@@ -3739,14 +3693,14 @@ def Enchant2(rng: RandomNumberGenerator):  # Second ENCHANTING BOX (Enchants sta
                 else:
                     player.enchanting_list[0] = Item(player.enchanting_list[0].name, player.enchanting_list[0].number, [[player.option_list[1][0:-2], int(player.option_list[1][-1])]], player.enchanting_list[0].durability)
                 player.enchanting_list[1].number -= 2
-                player.experience_levels -= 2
+                player.experience.subtract(2)
                 EnchantSet(rng)  # Remove Enchants
 
 
 def Enchant3(rng: RandomNumberGenerator):  # Third ENCHANTING BOX (ENCHANTS start at LEVEL 0, MAX 5, extras start LEVEL 3, MAX 3)
     global player
     if player.enchanting_list[1] is not None:
-        if player.enchanting_list[1].number > 2 and player.experience_levels > 2:  # REQUIRE 3 Lapis + 3 Experience
+        if player.enchanting_list[1].number > 2 and player.experience.levels > 2:  # REQUIRE 3 Lapis + 3 Experience
             if player.option_list[2] != 'N/A' and player.enchanting_list[0] is not None:  # Test for None
                 if player.optional_enchant3 is not None:  # Extra enchantment
                     if player.optional_enchant3 > 0:  # Enchantment level > 0
@@ -3757,7 +3711,7 @@ def Enchant3(rng: RandomNumberGenerator):  # Third ENCHANTING BOX (ENCHANTS star
                 else:  # No extra enchantment
                     player.enchanting_list[0] = Item(player.enchanting_list[0].name, player.enchanting_list[0].number, [[player.option_list[2][0:-2], int(player.option_list[2][-1])]], player.enchanting_list[0].durability)
                 player.enchanting_list[1].number -= 3
-                player.experience_levels -= 3
+                player.experience.subtract(3)
                 EnchantSet(rng)  # Remove Enchants
 
 #add items to inventory
