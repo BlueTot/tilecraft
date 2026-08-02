@@ -75,6 +75,6 @@ def experience(screen, player, level):
     try:
         level = int(level)
         if level > 0:
-            player.experience_points += level
+            player.experience.add_points(level)
     except ValueError:
         screen.print("Invalid Input")
