@@ -8,7 +8,10 @@ import noise #Perlin Noise module
 import os #OS module
 import sys #SYS module
 
+from constants import *
+
 title_screen_mode = 'normal'
+
 
 '''Cheats Datapack Section'''
 
@@ -22,7 +25,7 @@ def print_cheats(name):
 
 #/give command
 def give(item_id):
-    global screen, TC_ITEMS
+    global screen
     item_id = item_id.replace(' ', '') #REMOVE WHITESPACES
     # CALCULATE CODE AND AMOUNT
     if ',' in item_id and item_id[-1] != ',':
@@ -35,9 +38,9 @@ def give(item_id):
     try:
         code = int(code)
         amount = int(amount)
-        length = len(list(TC_ITEMS.keys())) - 1
+        length = len(list(ITEM_TYPES.keys())) - 1
         if 0 <= code <= length:
-            add_item = Item(list(TC_ITEMS.keys())[code], amount, None, list(TC_ITEMS.values())[code].max_durability)
+            add_item = Item(list(ITEM_TYPES.keys())[code], amount, None, list(ITEM_TYPES.values())[code].max_durability)
             return add_item
         else:
             screen.print(f"Please enter a number between 0 and {length}.")
@@ -212,18 +215,14 @@ def SpeedrunTimer(display, PlayTime): #Speedrun Timer Function
             speedrun_time = HourTime + ":" + MinuteTime + ":" + SecondTime + '.' + MSecondTime  # Current in-game time
         display.blit(font.render(speedrun_time, True, (0, 0, 0), (255, 255, 255)), (504 - (13 * len(speedrun_time)), 0)) #Render Speedrun Timer
 
-'''World Generation Classes and Functions'''
-
 class Tile:
-    def __init__(self, tile, x, y, image):
-        global TC_TILES
+    def __init__(self, tile, x, y):
         self.tile = tile
         self.x = x
         self.y = y
-        self.image = image
-        self.breaking_time = TC_TILES[self.tile].breaking_time
-        self.requireTool = TC_TILES[self.tile].tool
-        self.requireToolTier = TC_TILES[self.tile].tier
+        self.breaking_time = TILE_TYPES[self.tile].breaking_time
+        self.requireTool = TILE_TYPES[self.tile].tool
+        self.requireToolTier = TILE_TYPES[self.tile].tier
 
 class Chunk:
     def __init__(self, x, y, biome):
@@ -262,7 +261,7 @@ def OverworldGeneratedList():
 def OverworldGenerate(ChunkX, ChunkY, villages, ruined_portals, obsidian_counts,
                       generated_list, bound_village, bound_village2, bound_village3, bound_village4,
                       bound_ruined_portal, bound_ruined_portal2, seed, UnderTiles, Tiles):
-    global alpha_gravel_tile, alpha_sand_tile, alpha_grass_tile, alpha_snow_tile, alpha_water_tile, stone_tile, leaf_tile, oak_log_tile
+
     num = RandomPos(seed, (ChunkX, ChunkY), (1, 25))
     if num == 1 or num == 2:
         villages.append([ChunkX - 12, ChunkY - 12])  # Village
@@ -299,17 +298,17 @@ def OverworldGenerate(ChunkX, ChunkY, villages, ruined_portals, obsidian_counts,
             except KeyError:
                 if land >= -0.075:
                     if temperature < -0.1:
-                        UnderTiles[(i, j)] = Tile('Snow', i, j, alpha_snow_tile)
+                        UnderTiles[(i, j)] = Tile('Snow', i, j)
                     elif -0.1 <= temperature <= 0.1:
-                        UnderTiles[(i, j)] = Tile('Grass', i, j, alpha_grass_tile)
+                        UnderTiles[(i, j)] = Tile('Grass', i, j)
                     elif temperature > 0.1:
-                        UnderTiles[(i, j)] = Tile('Sand', i, j, alpha_sand_tile)
+                        UnderTiles[(i, j)] = Tile('Sand', i, j)
                 else:
-                    UnderTiles[(i, j)] = Tile('Water', i, j, alpha_water_tile)
+                    UnderTiles[(i, j)] = Tile('Water', i, j)
             try:
                 temp = Tiles[(i, j)].tile
             except KeyError:
-                Tiles[(i, j)] = Tile('Air', i, j, None)
+                Tiles[(i, j)] = Tile('Air', i, j)
     for i in range(ChunkX, ChunkX + 16, 4):
         for j in range(ChunkY, ChunkY + 16, 4):
             x = i + RandomPos(seed, (i, j), (1, 4))
@@ -324,14 +323,14 @@ def OverworldGenerate(ChunkX, ChunkY, villages, ruined_portals, obsidian_counts,
                 for X in range(-1, 2, 1):
                     for Y in range(-1, 2, 1):
                         if not (X == 0 and Y == 0):
-                            Tiles[(x + X, y + Y)] = Tile("Leaf", x + X, y + Y, leaf_tile)
+                            Tiles[(x + X, y + Y)] = Tile("Leaf", x + X, y + Y)
                         else:
-                            Tiles[(x + X, y + Y)] = Tile("Tree", x, y, tree_tile)
+                            Tiles[(x + X, y + Y)] = Tile("Tree", x, y)
             elif canGenerateBoulder:
                 for X in range(4):
                     for Y in range(4):
                         if not (X == 0 and Y == 0 or X == 3 and Y == 0 or X == 0 and Y == 3 or X == 3 and Y == 3):
-                            Tiles[(x + X, y + Y)] = Tile("Stone", x + X, y + Y, stone_tile)
+                            Tiles[(x + X, y + Y)] = Tile("Stone", x + X, y + Y)
     for i in range(ChunkX, ChunkX + 16, 8):
         for j in range(ChunkY, ChunkY + 16, 8):
             x = i + RandomPos(seed, (i, j), (1, 8))
@@ -348,12 +347,12 @@ def OverworldGenerate(ChunkX, ChunkY, villages, ruined_portals, obsidian_counts,
                         if not (X == 0 and Y == 0 or X == 0 and Y == 1 or X == 1 and Y == 0 or X == 7 and Y == 0 or \
                                 X == 6 and Y == 0 or X == 7 and Y == 1 or X == 0 and Y == 6 or X == 0 and Y == 7 or \
                                 X == 1 and Y == 7 or X == 7 and Y == 7 or X == 6 and Y == 7 or X == 7 and Y == 6):
-                            UnderTiles[(x + X, y + Y)] = Tile("Water", x + X, y + Y, alpha_water_tile)
+                            UnderTiles[(x + X, y + Y)] = Tile("Water", x + X, y + Y)
                         else:
                             if RandomPos(seed, (x + X, y + Y), (1, 3)) == 1:
-                                UnderTiles[(x + X, y + Y)] = Tile("Sand", x + X, y + Y, alpha_sand_tile)
+                                UnderTiles[(x + X, y + Y)] = Tile("Sand", x + X, y + Y)
                             else:
-                                UnderTiles[(x + X, y + Y)] = Tile("Gravel", x + X, y + Y, alpha_gravel_tile)
+                                UnderTiles[(x + X, y + Y)] = Tile("Gravel", x + X, y + Y)
                 for X in range(-2, 10):
                     for Y in range(-2, 10):
                         if (X < 0 or X > 7) or (Y < 0 or Y > 7):
@@ -362,18 +361,18 @@ def OverworldGenerate(ChunkX, ChunkY, villages, ruined_portals, obsidian_counts,
                                     X == 8 and Y == -2 or X == 9 and Y == -1 or X == -2 and Y == 8 or X == -2 and Y == 9 or \
                                     X == -1 and Y == 9 or X == 9 and Y == 9 or X == 8 and Y == 9 or X == 9 and Y == 8):
                                 if RandomPos(seed, (x + X, y + Y), (1, 3)) == 1:
-                                    UnderTiles[(x + X, y + Y)] = Tile("Sand", x + X, y + Y, alpha_sand_tile)
+                                    UnderTiles[(x + X, y + Y)] = Tile("Sand", x + X, y + Y)
                                 else:
-                                    UnderTiles[(x + X, y + Y)] = Tile("Gravel", x + X, y + Y, alpha_gravel_tile)
+                                    UnderTiles[(x + X, y + Y)] = Tile("Gravel", x + X, y + Y)
             if canGenerateLavaPool:
                 for X in range(8):
                     for Y in range(8):
                         if not (X == 0 and Y == 0 or X == 0 and Y == 1 or X == 1 and Y == 0 or X == 7 and Y == 0 or \
                                 X == 6 and Y == 0 or X == 7 and Y == 1 or X == 0 and Y == 6 or X == 0 and Y == 7 or \
                                 X == 1 and Y == 7 or X == 7 and Y == 7 or X == 6 and Y == 7 or X == 7 and Y == 6):
-                            UnderTiles[(x + X, y + Y)] = Tile("Lava", x + X, y + Y, alpha_lava_tile)
+                            UnderTiles[(x + X, y + Y)] = Tile("Lava", x + X, y + Y)
                         else:
-                            UnderTiles[(x + X, y + Y)] = Tile("Stone", x + X, y + Y, alpha_stone_tile)
+                            UnderTiles[(x + X, y + Y)] = Tile("Stone", x + X, y + Y)
                 for X in range(-2, 10):
                     for Y in range(-2, 10):
                         if (X < 0 or X > 7) or (Y < 0 or Y > 7):
@@ -381,7 +380,7 @@ def OverworldGenerate(ChunkX, ChunkY, villages, ruined_portals, obsidian_counts,
                                     X == -2 and Y == -2 or X == -2 and Y == -1 or X == -1 and Y == -2 or X == 9 and Y == -2 or \
                                     X == 8 and Y == -2 or X == 9 and Y == -1 or X == -2 and Y == 8 or X == -2 and Y == 9 or \
                                     X == -1 and Y == 9 or X == 9 and Y == 9 or X == 8 and Y == 9 or X == 9 and Y == 8):
-                                UnderTiles[(x + X, y + Y)] = Tile("Stone", x + X, y + Y, alpha_stone_tile)
+                                UnderTiles[(x + X, y + Y)] = Tile("Stone", x + X, y + Y)
 
     return villages, ruined_portals, obsidian_counts, generated_list, \
            bound_village, bound_village2, bound_village3, bound_village4, \
@@ -389,7 +388,6 @@ def OverworldGenerate(ChunkX, ChunkY, villages, ruined_portals, obsidian_counts,
 
 
 def SpawnOverworldGenerate(seed):
-    global alpha_stone_tile, alpha_lava_tile, alpha_grass_tile, alpha_sand_tile, alpha_snow_tile, alpha_water_tile, tree_tile, leaf_tile, stone_tile, alpha_gravel_tile
     li_vil = []
     li_ruined_portal = []
     villages = []
@@ -443,17 +441,17 @@ def SpawnOverworldGenerate(seed):
             except KeyError:
                 if land >= -0.075:
                     if temperature < -0.1:
-                        UnderTiles[(i, j)] = Tile('Snow', i, j, alpha_snow_tile)
+                        UnderTiles[(i, j)] = Tile('Snow', i, j)
                     elif -0.1 <= temperature <= 0.1:
-                        UnderTiles[(i, j)] = Tile('Grass', i, j, alpha_grass_tile)
+                        UnderTiles[(i, j)] = Tile('Grass', i, j)
                     elif temperature > 0.1:
-                        UnderTiles[(i, j)] = Tile('Sand', i, j, alpha_sand_tile)
+                        UnderTiles[(i, j)] = Tile('Sand', i, j)
                 else:
-                    UnderTiles[(i, j)] = Tile('Water', i, j, alpha_water_tile)
+                    UnderTiles[(i, j)] = Tile('Water', i, j)
             try:
                 temp = Tiles[(i, j)].tile
             except KeyError:
-                Tiles[(i, j)] = Tile('Air', i, j, None)
+                Tiles[(i, j)] = Tile('Air', i, j)
     for i in range(-64, 81, 4):
         for j in range(-64, 81, 4):
             x = i + RandomPos(seed, (i, j), (1, 4))
@@ -468,14 +466,14 @@ def SpawnOverworldGenerate(seed):
                 for X in range(-1, 2, 1):
                     for Y in range(-1, 2, 1):
                         if not(X == 0 and Y == 0):
-                            Tiles[(x + X, y + Y)] = Tile("Leaf", x + X, y + Y, leaf_tile)
+                            Tiles[(x + X, y + Y)] = Tile("Leaf", x + X, y + Y)
                         else:
-                            Tiles[(x + X, y + Y)] = Tile("Tree", x, y, tree_tile)
+                            Tiles[(x + X, y + Y)] = Tile("Tree", x, y)
             elif canGenerateBoulder:
                 for X in range(4):
                     for Y in range(4):
                         if not (X == 0 and Y == 0 or X == 3 and Y == 0 or X == 0 and Y == 3 or X == 3 and Y == 3):
-                            Tiles[(x + X, y + Y)] = Tile("Stone", x + X, y + Y, stone_tile)
+                            Tiles[(x + X, y + Y)] = Tile("Stone", x + X, y + Y)
     for i in range(-64, 81, 8):
         for j in range(-64, 81, 8):
             x = i + RandomPos(seed, (i, j), (1, 8))
@@ -492,12 +490,12 @@ def SpawnOverworldGenerate(seed):
                         if not (X == 0 and Y == 0 or X == 0 and Y == 1 or X == 1 and Y == 0 or X == 7 and Y == 0 or \
                                 X == 6 and Y == 0 or X == 7 and Y == 1 or X == 0 and Y == 6 or X == 0 and Y == 7 or \
                                 X == 1 and Y == 7 or X == 7 and Y == 7 or X == 6 and Y == 7 or X == 7 and Y == 6):
-                            UnderTiles[(x + X, y + Y)] = Tile("Water", x + X, y + Y, alpha_water_tile)
+                            UnderTiles[(x + X, y + Y)] = Tile("Water", x + X, y + Y)
                         else:
                             if RandomPos(seed, (x + X, y + Y), (1, 3)) == 1:
-                                UnderTiles[(x + X, y + Y)] = Tile("Sand", x + X, y + Y, alpha_sand_tile)
+                                UnderTiles[(x + X, y + Y)] = Tile("Sand", x + X, y + Y)
                             else:
-                                UnderTiles[(x + X, y + Y)] = Tile("Gravel", x + X, y + Y, alpha_gravel_tile)
+                                UnderTiles[(x + X, y + Y)] = Tile("Gravel", x + X, y + Y)
                 for X in range(-2, 10):
                     for Y in range(-2, 10):
                         if (X < 0 or X > 7) or (Y < 0 or Y > 7):
@@ -506,18 +504,18 @@ def SpawnOverworldGenerate(seed):
                                     X == 8 and Y == -2 or X == 9 and Y == -1 or X == -2 and Y == 8 or X == -2 and Y == 9 or \
                                     X == -1 and Y == 9 or X == 9 and Y == 9 or X == 8 and Y == 9 or X == 9 and Y == 8):
                                 if RandomPos(seed, (x + X, y + Y), (1, 3)) == 1:
-                                    UnderTiles[(x + X, y + Y)] = Tile("Sand", x + X, y + Y, alpha_sand_tile)
+                                    UnderTiles[(x + X, y + Y)] = Tile("Sand", x + X, y + Y)
                                 else:
-                                    UnderTiles[(x + X, y + Y)] = Tile("Gravel", x + X, y + Y, alpha_gravel_tile)
+                                    UnderTiles[(x + X, y + Y)] = Tile("Gravel", x + X, y + Y)
             if canGenerateLavaPool:
                 for X in range(8):
                     for Y in range(8):
                         if not (X == 0 and Y == 0 or X == 0 and Y == 1 or X == 1 and Y == 0 or X == 7 and Y == 0 or \
                                 X == 6 and Y == 0 or X == 7 and Y == 1 or X == 0 and Y == 6 or X == 0 and Y == 7 or \
                                 X == 1 and Y == 7 or X == 7 and Y == 7 or X == 6 and Y == 7 or X == 7 and Y == 6):
-                            UnderTiles[(x + X, y + Y)] = Tile("Lava", x + X, y + Y, alpha_lava_tile)
+                            UnderTiles[(x + X, y + Y)] = Tile("Lava", x + X, y + Y)
                         else:
-                            UnderTiles[(x + X, y + Y)] = Tile("Stone", x + X, y + Y, alpha_stone_tile)
+                            UnderTiles[(x + X, y + Y)] = Tile("Stone", x + X, y + Y)
                 for X in range(-2, 10):
                     for Y in range(-2, 10):
                         if (X < 0 or X > 7) or (Y < 0 or Y > 7):
@@ -525,12 +523,12 @@ def SpawnOverworldGenerate(seed):
                                     X == -2 and Y == -2 or X == -2 and Y == -1 or X == -1 and Y == -2 or X == 9 and Y == -2 or \
                                     X == 8 and Y == -2 or X == 9 and Y == -1 or X == -2 and Y == 8 or X == -2 and Y == 9 or \
                                     X == -1 and Y == 9 or X == 9 and Y == 9 or X == 8 and Y == 9 or X == 9 and Y == 8):
-                                UnderTiles[(x + X, y + Y)] = Tile("Stone", x + X, y + Y, alpha_stone_tile)
+                                UnderTiles[(x + X, y + Y)] = Tile("Stone", x + X, y + Y)
 
     return villages, ruined_portals, obsidian_counts, UnderTiles, Tiles
 
 def SpawnOverworldBoundGenerate(villages, ruined_portals):
-    bound_village, bound_water, bound_lava, bound_ruined_portal = [], [], [], []
+    bound_village, bound_ruined_portal = [], []
     for i in range(len(villages)):
         bound_village.append([])
         for j in range(2):
@@ -541,22 +539,21 @@ def SpawnOverworldBoundGenerate(villages, ruined_portals):
             bound_ruined_portal[i].append([ruined_portals[i][j] - 10 / 32, ruined_portals[i][j], ruined_portals[i][j] + 10 / 32])
     return bound_village, bound_ruined_portal
 
-def GenerateOres(ore, img, vein_size, Tiles, x, y):
-    global stone_tile
+def GenerateOres(ore, vein_size, Tiles, x, y):
     if vein_size == 1:
-        Tiles[(x, y)] = Tile(ore, x, y, img)
+        Tiles[(x, y)] = Tile(ore, x, y)
     elif vein_size == 2:
-        Tiles[(x, y)] = Tile(ore, x, y, img)
-        Tiles[(x + 1, y)] = Tile(ore, x + 1, y, img)
+        Tiles[(x, y)] = Tile(ore, x, y)
+        Tiles[(x + 1, y)] = Tile(ore, x + 1, y)
     elif vein_size == 3:
-        Tiles[(x, y)] = Tile(ore, x, y, img)
-        Tiles[(x + 1, y)] = Tile(ore, x + 1, y, img)
-        Tiles[(x, y + 1)] = Tile(ore, x, y + 1, img)
+        Tiles[(x, y)] = Tile(ore, x, y)
+        Tiles[(x + 1, y)] = Tile(ore, x + 1, y)
+        Tiles[(x, y + 1)] = Tile(ore, x, y + 1)
     elif vein_size == 4:
-        Tiles[(x, y)] = Tile(ore, x, y, img)
-        Tiles[(x + 1, y)] = Tile(ore, x + 1, y, img)
-        Tiles[(x, y + 1)] = Tile(ore, x, y + 1, img)
-        Tiles[(x + 1, y + 1)] = Tile(ore, x + 1, y + 1, img)
+        Tiles[(x, y)] = Tile(ore, x, y)
+        Tiles[(x + 1, y)] = Tile(ore, x + 1, y)
+        Tiles[(x, y + 1)] = Tile(ore, x, y + 1)
+        Tiles[(x + 1, y + 1)] = Tile(ore, x + 1, y + 1)
     return Tiles
 
 def UndergroundGeneratedList():
@@ -567,7 +564,6 @@ def UndergroundGeneratedList():
     return generated_list
 
 def SpawnUndergroundGenerate(seed):
-    global stone_tile, alpha_stone_tile, coal_ore_tile, iron_ore_tile, lapis_ore_tile, diamond_ore_tile, alpha_lava_tile
     UnderTiles = {}
     Tiles = {}
     for i in range(-64, 81, 8):
@@ -582,30 +578,30 @@ def SpawnUndergroundGenerate(seed):
                           base=seed % 600)
             for x in range(8):
                 for y in range(8):
-                    Tiles[(i + x, j + y)] = Tile("Stone", i + x, j + y, stone_tile)
-                    UnderTiles[(i + x, j + y)] = Tile("Stone", i + x, j + y, alpha_stone_tile)
+                    Tiles[(i + x, j + y)] = Tile("Stone", i + x, j + y)
+                    UnderTiles[(i + x, j + y)] = Tile("Stone", i + x, j + y)
             if biome < 0:
                 num = RandomPos(seed, (i, j), (1, 9))
                 if num == 1 or num == 2 or num == 3:
                     vein_size = RandomPos(seed, (i, j), (1, 4))
-                    Tiles = GenerateOres("Coal Ore", coal_ore_tile, vein_size, Tiles, i + RandomPos(seed, (i, j), (1, 8)), j + RandomPos(seed, (i, j), (1, 8)))
+                    Tiles = GenerateOres("Coal Ore", vein_size, Tiles, i + RandomPos(seed, (i, j), (1, 8)), j + RandomPos(seed, (i, j), (1, 8)))
                 elif num == 4 or num == 5:
                     vein_size = RandomPos(seed, (i, j), (1, 4))
-                    Tiles = GenerateOres("Iron Ore", iron_ore_tile, vein_size, Tiles, i + RandomPos(seed, (i, j), (1, 8)), j + RandomPos(seed, (i, j), (1, 8)))
+                    Tiles = GenerateOres("Iron Ore", vein_size, Tiles, i + RandomPos(seed, (i, j), (1, 8)), j + RandomPos(seed, (i, j), (1, 8)))
                 elif num == 6:
                     vein_size = RandomPos(seed, (i, j), (1, 4))
-                    Tiles = GenerateOres("Lapis Ore", lapis_ore_tile, vein_size, Tiles, i + RandomPos(seed, (i, j), (1, 8)), j + RandomPos(seed, (i, j), (1, 8)))
+                    Tiles = GenerateOres("Lapis Ore", vein_size, Tiles, i + RandomPos(seed, (i, j), (1, 8)), j + RandomPos(seed, (i, j), (1, 8)))
                 elif num == 7:
                     vein_size = RandomPos(seed, (i, j), (1, 4))
-                    Tiles = GenerateOres("Diamond Ore", diamond_ore_tile, vein_size, Tiles, i + RandomPos(seed, (i, j), (1, 8)), j + RandomPos(seed, (i, j), (1, 8)))
+                    Tiles = GenerateOres("Diamond Ore", vein_size, Tiles, i + RandomPos(seed, (i, j), (1, 8)), j + RandomPos(seed, (i, j), (1, 8)))
             else:
                 num = RandomPos(seed, (i, j), (1, 6))
                 if num == 1 or num == 2 or num == 3:
                     vein_size = RandomPos(seed, (i, j), (1, 4))
-                    Tiles = GenerateOres("Coal Ore", coal_ore_tile, vein_size, Tiles, i + RandomPos(seed, (i, j), (1, 8)), j + RandomPos(seed, (i, j), (1, 8)))
+                    Tiles = GenerateOres("Coal Ore", vein_size, Tiles, i + RandomPos(seed, (i, j), (1, 8)), j + RandomPos(seed, (i, j), (1, 8)))
                 elif num == 4 or num == 5:
                     vein_size = RandomPos(seed, (i, j), (1, 4))
-                    Tiles = GenerateOres("Iron Ore", iron_ore_tile, vein_size, Tiles, i + RandomPos(seed, (i, j), (1, 8)), j + RandomPos(seed, (i, j), (1, 8)))
+                    Tiles = GenerateOres("Iron Ore", vein_size, Tiles, i + RandomPos(seed, (i, j), (1, 8)), j + RandomPos(seed, (i, j), (1, 8)))
     for i in range(-64, 81, 1):
         for j in range(-64, 81, 1):
             cave = noise.pnoise2(i / 10,
@@ -617,7 +613,7 @@ def SpawnUndergroundGenerate(seed):
                                   repeaty=1024,
                                   base=seed % 400 * 2)
             if cave > 0.075:
-                Tiles[(i, j)] = Tile("Air", i, j, None)
+                Tiles[(i, j)] = Tile("Air", i, j)
                 biome = noise.pnoise2(i / 50,
                                       j / 50,
                                       octaves=8,
@@ -627,11 +623,10 @@ def SpawnUndergroundGenerate(seed):
                                       repeaty=1024,
                                       base=seed % 600)
                 if biome < 0:
-                    UnderTiles[(i, j)] = Tile("Lava", i, j, alpha_lava_tile)
+                    UnderTiles[(i, j)] = Tile("Lava", i, j)
     return UnderTiles, Tiles
 
 def UndergroundGenerate(seed, ChunkX, ChunkY, UnderTiles, Tiles, UndergroundGeneratedList):
-    global stone_tile, alpha_stone_tile, alpha_lava_tile
     for i in range(ChunkX, ChunkX + 16, 8):
         for j in range(ChunkY, ChunkY + 16, 8):
             biome = noise.pnoise2(i / 50,
@@ -644,30 +639,30 @@ def UndergroundGenerate(seed, ChunkX, ChunkY, UnderTiles, Tiles, UndergroundGene
                                   base=seed % 600)
             for x in range(8):
                 for y in range(8):
-                    Tiles[(i + x, j + y)] = Tile("Stone", i + x, j + y, stone_tile)
-                    UnderTiles[(i + x, j + y)] = Tile("Stone", i + x, j + y, alpha_stone_tile)
+                    Tiles[(i + x, j + y)] = Tile("Stone", i + x, j + y)
+                    UnderTiles[(i + x, j + y)] = Tile("Stone", i + x, j + y)
             if biome < 0:
                 num = RandomPos(seed, (i, j), (1, 12))
                 if num == 1 or num == 2 or num == 3:
                     vein_size = RandomPos(seed, (i, j), (1, 4))
-                    Tiles = GenerateOres("Coal Ore", coal_ore_tile, vein_size, Tiles, i + RandomPos(seed, (i, j), (1, 8)), j + RandomPos(seed, (i, j), (1, 8)))
+                    Tiles = GenerateOres("Coal Ore", vein_size, Tiles, i + RandomPos(seed, (i, j), (1, 8)), j + RandomPos(seed, (i, j), (1, 8)))
                 elif num == 4 or num == 5:
                     vein_size = RandomPos(seed, (i, j), (1, 4))
-                    Tiles = GenerateOres("Iron Ore", iron_ore_tile, vein_size, Tiles, i + RandomPos(seed, (i, j), (1, 8)), j + RandomPos(seed, (i, j), (1, 8)))
+                    Tiles = GenerateOres("Iron Ore", vein_size, Tiles, i + RandomPos(seed, (i, j), (1, 8)), j + RandomPos(seed, (i, j), (1, 8)))
                 elif num == 6:
                     vein_size = RandomPos(seed, (i, j), (1, 4))
-                    Tiles = GenerateOres("Lapis Ore", lapis_ore_tile, vein_size, Tiles, i + RandomPos(seed, (i, j), (1, 8)), j + RandomPos(seed, (i, j), (1, 8)))
+                    Tiles = GenerateOres("Lapis Ore", vein_size, Tiles, i + RandomPos(seed, (i, j), (1, 8)), j + RandomPos(seed, (i, j), (1, 8)))
                 elif num == 7:
                     vein_size = RandomPos(seed, (i, j), (1, 4))
-                    Tiles = GenerateOres("Diamond Ore", diamond_ore_tile, vein_size, Tiles, i + RandomPos(seed, (i, j), (1, 8)), j + RandomPos(seed, (i, j), (1, 8)))
+                    Tiles = GenerateOres("Diamond Ore", vein_size, Tiles, i + RandomPos(seed, (i, j), (1, 8)), j + RandomPos(seed, (i, j), (1, 8)))
             else:
                 num = RandomPos(seed, (i, j), (1, 6))
                 if num == 1 or num == 2 or num == 3:
                     vein_size = RandomPos(seed, (i, j), (1, 4))
-                    Tiles = GenerateOres("Coal Ore", coal_ore_tile, vein_size, Tiles, i + RandomPos(seed, (i, j), (1, 8)), j + RandomPos(seed, (i, j), (1, 8)))
+                    Tiles = GenerateOres("Coal Ore", vein_size, Tiles, i + RandomPos(seed, (i, j), (1, 8)), j + RandomPos(seed, (i, j), (1, 8)))
                 elif num == 4 or num == 5:
                     vein_size = RandomPos(seed, (i, j), (1, 4))
-                    Tiles = GenerateOres("Iron Ore", iron_ore_tile, vein_size, Tiles, i + RandomPos(seed, (i, j), (1, 8)), j + RandomPos(seed, (i, j), (1, 8)))
+                    Tiles = GenerateOres("Iron Ore", vein_size, Tiles, i + RandomPos(seed, (i, j), (1, 8)), j + RandomPos(seed, (i, j), (1, 8)))
     for i in range(ChunkX, ChunkX + 16, 1):
         for j in range(ChunkY, ChunkY + 16, 1):
             cave = noise.pnoise2(i / 10,
@@ -679,7 +674,7 @@ def UndergroundGenerate(seed, ChunkX, ChunkY, UnderTiles, Tiles, UndergroundGene
                                  repeaty=1024,
                                  base=seed % 400 * 2)
             if cave > 0.075:
-                Tiles[(i, j)] = Tile("Air", i, j, None)
+                Tiles[(i, j)] = Tile("Air", i, j)
                 biome = noise.pnoise2(i / 50,
                                       j / 50,
                                       octaves=8,
@@ -689,26 +684,24 @@ def UndergroundGenerate(seed, ChunkX, ChunkY, UnderTiles, Tiles, UndergroundGene
                                       repeaty=1024,
                                       base=seed % 600)
                 if biome < 0:
-                    UnderTiles[(i, j)] = Tile("Lava", i, j, alpha_lava_tile)
+                    UnderTiles[(i, j)] = Tile("Lava", i, j)
     UndergroundGeneratedList.append([ChunkX, ChunkY])
     return UnderTiles, Tiles
 
 def UndergroundGeneratePortal(x, y, Tiles):
-    global mine_entrance_tile
-    Tiles[(x, y)] = Tile("Mine Entrance", x, y, mine_entrance_tile)
+    Tiles[(x, y)] = Tile("Mine Entrance", x, y)
     for i in range(x - 1, x + 2, 1):
         for j in range(y - 1, y + 2, 1):
             if Tiles[(i, j)].tile != "Mine Entrance":
-                Tiles[(i, j)] = Tile("Air", i, j, None)
+                Tiles[(i, j)] = Tile("Air", i, j)
     return Tiles
 
 def OverworldGeneratePortal(x, y, Tiles):
-    global mine_entrance_tile
-    Tiles[(x, y)] = Tile("Mine Entrance", x, y, mine_entrance_tile)
+    Tiles[(x, y)] = Tile("Mine Entrance", x, y)
     for i in range(x - 1, x + 2, 1):
         for j in range(y - 1, y + 2, 1):
             if Tiles[(i, j)].tile != "Mine Entrance":
-                Tiles[(i, j)] = Tile("Air", i, j, None)
+                Tiles[(i, j)] = Tile("Air", i, j)
     return Tiles
 
 def NetherGeneratedList(x, y):
@@ -860,23 +853,26 @@ class TilecraftWorld:
             self.bound_bastion, self.bound_fortress = SpawnNetherBoundGenerate(self.bastion, self.fortress)
             self.nether_generated_list = NetherGeneratedList(player.x, player.y)
 
-    def render(self, display):
+    def render(self, display, context: Context):
         global netherrack_tile, hotbar_imgs, slot, number_list, experience, pygame_enchant_imgs, enchant_name_list, player, hasGeneratedUnderground, bedrock_tile
         player.health_hunger_update()
+
+        def tile_image(tile_name: str) -> pygame.Surface:
+            return context.TILE_IMAGES[TILE_IMAGE_MAPPING[tile_name].alpha_image_name]
 
         # DRAW OVERWORLD DIMENSION
         if player.dimension == "Overworld":
             for key, value in self.UnderTiles.items(): #background tiles (no collisions)
                 if -32 <= (key[0] * 32 - player.left) <= 1032 and -32 <= (key[1] * 32 - player.top) <= 1032:
-                    if value.image is not None:
-                        display.blit(value.image, (value.x * 32 - player.left, value.y * 32 - player.top)) #Draw Image
+                    if value.tile != "Air":
+                        display.blit(tile_image(value.tile), (value.x * 32 - player.left, value.y * 32 - player.top)) #Draw Image
                     else:
-                        display.blit(bedrock_tile, (value.x * 32 - player.left, value.y * 32 - player.top))
+                        display.blit(context.TILE_IMAGES["bedrock_tile"], (value.x * 32 - player.left, value.y * 32 - player.top))
                     pygame.draw.rect(world, (100, 100, 100), (value.x * 32 - player.left, value.y * 32 - player.top, 32, 32), 1) #Draw Border Outline
             for key, value in self.Tiles.items(): #surface tiles (with collisions)
                 if -32 <= (key[0] * 32 - player.left) <= 1032 and -32 <= (key[1] * 32 - player.top) <= 1032:
-                    if value.image is not None:
-                        display.blit(value.image, (value.x * 32 - player.left, value.y * 32 - player.top)) #Draw Image
+                    if value.tile != "Air":
+                        display.blit(tile_image(value.tile), (value.x * 32 - player.left, value.y * 32 - player.top)) #Draw Image
                         pygame.draw.rect(world, (100, 100, 100), (value.x * 32 - player.left, value.y * 32 - player.top, 32, 32), 1) #Draw Border Outline
             # DRAWING OVERWORLD STRUCTURES
             for k in range(len(self.village)):
@@ -902,15 +898,15 @@ class TilecraftWorld:
         elif player.dimension == "Underground" and hasGeneratedUnderground == "Generated":
             for key, value in self.UndergroundUnderTiles.items(): #background tiles (no collisions)
                 if -32 <= (key[0] * 32 - player.left) <= 1032 and -32 <= (key[1] * 32 - player.top) <= 1032:
-                    if value.image is not None:
-                        display.blit(value.image, (value.x * 32 - player.left, value.y * 32 - player.top)) #Draw Image
+                    if value.tile != "Air":
+                        display.blit(tile_image(value.tile), (value.x * 32 - player.left, value.y * 32 - player.top)) #Draw Image
                     else:
-                        display.blit(bedrock_tile, (value.x * 32 - player.left, value.y * 32 - player.top))
+                        display.blit(context.ITEM_IMAGES["bedrock_tile"], (value.x * 32 - player.left, value.y * 32 - player.top))
                     pygame.draw.rect(world, (100, 100, 100), (value.x * 32 - player.left, value.y * 32 - player.top, 32, 32), 1) #Draw Border Outline
             for key, value in self.UndergroundTiles.items(): #surface tiles (with collisions)
                 if -32 <= (key[0] * 32 - player.left) <= 1032 and -32 <= (key[1] * 32 - player.top) <= 1032:
-                    if value.image is not None:
-                        display.blit(value.image, (value.x * 32 - player.left, value.y * 32 - player.top)) #Draw Image
+                    if value.tile != "Air":
+                        display.blit(tile_image(value.tile), (value.x * 32 - player.left, value.y * 32 - player.top)) #Draw Image
                         pygame.draw.rect(world, (100, 100, 100), (value.x * 32 - player.left, value.y * 32 - player.top, 32, 32), 1) #Draw Border Outline
 
         # DRAW NETHER DIMENSION
@@ -918,7 +914,7 @@ class TilecraftWorld:
             # DRAWING NETHERRACK TEXTURES
             for k in range(player.rect.x - 384, player.rect.x + 384, 24):
                 for j in range(player.rect.y - 384, player.rect.y + 384, 24):
-                    display.blit(netherrack_tile, (k, j))
+                    display.blit(context.ITEM_IMAGES["netherrack_tile"], (k, j))
             # DRAWING NETHER NETHER PORTALS
             for k in range(len(self.nether_portal)):
                 if -32 <= (self.nether_portal[k][0] * 32 - player.left) <= 1032 and -32 <= (self.nether_portal[k][1] * 32 - player.top) <= 1032:
@@ -937,63 +933,11 @@ class TilecraftWorld:
 
         # DRAW BREAKING ANIMATION
         if 1 <= math.floor(player.breaking_time) <= 6:
-            display.blit(breaking_list[math.floor(player.breaking_time) - 1], (player.target[0] * 32 - player.left, player.target[1] * 32 - player.top))
+            display.blit(context.BREAKING_LIST[math.floor(player.breaking_time) - 1], (player.target[0] * 32 - player.left, player.target[1] * 32 - player.top))
         pygame.draw.rect(world, (50, 50, 50), (player.target[0] * 32 - player.left, player.target[1] * 32 - player.top, 32, 32), 1)  # Draw target block outline
 
-class ITEM_TYPE: #Class to store item details for every item in game
-    def __init__(self, Image, Type, Stack, Tier, MaxDurability, Rarity):
-        self.img = Image
-        self.type = Type
-        self.stack = Stack
-        self.tier = Tier
-        self.max_durability = MaxDurability
-        self.rarity = Rarity
 
-class TILE_TYPE: #Class to store tile details for every tile type in the game
-    def __init__(self, Image, AlphaImage, BreakingTime, Tool, Tier):
-        self.img = Image
-        self.alpha_img = AlphaImage
-        self.breaking_time = BreakingTime
-        self.tool = Tool
-        self.tier = Tier
 
-class Item: #Item in the inventory
-    def __init__(self, name, number, enchantments, durability):
-        global TC_ITEMS, TC_TILES, ITEM_COLOURS
-        self.name = name #Item Name
-        self.number = number #Quantity
-        self.enchantments = enchantments #Enchantments List
-        self.img = TC_ITEMS[self.name].img #Image
-        self.stackNum = TC_ITEMS[self.name].stack #Stackability
-        self.itemType = TC_ITEMS[self.name].type #Type of item
-        self.toolTier = TC_ITEMS[self.name].tier #Tier of tool
-        self.durability = durability #Durability of tool
-        self.max_durability = TC_ITEMS[self.name].max_durability #Maximum durability
-        self.rarity = TC_ITEMS[self.name].rarity #Rarity of item
-        if self.enchantments is not None:
-            self.rarity += 1
-        self.colour = ITEM_COLOURS[self.rarity]
-        if self.toolTier is not None:
-            self.mining_speed = 2 * self.toolTier - 1 #Mining speed
-        else:
-            self.mining_speed = None
-        if self.enchantments is not None:
-            if self.mining_speed is not None:
-                for i in self.enchantments:
-                    if i[0] == "Efficiency":
-                        self.mining_speed += i[1]**2 + 1
-        if self.name == "Bookshelf" or self.name == "Cobblestone" or self.name == "Gravel" or self.name == "Hay Bale" or \
-                self.name == "Iron Ore" or self.name == "Oak Log" or self.name == "Oak Planks" or self.name == "Obsidian" or \
-                self.name == "Mine Entrance" or self.name == "Dirt" or self.name == "Sand" or self.name == "Snow":
-            self.hasTile = True #Has a placable tile
-            self.targetTile = self.name #Placable tile name
-            self.tile_img = TC_TILES[self.targetTile].img
-            self.alpha_tile_img = TC_TILES[self.targetTile].alpha_img
-        else: #Item cannot be placed
-            self.hasTile = False
-            self.targetTile = None
-            self.tile_img = None
-            self.alpha_tile_img = None
 
 class Grid:
     def __init__(self, colour, rect, width, img):
@@ -1050,9 +994,8 @@ def RenderDurabilityBar(display, x, y, durability, max_durability):
         pygame.draw.rect(display, colour, (x + 5, y + 72, math.floor(72 * durability / max_durability), 5))
 
 #Inventory Grid (36 Slots)
-def InventoryGrid(display):
-    global TC_GLINTS, item_name_list
-    image_render()
+def InventoryGrid(context: Context, display):
+    image_render(context)
     inventory_slots = [
         Grid((83, 83, 83), pygame.Rect((0, 390), (82, 82)), 2, player.image_list[0]),
         Grid((83, 83, 83), pygame.Rect((82, 390), (82, 82)), 2, player.image_list[1]),
@@ -1136,15 +1079,15 @@ def InventoryGrid(display):
         pygame.draw.rect(display, inventory_slots[i].colour, inventory_slots[i].rect, inventory_slots[i].width)
         if player.inventory_list[i] is not None:
             if player.inventory_list[i].enchantments is not None:
-                display.blit(TC_GLINTS[player.inventory_list[i].name], (inventory_slots[i].rect.x, inventory_slots[i].rect.y))
+                display.blit(context.TC_GLINTS[player.inventory_list[i].name], (inventory_slots[i].rect.x, inventory_slots[i].rect.y))
             if player.inventory_list[i].durability is not None:
                 RenderDurabilityBar(display, inventory_slots[i].rect.x, inventory_slots[i].rect.y, player.inventory_list[i].durability, player.inventory_list[i].max_durability)
     for i in numbers:
         display.blit(i.surface, (i.x, i.y))
 
 #Armour Grid for Player
-def ArmourGrid(display):
-    image_render()
+def ArmourGrid(context: Context, display):
+    image_render(context)
     armour_grid = [
         Grid((83, 83, 83), pygame.Rect((0, 240), (82, 82)), 2, player.armour_image_list[0]),
         Grid((83, 83, 83), pygame.Rect((82, 240), (82, 82)), 2, player.armour_image_list[1]),
@@ -1156,7 +1099,7 @@ def ArmourGrid(display):
         pygame.draw.rect(display, armour_grid[i].colour, armour_grid[i].rect, armour_grid[i].width)
         if player.armour_list[i] is not None:
             if player.armour_list[i].enchantments is not None:
-                display.blit(TC_GLINTS[player.armour_list[i].name], (armour_grid[i].rect.x, armour_grid[i].rect.y))
+                display.blit(context.TC_GLINTS[player.armour_list[i].name], (armour_grid[i].rect.x, armour_grid[i].rect.y))
             if player.armour_list[i].durability is not None:
                 RenderDurabilityBar(display, armour_grid[i].rect.x, armour_grid[i].rect.y, player.armour_list[i].durability, player.armour_list[i].max_durability)
     pygame.draw.rect(display, (0, 0, 0), (0, 0, 330, 240)) #Draw Black Background
@@ -1171,8 +1114,8 @@ def ArmourGrid(display):
                 pygame.draw.rect(display, i[0], (84, 39, 165, 165), 12)
 
 #2x2 Small Crafting Grid within Inventory
-def SmallCraftGrid(display):
-    image_render()
+def SmallCraftGrid(context: Context, display):
+    image_render(context)
     crafting_grid = [
         Grid((83, 83, 83), pygame.Rect((390, 75), (82, 82)), 2, player.craft_image_list[0]),
         Grid((83, 83, 83), pygame.Rect((472, 75), (82, 82)), 2, player.craft_image_list[1]),
@@ -1195,15 +1138,15 @@ def SmallCraftGrid(display):
         pygame.draw.rect(display, crafting_grid[i].colour, crafting_grid[i].rect, crafting_grid[i].width)
         if player.craft_list[i] is not None:
             if player.craft_list[i].enchantments is not None:
-                display.blit(TC_GLINTS[player.craft_list[i].name], (crafting_grid[i].rect.x, crafting_grid[i].rect.y))
+                display.blit(context.TC_GLINTS[player.craft_list[i].name], (crafting_grid[i].rect.x, crafting_grid[i].rect.y))
             if player.craft_list[i].durability is not None:
                 RenderDurabilityBar(display, crafting_grid[i].rect.x, crafting_grid[i].rect.y, player.craft_list[i].durability, player.craft_list[i].max_durability)
     for i in crafting_numbers:
         display.blit(i.surface, (i.x, i.y))
     display.blit(arrow_font.render('-->', False, (0, 0, 0)), (562, 142))
 
-def CraftGrid(display):
-    image_render()
+def CraftGrid(context: Context, display):
+    image_render(context)
     crafting_grid = [
         Grid((83, 83, 83), pygame.Rect((195, 75), (82, 82)), 2, player.grid_image_list[0]),
         Grid((83, 83, 83), pygame.Rect((277, 75), (82, 82)), 2, player.grid_image_list[1]),
@@ -1238,16 +1181,16 @@ def CraftGrid(display):
         pygame.draw.rect(display, crafting_grid[i].colour, crafting_grid[i].rect, crafting_grid[i].width)
         if player.grid_list[i] is not None:
             if player.grid_list[i].enchantments is not None:
-                display.blit(TC_GLINTS[player.grid_list[i].name], (crafting_grid[i].rect.x, crafting_grid[i].rect.y))
+                display.blit(context.TC_GLINTS[player.grid_list[i].name], (crafting_grid[i].rect.x, crafting_grid[i].rect.y))
             if player.grid_list[i].durability is not None:
                 RenderDurabilityBar(display, crafting_grid[i].rect.x, crafting_grid[i].rect.y, player.grid_list[i].durability, player.grid_list[i].max_durability)
     for i in crafting_numbers:
         display.blit(i.surface, (i.x, i.y))
     display.blit(arrow_font.render('-->', False, (0, 0, 0)), (465, 180))
 
-def FurnaceInterface(display):
+def FurnaceInterface(context: Context, display):
     global FPS
-    image_render()
+    image_render(context)
     smelting_grid = [
         Grid((83, 83, 83), pygame.Rect((225, 67), (82, 82)), 2, player.smelt_image_list[0]),
         Grid((83, 83, 83), pygame.Rect((225, 262), (82, 82)), 2, player.smelt_image_list[1]),
@@ -1269,7 +1212,7 @@ def FurnaceInterface(display):
         pygame.draw.rect(display, smelting_grid[i].colour, smelting_grid[i].rect, smelting_grid[i].width)
         if player.smelting_list[i] is not None:
             if player.smelting_list[i].enchantments is not None:
-                display.blit(TC_GLINTS[player.smelting_list[i].name], (smelting_grid[i].rect.x, smelting_grid[i].rect.y))
+                display.blit(context.TC_GLINTS[player.smelting_list[i].name], (smelting_grid[i].rect.x, smelting_grid[i].rect.y))
             if player.smelting_list[i].durability is not None:
                 RenderDurabilityBar(display, smelting_grid[i].rect.x, smelting_grid[i].rect.y, player.smelting_list[i].durability, player.smelting_list[i].max_durability)
     for i in smelting_numbers:
@@ -1279,9 +1222,9 @@ def FurnaceInterface(display):
     display.blit(side_font.render(str(player.smelting_time // FPS), False, (255, 0, 0)), (367, 157)) #Render Time to Smelt
     display.blit(arrow_font.render('-->', False, (0, 0, 0)), (337, 187)) #Render Arrow
 
-def EnchantingInterface(display):
+def EnchantingInterface(context: Context, display):
     global Option1, Option2, Option3, Upgrade
-    image_render()
+    image_render(context)
     enchanting_grid = [
         Grid((83, 83, 83), pygame.Rect((30, 225), (82, 82)), 2, player.enchanting_image_list[0]),
         Grid((83, 83, 83), pygame.Rect((112, 225), (82, 82)), 2, player.enchanting_image_list[1]),
@@ -1298,7 +1241,7 @@ def EnchantingInterface(display):
         pygame.draw.rect(display, enchanting_grid[i].colour, enchanting_grid[i].rect, enchanting_grid[i].width)
         if player.enchanting_list[i] is not None:
             if player.enchanting_list[i].enchantments is not None:
-                display.blit(TC_GLINTS[player.enchanting_list[i].name], (enchanting_grid[i].rect.x, enchanting_grid[i].rect.y))
+                display.blit(context.TC_GLINTS[player.enchanting_list[i].name], (enchanting_grid[i].rect.x, enchanting_grid[i].rect.y))
             if player.enchanting_list[i].durability is not None:
                 RenderDurabilityBar(display, enchanting_grid[i].rect.x, enchanting_grid[i].rect.y, player.enchanting_list[i].durability, player.enchanting_list[i].max_durability)
     for i in enchanting_numbers:
@@ -1309,9 +1252,9 @@ def EnchantingInterface(display):
     Option2.render(world, player.option_list[1], 30)
     Option3.render(world, player.option_list[2], 30)
 
-def CompressorInterface(display):
+def CompressorInterface(context: Context, display):
     global player, FPS
-    image_render()
+    image_render(context)
     compressor_grid = [
         Grid((83, 83, 83), pygame.Rect((225, 142), (82, 82)), 2, player.compressor_image_list[0]),
         Grid((83, 83, 83), pygame.Rect((450, 142), (82, 82)), 2, player.compressor_image_list[1])
@@ -1330,7 +1273,7 @@ def CompressorInterface(display):
         pygame.draw.rect(display, compressor_grid[i].colour, compressor_grid[i].rect, compressor_grid[i].width)
         if player.compressor_list[i] is not None:
             if player.compressor_list[i].enchantments is not None:
-                display.blit(TC_GLINTS[player.compressor_list[i].name], (compressor_grid[i].rect.x, compressor_grid[i].rect.y))
+                display.blit(context.TC_GLINTS[player.compressor_list[i].name], (compressor_grid[i].rect.x, compressor_grid[i].rect.y))
             if player.compressor_list[i].durability is not None:
                 RenderDurabilityBar(display, compressor_grid[i].rect.x, compressor_grid[i].rect.y, player.compressor_list[i].durability, player.compressor_list[i].max_durability)
     for i in compressor_numbers:
@@ -1338,9 +1281,9 @@ def CompressorInterface(display):
     display.blit(arrow_font.render('-->', False, (0, 0, 0)), (337, 172))  # Render Arrow
     display.blit(side_font.render(str(player.compressing_time // FPS), False, (255, 0, 0)), (360, 142))  # Render Time to Compress
 
-def GrindstoneInterface(display):
+def GrindstoneInterface(context: Context, display):
     global player
-    image_render()
+    image_render(context)
     grindstone_grid = [
         Grid((83, 83, 83), pygame.Rect((225, 87), (82, 82)), 2, player.grindstone_image_list[0]),
         Grid((83, 83, 83), pygame.Rect((225, 177), (82, 82)), 2, player.grindstone_image_list[1]),
@@ -1360,7 +1303,7 @@ def GrindstoneInterface(display):
         pygame.draw.rect(display, grindstone_grid[i].colour, grindstone_grid[i].rect, grindstone_grid[i].width)
         if player.grindstone_list[i] is not None:
             if player.grindstone_list[i].enchantments is not None:
-                display.blit(TC_GLINTS[player.grindstone_list[i].name], (grindstone_grid[i].rect.x, grindstone_grid[i].rect.y))
+                display.blit(context.TC_GLINTS[player.grindstone_list[i].name], (grindstone_grid[i].rect.x, grindstone_grid[i].rect.y))
             if player.grindstone_list[i].durability is not None:
                 RenderDurabilityBar(display, grindstone_grid[i].rect.x, grindstone_grid[i].rect.y, player.grindstone_list[i].durability, player.grindstone_list[i].max_durability)
     for i in grindstone_numbers:
@@ -1372,7 +1315,7 @@ def GrindstoneInterface(display):
 
 def hotbar_identify():
     global selected_hotbar, hotbar_item, hotbar_index
-    hotbar_index = hotbar_order.index(player.selected_hotbar)
+    hotbar_index = HOTBAR_ORDER.index(player.selected_hotbar)
     player.hotbar_item = player.inventory_list[hotbar_index + 27]
 
 def SetHotbarProperties(n):
@@ -1388,6 +1331,9 @@ def SetHotbarProperties(n):
 def Main():
     global TimerRunning, screen, furnace_interface, crafting_grid, small_crafting_grid, inventory_grid, World, player, difference, individual_frame, FPS, mode, val, comma, number, called, world, frame, play_time, endTime, minute, seconds, true_play_time, PlayTime, hotbar_backgrounds, selected_hotbar
     global hasGeneratedOverworld, display, clock, loading, hasGeneratedUnderground, previous_frame
+
+    context: Context = None
+
     while True:
         clock.tick()
 
@@ -1568,10 +1514,10 @@ def Main():
                 player.health_update()  # Update Player Health
                 World.render_chunks(player.left, player.right, player.top, player.bottom)  # Generate list of all chunks that are loaded
                 World.generate_chunks()  # Generate Chunks that are loaded but have not been generated before
-                World.render(world)  # Render all world blocks to world
+                World.render(world, context)  # Render all world blocks to world
                 RemoveItem() #Remove Items if their number is 0
                 hotbar_identify() #Update hotbar item
-                player.render(world)  # Render player and player accessories to world
+                player.render(context, world)  # Render player and player accessories to world
                 SpeedrunTimer(world, PlayTime)
                 advancements_update(player.advancements, player.inventory_list, player.armour_list, player.dimension)  # Update Advancements
                 screen.render(world) #Render Text Screen
@@ -1610,12 +1556,12 @@ def Main():
 
                 display.fill((0, 0, 0))
                 world.fill((211, 211, 211))
-                InventoryGrid(world) #Render Inventory Grid
-                ArmourGrid(world) #Render Armour Grid for Player
-                SmallCraftGrid(world) #Render Small Crafting Grid
+                InventoryGrid(context, world) #Render Inventory Grid
+                ArmourGrid(context, world) #Render Armour Grid for Player
+                SmallCraftGrid(context, world) #Render Small Crafting Grid
                 Crafting() #Update Small 2x2 Crafting Grid
                 RemoveItem() #Remove all items with number of 0 or durability of 0
-                RenderHoldingItem(world) #Render the item the user is holding
+                RenderHoldingItem(context, world) #Render the item the user is holding
                 RenderHoveringItem(world, Type, box) #Render Item Name
 
             elif player.mode == 'crafting':
@@ -1652,11 +1598,11 @@ def Main():
 
                 display.fill((0, 0, 0))
                 world.fill((211, 211, 211))
-                InventoryGrid(world) #Render Inventory Grid
-                CraftGrid(world) #Render 3x3 Crafting Grid
+                InventoryGrid(context, world) #Render Inventory Grid
+                CraftGrid(context, world) #Render 3x3 Crafting Grid
                 GridCraft()  #Update 3x3 Crafting Grid
                 RemoveItem()  #Remove all items with number of 0 or durability of 0
-                RenderHoldingItem(world)  # Render the item the user is holding
+                RenderHoldingItem(context, world)  # Render the item the user is holding
                 RenderHoveringItem(world, Type, box) #Render Item Name
 
             elif player.mode == 'smelting':
@@ -1693,11 +1639,11 @@ def Main():
 
                 display.fill((0, 0, 0))
                 world.fill((211, 211, 211))
-                InventoryGrid(world) #Render Inventory Grid
-                FurnaceInterface(world) #Render Furnace Interface
-                player.smelt() #Furnace Smelting
+                InventoryGrid(context, world) #Render Inventory Grid
+                FurnaceInterface(context, world) #Render Furnace Interface
+                player.smelt(context) #Furnace Smelting
                 RemoveItem()  #Remove all items with number of 0 or durability of 0
-                RenderHoldingItem(world)  # Render the item the user is holding
+                RenderHoldingItem(context, world)  # Render the item the user is holding
                 RenderHoveringItem(world, Type, box) #Render Item Name
 
             elif player.mode == 'enchanting':
@@ -1734,10 +1680,10 @@ def Main():
 
                 display.fill((0, 0, 0))
                 world.fill((211, 211, 211))
-                InventoryGrid(world)  # Render Inventory Grid
-                EnchantingInterface(world) #Render Enchanting Table Interface
+                InventoryGrid(context, world)  # Render Inventory Grid
+                EnchantingInterface(context, world) #Render Enchanting Table Interface
                 RemoveItem()  #Remove all items with number of 0 or durability of 0
-                RenderHoldingItem(world)  # Render the item the user is holding
+                RenderHoldingItem(context, world)  # Render the item the user is holding
                 RenderHoveringItem(world, Type, box) #Render Item Name
 
             elif player.mode == 'compressing':
@@ -1774,11 +1720,11 @@ def Main():
 
                 display.fill((0, 0, 0))
                 world.fill((211, 211, 211))
-                InventoryGrid(world) #Render Inventory Grid
-                CompressorInterface(world) #Render Compressor Interface
+                InventoryGrid(context, world) #Render Inventory Grid
+                CompressorInterface(context, world) #Render Compressor Interface
                 player.compress() #Compressing Process
                 RemoveItem() #Remove all items with number of 0 or durability of 0
-                RenderHoldingItem(world) #Render the item the user is holding
+                RenderHoldingItem(context, world) #Render the item the user is holding
                 RenderHoveringItem(world, Type, box) #Render Item Name
 
             elif player.mode == 'repairing and disenchanting':
@@ -1815,11 +1761,11 @@ def Main():
 
                 display.fill((0, 0, 0))
                 world.fill((211, 211, 211))
-                InventoryGrid(world) #Render Inventory Grid
-                GrindstoneInterface(world) #Render Grindstone Interface
+                InventoryGrid(context, world) #Render Inventory Grid
+                GrindstoneInterface(context, world) #Render Grindstone Interface
                 player.repair_and_disenchant() #Update repaired/disenchanted item
                 RemoveItem() #Remove all items with number of 0 or durability of 0
-                RenderHoldingItem(world) #Render the item the user is holding
+                RenderHoldingItem(context, world) #Render the item the user is holding
                 RenderHoveringItem(world, Type, box) #Render Item Name
 
             display.blit(world, (0, 0))  # Render map to display
@@ -1832,7 +1778,8 @@ def Main():
             font = pygame.font.Font('assets/minecraft-font/MinecraftRegular-Bmg3.otf', 37)
             display.blit(font.render("Generating Overworld", False, (255, 255, 255)), (180, 225))
             pygame.display.flip()
-            IntialiseDetails()
+            context = PygameInitialise()
+            print("PYGAME INITIALISED")
         if hasGeneratedUnderground == "Generating":
             display.fill((255, 255, 255))
             for i in range(0, 750, 32):
@@ -1852,15 +1799,14 @@ def Main():
 
 
 #Render the Item the User is Holding
-def RenderHoldingItem(display):
-    global TC_GLINTS
+def RenderHoldingItem(context, display):
     x, y = pygame.mouse.get_pos()
     font = pygame.font.Font('assets/minecraft-font/MinecraftRegular-Bmg3.otf', 25)
     if player.holding_item is not None:
         display.blit(player.holding_item_image, (x, y))
         display.blit(font.render(player.holding_item_number, False, (255, 255, 255)), (x + 52, y + 52))
         if player.holding_item.enchantments is not None:
-            display.blit(TC_GLINTS[player.holding_item.name], (x, y))
+            display.blit(context.TC_GLINTS[player.holding_item.name], (x, y))
         if player.holding_item.durability is not None:
             RenderDurabilityBar(display, x, y, player.holding_item.durability, player.holding_item.max_durability)
 
@@ -2244,10 +2190,10 @@ class Screen:
         self.typingText += char
 
     def stop_typing(self):
-        global screen, player, TC_ITEMS, hotbar_order
+        global player 
         self.input_line = 0
         self.isTyping = False
-        length = len(list(TC_ITEMS.keys())) - 1
+        length = len(list(ITEM_TYPES.keys())) - 1
         if self.foretext == f'Item ID (0 - {length}): ':
             inventory_add(give(self.typingText))
             self.foretext = ''
@@ -2255,7 +2201,7 @@ class Screen:
             player.x, player.y = teleport(player.x, player.y, self.typingText)
             self.foretext = ''
         elif self.foretext == "Enchantment (Name, Lvl): ":
-            index = hotbar_order.index(player.selected_hotbar)
+            index = HOTBAR_ORDER.index(player.selected_hotbar)
             item = enchant(self.typingText)
             if item is not None:
                 player.inventory_list[27 + index] = item
@@ -2264,7 +2210,7 @@ class Screen:
             experience(self.typingText)
             self.foretext = ''
         else:
-            screen.text_validate()
+            self.text_validate()
         self.typingText = ''
         self.position = 0
 
@@ -2272,7 +2218,6 @@ class Screen:
         self.typingText = self.typingText[0:-1]
 
     def text_validate(self):
-        global screen
         if len(self.typingText) != 0:
             if self.typingText[0] == '/':
                 self.typingText = self.typingText.replace(' ', '')  # REMOVE WHITESPACES
@@ -2285,13 +2230,13 @@ class Screen:
                         # Prevent crashes by limiting number size
                         NumberLimit(number, self.typingText)
                     except ValueError:
-                        screen.print("Invalid integer")
+                        self.print("Invalid integer")
                 else:
                     number = 1  # Set number to 1 when number is not specified
                     NumberLimit(number, self.typingText)
             # Regular text message
             else:
-                screen.print(f"<Player> {self.typingText}")
+                self.print(f"<Player> {self.typingText}")
 
     def print(self, text):
         self.timer = 0
@@ -2332,7 +2277,7 @@ class Hotbar:
 
 #Player Class and Methods
 class Player:
-    def __init__(self):
+    def __init__(self, context: Context):
         global World
         self.advancements = []
         self.image = pygame.Surface((32, 32))  # Create Player Image
@@ -2437,8 +2382,7 @@ class Player:
         self.smelt_image_list = []
         self.smelt_number_list = []
         self.fuel_val = 0
-        global no_fire
-        self.fuel_img = no_fire
+        self.fuel_img = context.ITEM_IMAGES["no_fire"]
         self.smelting_time = 0
         self.experience_points = 0
         self.experience_levels = 0
@@ -2556,15 +2500,13 @@ class Player:
 
     # Hunger mechanism to decrease hunger as distance travelled increases
     def hunger_mechanism(self):
-        global player
         if self.hunger > 0 and self.distance != 0 and self.distance // 512 != self.hunger_subtracted:
             self.hunger -= 1
             self.hunger_subtracted += 1
-        player.health_hunger_update()
+        self.health_hunger_update()
 
     #Update Health and Regeneration
     def health_update(self):
-        global player
         if self.hunger >= 17 and self.health < 20 and frame % 16 == 0:
             self.hunger -= 1
             self.health += 1
@@ -2579,7 +2521,7 @@ class Player:
                 self.regenerate_start_time += 1
             else:
                 self.regenerate_val = False
-        player.health_hunger_update()
+        self.health_hunger_update()
 
     def collide(self): #Collisions with tiles
         global hasGeneratedUnderground
@@ -2787,14 +2729,14 @@ class Player:
         try:
             if self.dimension == "Overworld":
                 if World.Tiles[(math.floor(self.x), math.floor(self.y))].tile != "Air" and World.Tiles[(math.floor(self.x), math.floor(self.y))].tile != "Mine Entrance":
-                    World.Tiles[(math.floor(self.x), math.floor(self.y))] = Tile("Air", math.floor(self.x), math.floor(self.y), None)
+                    World.Tiles[(math.floor(self.x), math.floor(self.y))] = Tile("Air", math.floor(self.x), math.floor(self.y))
             elif self.dimension == "Underground" and hasGeneratedUnderground == "Generated":
                 if World.UndergroundTiles[(math.floor(self.x), math.floor(self.y))].tile != "Air" and World.UndergroundTiles[(math.floor(self.x), math.floor(self.y))].tile != "Mine Entrance":
-                    World.UndergroundTiles[(math.floor(self.x), math.floor(self.y))] = Tile("Air", math.floor(self.x), math.floor(self.y), None)
+                    World.UndergroundTiles[(math.floor(self.x), math.floor(self.y))] = Tile("Air", math.floor(self.x), math.floor(self.y))
         except KeyError:
             World.generate_chunks()
 
-    def smelt(self):
+    def smelt(self, context: Context):
         global FPS
         # Load Fuel
         if self.smelting_list[1] is not None:
@@ -2823,9 +2765,9 @@ class Player:
 
         # Render Fire
         if self.fuel_val > 0:
-            self.fuel_img = fire
+            self.fuel_img = context.ITEM_IMAGES["fire"]
         else:
-            self.fuel_img = no_fire
+            self.fuel_img = context.ITEM_IMAGES["no_fire"]
 
     def compress(self):
         global FPS
@@ -2891,7 +2833,7 @@ class Player:
                     if World.UnderTiles[(self.target[0], self.target[1])].tile == "Air" or \
                             World.UnderTiles[(self.target[0], self.target[1])].tile == "Water" or \
                             World.UnderTiles[(self.target[0], self.target[1])].tile == "Lava": #Open space to place tile
-                        World.UnderTiles[(self.target[0], self.target[1])] = Tile(self.hotbar_item.targetTile, self.target[0], self.target[1], self.hotbar_item.alpha_tile_img) #Place tile
+                        World.UnderTiles[(self.target[0], self.target[1])] = Tile(self.hotbar_item.targetTile, self.target[0], self.target[1]) #Place tile
                         self.hotbar_item.number -= 1 #Subtract 1 from item in hand
                         if self.hotbar_item.number == 0:
                             self.hotbar_item = None #Remove from inventory
@@ -2900,7 +2842,7 @@ class Player:
                     if World.UndergroundUnderTiles[(self.target[0], self.target[1])].tile == "Air" or \
                             World.UndergroundUnderTiles[(self.target[0], self.target[1])].tile == "Water" or \
                             World.UndergroundUnderTiles[(self.target[0], self.target[1])].tile == "Lava":  # Open space to place tile
-                        World.UndergroundUnderTiles[(self.target[0], self.target[1])] = Tile(self.hotbar_item.targetTile, self.target[0], self.target[1], self.hotbar_item.alpha_tile_img)  # Place tile
+                        World.UndergroundUnderTiles[(self.target[0], self.target[1])] = Tile(self.hotbar_item.targetTile, self.target[0], self.target[1])  # Place tile
                         self.hotbar_item.number -= 1  # Subtract 1 from item in hand
                         if self.hotbar_item.number == 0:
                             self.hotbar_item = None  # Remove from inventory
@@ -2910,7 +2852,7 @@ class Player:
                     if World.Tiles[(self.target[0], self.target[1])].tile == "Air" or \
                             World.Tiles[(self.target[0], self.target[1])].tile == "Water" or \
                             World.Tiles[(self.target[0], self.target[1])].tile == "Lava":  # Open space to place tile
-                        World.Tiles[(self.target[0], self.target[1])] = Tile(self.hotbar_item.targetTile, self.target[0], self.target[1], self.hotbar_item.alpha_tile_img)  # Place tile
+                        World.Tiles[(self.target[0], self.target[1])] = Tile(self.hotbar_item.targetTile, self.target[0], self.target[1])  # Place tile
                         self.hotbar_item.number -= 1  # Subtract 1 from item in hand
                         if self.hotbar_item.number == 0:
                             self.hotbar_item = None  # Remove from inventory
@@ -2919,7 +2861,7 @@ class Player:
                     if World.UndergroundTiles[(self.target[0], self.target[1])].tile == "Air" or \
                             World.UndergroundTiles[(self.target[0], self.target[1])].tile == "Water" or \
                             World.UndergroundTiles[(self.target[0], self.target[1])].tile == "Lava":  # Open space to place tile
-                        World.UndergroundTiles[(self.target[0], self.target[1])] = Tile(self.hotbar_item.targetTile, self.target[0], self.target[1], self.hotbar_item.alpha_tile_img)  # Place tile
+                        World.UndergroundTiles[(self.target[0], self.target[1])] = Tile(self.hotbar_item.targetTile, self.target[0], self.target[1])  # Place tile
                         self.hotbar_item.number -= 1  # Subtract 1 from item in hand
                         if self.hotbar_item.number == 0:
                             self.hotbar_item = None  # Remove from inventory
@@ -3139,7 +3081,7 @@ class Player:
                             self.break_add_item(value)
                 elif value.requireToolTier == 0:
                     self.break_add_item(value)
-                World.UnderTiles[(value.x, value.y)] = Tile("Air", self.target[0], self.target[1], None)
+                World.UnderTiles[(value.x, value.y)] = Tile("Air", self.target[0], self.target[1])
             elif self.dimension == "Underground":
                 if self.hotbar_item is not None:
                     if self.hotbar_item.itemType == value.requireTool:
@@ -3155,7 +3097,7 @@ class Player:
                             self.break_add_item(value)
                 elif value.requireToolTier == 0:
                     self.break_add_item(value)
-                World.UndergroundUnderTiles[(value.x, value.y)] = Tile("Air", self.target[0], self.target[1], None)
+                World.UndergroundUnderTiles[(value.x, value.y)] = Tile("Air", self.target[0], self.target[1])
         else:
             if self.dimension == "Overworld":
                 if self.hotbar_item is not None:
@@ -3172,7 +3114,7 @@ class Player:
                             self.break_add_item(value)
                 elif value.requireToolTier == 0:
                     self.break_add_item(value)
-                World.Tiles[(value.x, value.y)] = Tile("Air", self.target[0], self.target[1], None)
+                World.Tiles[(value.x, value.y)] = Tile("Air", self.target[0], self.target[1])
             elif self.dimension == "Underground":
                 if self.hotbar_item is not None:
                     if self.hotbar_item.itemType == value.requireTool:
@@ -3188,7 +3130,7 @@ class Player:
                             self.break_add_item(value)
                 elif value.requireToolTier == 0:
                     self.break_add_item(value)
-                World.UndergroundTiles[(value.x, value.y)] = Tile("Air", self.target[0], self.target[1], None)
+                World.UndergroundTiles[(value.x, value.y)] = Tile("Air", self.target[0], self.target[1])
 
     def pick_up_liquid(self): #Picking up liquids with a bucket
         if self.dimension == "Overworld": #Overworld
@@ -3196,39 +3138,39 @@ class Player:
                 if World.UnderTiles[(self.target[0], self.target[1])].tile == "Water": #Wate
                     self.hotbar_item.number -= 1
                     inventory_add(Item("Water Bucket", 1, None, None))
-                    World.UnderTiles[(self.target[0], self.target[1])] = Tile("Air", self.target[0], self.target[1], None)
+                    World.UnderTiles[(self.target[0], self.target[1])] = Tile("Air", self.target[0], self.target[1])
                 elif World.UnderTiles[(self.target[0], self.target[1])].tile == "Lava": #Lava
                     self.hotbar_item.number -= 1
                     inventory_add(Item("Lava Bucket", 1, None, None))
-                    World.UnderTiles[(self.target[0], self.target[1])] = Tile("Air", self.target[0], self.target[1], None)
+                    World.UnderTiles[(self.target[0], self.target[1])] = Tile("Air", self.target[0], self.target[1])
             else: #Collision tiles
                 if World.Tiles[(self.target[0], self.target[1])].tile == "Water": #Water
                     self.hotbar_item.number -= 1
                     inventory_add(Item("Water Bucket", 1, None, None))
-                    World.Tiles[(self.target[0], self.target[1])] = Tile("Air", self.target[0], self.target[1], None)
+                    World.Tiles[(self.target[0], self.target[1])] = Tile("Air", self.target[0], self.target[1],)
                 elif World.Tiles[(self.target[0], self.target[1])].tile == "Lava": #Lava
                     self.hotbar_item.number -= 1
                     inventory_add(Item("Lava Bucket", 1, None, None))
-                    World.Tiles[(self.target[0], self.target[1])] = Tile("Air", self.target[0], self.target[1], None)
+                    World.Tiles[(self.target[0], self.target[1])] = Tile("Air", self.target[0], self.target[1])
         elif self.dimension == "Underground": #Underground
             if self.isShifting: #Background Tiles
                 if World.UndergroundUnderTiles[(self.target[0], self.target[1])].tile == "Water": #Water
                     self.hotbar_item.number -= 1
                     inventory_add(Item("Water Bucket", 1, None, None))
-                    World.UndergroundUnderTiles[(self.target[0], self.target[1])] = Tile("Air", self.target[0], self.target[1], None)
+                    World.UndergroundUnderTiles[(self.target[0], self.target[1])] = Tile("Air", self.target[0], self.target[1])
                 elif World.UndergroundUnderTiles[(self.target[0], self.target[1])].tile == "Lava": #Lava
                     self.hotbar_item.number -= 1
                     inventory_add(Item("Lava Bucket", 1, None, None))
-                    World.UndergroundUnderTiles[(self.target[0], self.target[1])] = Tile("Air", self.target[0], self.target[1], None)
+                    World.UndergroundUnderTiles[(self.target[0], self.target[1])] = Tile("Air", self.target[0], self.target[1])
             else: #Collision Tiles
                 if World.UndergroundTiles[(self.target[0], self.target[1])].tile == "Water": #Water
                     self.hotbar_item.number -= 1
                     inventory_add(Item("Water Bucket", 1, None, None))
-                    World.UndergroundTiles[(self.target[0], self.target[1])] = Tile("Air", self.target[0], self.target[1], None)
+                    World.UndergroundTiles[(self.target[0], self.target[1])] = Tile("Air", self.target[0], self.target[1])
                 elif World.UndergroundTiles[(self.target[0], self.target[1])].tile == "Lava": #Lava
                     self.hotbar_item.number -= 1
                     inventory_add(Item("Lava Bucket", 1, None, None))
-                    World.UndergroundTiles[(self.target[0], self.target[1])] = Tile("Air", self.target[0], self.target[1], None)
+                    World.UndergroundTiles[(self.target[0], self.target[1])] = Tile("Air", self.target[0], self.target[1])
 
     def place_liquid(self):
         global alpha_water_tile, alpha_lava_tile
@@ -3237,42 +3179,45 @@ class Player:
                 if self.hotbar_item.name == "Water Bucket":
                     self.hotbar_item.number -= 1
                     inventory_add(Item("Bucket", 1, None, None))
-                    World.UnderTiles[(self.target[0], self.target[1])] = Tile("Water", self.target[0], self.target[1], alpha_water_tile)
+                    World.UnderTiles[(self.target[0], self.target[1])] = Tile("Water", self.target[0], self.target[1])
                 elif self.hotbar_item.name == "Lava Bucket":
                     self.hotbar_item.number -= 1
                     inventory_add(Item("Bucket", 1, None, None))
-                    World.UnderTiles[(self.target[0], self.target[1])] = Tile("Lava", self.target[0], self.target[1], alpha_lava_tile)
+                    World.UnderTiles[(self.target[0], self.target[1])] = Tile("Lava", self.target[0], self.target[1])
             else:
                 if self.hotbar_item.name == "Water Bucket":
                     self.hotbar_item.number -= 1
                     inventory_add(Item("Bucket", 1, None, None))
-                    World.Tiles[(self.target[0], self.target[1])] = Tile("Water", self.target[0], self.target[1], alpha_water_tile)
+                    World.Tiles[(self.target[0], self.target[1])] = Tile("Water", self.target[0], self.target[1])
                 elif self.hotbar_item.name == "Lava Bucket":
                     self.hotbar_item.number -= 1
                     inventory_add(Item("Bucket", 1, None, None))
-                    World.Tiles[(self.target[0], self.target[1])] = Tile("Lava", self.target[0], self.target[1], alpha_lava_tile)
+                    World.Tiles[(self.target[0], self.target[1])] = Tile("Lava", self.target[0], self.target[1])
         elif self.dimension == "Underground":
             if self.isShifting:
                 if self.hotbar_item.name == "Water Bucket":
                     self.hotbar_item.number -= 1
                     inventory_add(Item("Bucket", 1, None, None))
-                    World.UndergroundUnderTiles[(self.target[0], self.target[1])] = Tile("Water", self.target[0], self.target[1], alpha_water_tile)
+                    World.UndergroundUnderTiles[(self.target[0], self.target[1])] = Tile("Water", self.target[0], self.target[1])
                 elif self.hotbar_item.name == "Lava Bucket":
                     self.hotbar_item.number -= 1
                     inventory_add(Item("Bucket", 1, None, None))
-                    World.UndergroundUnderTiles[(self.target[0], self.target[1])] = Tile("Lava", self.target[0], self.target[1], alpha_lava_tile)
+                    World.UndergroundUnderTiles[(self.target[0], self.target[1])] = Tile("Lava", self.target[0], self.target[1])
             else:
                 if self.hotbar_item.name == "Water Bucket":
                     self.hotbar_item.number -= 1
                     inventory_add(Item("Bucket", 1, None, None))
-                    World.UndergroundTiles[(self.target[0], self.target[1])] = Tile("Water", self.target[0], self.target[1], alpha_water_tile)
+                    World.UndergroundTiles[(self.target[0], self.target[1])] = Tile("Water", self.target[0], self.target[1])
                 elif self.hotbar_item.name == "Lava Bucket":
                     self.hotbar_item.number -= 1
                     inventory_add(Item("Bucket", 1, None, None))
-                    World.UndergroundTiles[(self.target[0], self.target[1])] = Tile("Lava", self.target[0], self.target[1], alpha_lava_tile)
+                    World.UndergroundTiles[(self.target[0], self.target[1])] = Tile("Lava", self.target[0], self.target[1])
 
-    def render(self, display):
-        global backdrop, experience_bar, FPS, breaking_list
+    def render(self, context: Context, display):
+        global backdrop, experience_bar, FPS, BREAKING_LIST
+
+        def item_image(item_name: str) -> pygame.Surface:
+            return context.ITEM_IMAGES[ITEM_IMAGE_MAPPING[item_name]]
 
         if self.breaking_delay > 0:
             self.breaking_delay -= 1
@@ -3325,7 +3270,7 @@ class Player:
                 self.hotbar_imgs[i - 27].img = slot
                 self.number_list[i] = ''
             else:  # No Enchantments
-                self.hotbar_imgs[i - 27].img = self.inventory_list[i].img
+                self.hotbar_imgs[i - 27].img = item_image(self.inventory_list[i].name)
                 self.number_list[i] = str(self.inventory_list[i].number)
                 if self.number_list[i] == '1':
                     self.number_list[i] = ''
@@ -3338,7 +3283,7 @@ class Player:
             display.blit(self.hotbar_imgs[i].img, (self.hotbar_imgs[i].x, self.hotbar_imgs[i].y))  #Item
             if self.inventory_list[i+27] is not None:
                 if player.inventory_list[i+27].enchantments is not None:
-                    display.blit(TC_GLINTS[player.inventory_list[i+27].name], (self.hotbar_imgs[i].x, self.hotbar_imgs[i].y))
+                    display.blit(context.TC_GLINTS[player.inventory_list[i+27].name], (self.hotbar_imgs[i].x, self.hotbar_imgs[i].y))
                 if player.inventory_list[i+27].durability is not None:
                     RenderDurabilityBar(display, self.hotbar_imgs[i].x, self.hotbar_imgs[i].y, player.inventory_list[i+27].durability, player.inventory_list[i+27].max_durability)
 
@@ -3422,189 +3367,86 @@ def death_screen():
 
     death_window.mainloop()
 
-class Recipe:
-    def __init__(self, requirements, result):
-        self.requirements = requirements
-        self.result = (result.name, result.number, result.enchantments, result.durability)
 
-    def canCraft(self):
-        global player
-        for i in range(9):
-            if player.grid_list[i] is not None:
-                if player.grid_list[i].name != self.requirements[i]:
-                    return False
-            elif player.grid_list[i] != self.requirements[i]:
-                return False
-        return True
 
-    def craft(self):
-        if player.grid_list[9] != Item(self.result[0], self.result[1], self.result[2], self.result[3]):
-            player.grid_list[9] = Item(self.result[0], self.result[1], self.result[2], self.result[3])
 
-def IntialiseDetails():
+def PygameInitialise() -> Context:
     global hasGeneratedOverworld, display, clock
+    global netherGenerated, background, numList, call, difference, FPS, individual_frame, second_time, start, load, frame
+    global hotbar_imgs, pygame_enchant_imgs, hotbar_order
+
     # Play Minecraft Music (Sweden)
     pygame.mixer.init()
     pygame.mixer.music.load("assets/music/song" + str(random.choice([3, 5, 7, 11, 12, 13, 14, 18])) + ".mp3")
     pygame.mixer.music.play()
 
-    global netherGenerated, background, numList, call, difference, FPS, individual_frame, second_time, start, load, frame
-
-    '''Create Items'''
-
-    global hotbar_imgs, pygame_enchant_imgs, hotbar_order, none_img, fire, no_fire
-
-    # Create PYGAME inventory images for hotbar
-    wood = pygame.image.load("assets/item_imgs/oak_log.png").convert_alpha() #0
-    planks = pygame.image.load("assets/item_imgs/oak_planks.png").convert_alpha() #1
-    stick = pygame.image.load("assets/item_imgs/stick.png").convert_alpha() #2
-    crafting_table = pygame.image.load("assets/item_imgs/crafting_table.png").convert_alpha() #3
-    wooden_pickaxe = pygame.image.load("assets/item_imgs/wooden_pickaxe.png").convert_alpha() #4
-    wooden_axe = pygame.image.load("assets/item_imgs/wooden_axe.png").convert_alpha() #5
-    wooden_shovel = pygame.image.load("assets/item_imgs/wooden_shovel.png").convert_alpha() #6
-    wooden_hoe = pygame.image.load("assets/item_imgs/wooden_hoe.png").convert_alpha() #7
-    cobblestone = pygame.image.load("assets/item_imgs/cobblestone.png").convert_alpha() #8
-    mine_entrance = pygame.image.load("assets/item_imgs/mine_entrance.png").convert_alpha() #9
-    stone_pickaxe = pygame.image.load("assets/item_imgs/stone_pickaxe.png").convert_alpha() #10
-    stone_axe = pygame.image.load("assets/item_imgs/stone_axe.png").convert_alpha() #11
-    stone_shovel = pygame.image.load("assets/item_imgs/stone_shovel.png").convert_alpha() #12
-    stone_hoe = pygame.image.load("assets/item_imgs/stone_hoe.png").convert_alpha() #13
-    furnace = pygame.image.load("assets/item_imgs/furnace.png").convert_alpha() #14
-    compressor = pygame.image.load("assets/item_imgs/compressor.png").convert_alpha() #15
-    grindstone = pygame.image.load("assets/item_imgs/grindstone.png").convert_alpha() #16
-    coal = pygame.image.load("assets/item_imgs/coal.png").convert_alpha() #17
-    iron_ore = pygame.image.load("assets/item_imgs/iron_ore.png").convert_alpha() #18
-    iron_ingot = pygame.image.load("assets/item_imgs/iron_ingot.png").convert_alpha() #19
-    iron_pickaxe = pygame.image.load("assets/item_imgs/iron_pickaxe.png").convert_alpha() #20
-    iron_axe = pygame.image.load("assets/item_imgs/iron_axe.png").convert_alpha() #21
-    iron_shovel = pygame.image.load("assets/item_imgs/iron_shovel.png").convert_alpha() #22
-    iron_hoe = pygame.image.load("assets/item_imgs/iron_hoe.png").convert_alpha() #23
-    bucket = pygame.image.load("assets/item_imgs/bucket.png").convert_alpha() #24
-    water_bucket = pygame.image.load("assets/item_imgs/water_bucket.png").convert_alpha() #25
-    lava_bucket = pygame.image.load("assets/item_imgs/lava_bucket.png").convert_alpha() #26
-    shield = pygame.image.load("assets/item_imgs/shield.png").convert_alpha() #27
-    flint_and_steel = pygame.image.load("assets/item_imgs/flint_and_steel.png").convert_alpha() #28
-    iron_plate = pygame.image.load("assets/item_imgs/iron_plate.png").convert_alpha() #29
-    tier1_iron_plate = pygame.image.load("assets/item_imgs/tier1_iron_plate.png").convert_alpha() #30
-    tier2_iron_plate = pygame.image.load("assets/item_imgs/tier2_iron_plate.png").convert_alpha() #31
-    tier3_iron_plate = pygame.image.load("assets/item_imgs/tier3_iron_plate.png").convert_alpha() #32
-    diamond = pygame.image.load("assets/item_imgs/diamond.png").convert_alpha() #33
-    diamond_pickaxe = pygame.image.load("assets/item_imgs/diamond_pickaxe.png").convert_alpha() #34
-    diamond_axe = pygame.image.load("assets/item_imgs/diamond_axe.png").convert_alpha() #35
-    diamond_shovel = pygame.image.load("assets/item_imgs/diamond_shovel.png").convert_alpha() #36
-    diamond_hoe = pygame.image.load("assets/item_imgs/diamond_hoe.png").convert_alpha() #37
-    diamond_plate = pygame.image.load("assets/item_imgs/diamond_plate.png").convert_alpha() #38
-    tier1_diamond_plate = pygame.image.load("assets/item_imgs/tier1_diamond_plate.png").convert_alpha() #39
-    tier2_diamond_plate = pygame.image.load("assets/item_imgs/tier2_diamond_plate.png").convert_alpha() #40
-    tier3_diamond_plate = pygame.image.load("assets/item_imgs/tier3_diamond_plate.png").convert_alpha() #41
-    jukebox = pygame.image.load("assets/item_imgs/jukebox.png").convert_alpha() #42
-    pigstep_disc = pygame.image.load("assets/item_imgs/pigstep_disc.png").convert_alpha() #43
-    obsidian = pygame.image.load("assets/item_imgs/obsidian.png").convert_alpha() #44
-    enchanting_table = pygame.image.load("assets/item_imgs/enchanting_table.png").convert_alpha() #45
-    book = pygame.image.load("assets/item_imgs/book.png").convert_alpha() #46
-    bookshelf = pygame.image.load("assets/item_imgs/bookshelf.png").convert_alpha() #47
-    lapis = pygame.image.load("assets/item_imgs/lapis_lazuli.png").convert_alpha() #48
-    bread = pygame.image.load("assets/item_imgs/bread.png").convert_alpha() #49
-    golden_carrot = pygame.image.load("assets/item_imgs/golden_carrot.png").convert_alpha() #50
-    golden_apple = pygame.image.load("assets/item_imgs/golden_apple.png") #51
-    dirt = pygame.image.load("assets/item_imgs/dirt.png").convert_alpha() #52
-    sand = pygame.image.load("assets/item_imgs/sand.png").convert_alpha() #53
-    snow = pygame.image.load("assets/item_imgs/snow.png").convert_alpha() #54
-    gravel = pygame.image.load("assets/item_imgs/gravel.png").convert_alpha() #55
-    flint = pygame.image.load("assets/item_imgs/flint.png").convert_alpha() #56
-    bed = pygame.image.load("assets/item_imgs/bed.png").convert_alpha() #57
-    hay = pygame.image.load("assets/item_imgs/hay_bale.png").convert_alpha() #58
-
-    none_img = pygame.image.load("assets/item_imgs/slot.png").convert_alpha()  # White Space
-    fire = pygame.image.load("assets/item_imgs/fire.png").convert_alpha()  # Fire when smelting
-    no_fire = pygame.image.load("assets/item_imgs/no_fire.png").convert_alpha()  # No fire when smelting
-
-    # List for Hotbar Orders
-    hotbar_order = ['Hotbar1', 'Hotbar2', 'Hotbar3', 'Hotbar4', 'Hotbar5', 'Hotbar6', 'Hotbar7', 'Hotbar8', 'Hotbar9']
-
-    global ITEM_COLOURS
-    ITEM_COLOURS = { #Colours for all rarities
-        1: (255, 255, 255),
-        2: (0, 255, 0),
-        3: (0, 0, 255),
-        4: "#C71585",
-        5: "#d4af37"
-    }
-
-    TC_RARITIES = { #Rarities and their levels
-        "Common": 1,
-        "Uncommon": 2,
-        "Rare": 3,
-        "Epic": 4,
-        "Legendary": 5
-    }
-
-    #Dictionary of all items in the game
-    global TC_ITEMS
-    TC_ITEMS = {
-        "Oak Log": ITEM_TYPE(wood, "Item", 64, None, None, TC_RARITIES["Common"]),
-        "Oak Planks": ITEM_TYPE(planks, "Item", 64, None, None, TC_RARITIES["Common"]),
-        "Stick": ITEM_TYPE(stick, "Item", 64, None, None, TC_RARITIES["Common"]),
-        "Crafting Table": ITEM_TYPE(crafting_table, "Item", 64, None, None, TC_RARITIES["Common"]),
-        "Wooden Pickaxe": ITEM_TYPE(wooden_pickaxe, "Pickaxe", 1, 1, 59, TC_RARITIES["Common"]),
-        "Wooden Axe": ITEM_TYPE(wooden_axe, "Axe", 1, 1, 59, TC_RARITIES["Common"]),
-        "Wooden Shovel": ITEM_TYPE(wooden_shovel, "Shovel", 1, 1, 59, TC_RARITIES["Common"]),
-        "Wooden Hoe": ITEM_TYPE(wooden_hoe, "Hoe", 1, 1, 59, TC_RARITIES["Common"]),
-        "Cobblestone": ITEM_TYPE(cobblestone, "Item", 64, None, None, TC_RARITIES["Common"]),
-        "Mine Entrance": ITEM_TYPE(mine_entrance, "Item", 64, None, None, TC_RARITIES["Common"]),
-        "Stone Pickaxe": ITEM_TYPE(stone_pickaxe, "Pickaxe", 1, 2, 131, TC_RARITIES["Common"]),
-        "Stone Axe": ITEM_TYPE(stone_axe, "Axe", 1, 2, 131, TC_RARITIES["Common"]),
-        "Stone Shovel": ITEM_TYPE(stone_shovel, "Shovel", 1, 2, 131, TC_RARITIES["Common"]),
-        "Stone Hoe": ITEM_TYPE(stone_hoe, "Hoe", 1, 2, 131, TC_RARITIES["Common"]),
-        "Furnace": ITEM_TYPE(furnace, "Item", 64, None, None, TC_RARITIES["Common"]),
-        "Compressor": ITEM_TYPE(compressor, "Item", 64, None, None, TC_RARITIES["Common"]),
-        "Grindstone": ITEM_TYPE(grindstone, "Item", 64, None, None, TC_RARITIES["Common"]),
-        "Coal": ITEM_TYPE(coal, "Item", 64, None, None, TC_RARITIES["Common"]),
-        "Iron Ore": ITEM_TYPE(iron_ore, "Item", 64, None, None, TC_RARITIES["Common"]),
-        "Iron Ingot": ITEM_TYPE(iron_ingot, "Item", 64, None, None, TC_RARITIES["Uncommon"]),
-        "Iron Pickaxe": ITEM_TYPE(iron_pickaxe, "Pickaxe", 1, 3, 250, TC_RARITIES["Uncommon"]),
-        "Iron Axe": ITEM_TYPE(iron_axe, "Axe", 1, 3, 250, TC_RARITIES["Uncommon"]),
-        "Iron Shovel": ITEM_TYPE(iron_shovel, "Shovel", 1, 3, 250, TC_RARITIES["Uncommon"]),
-        "Iron Hoe": ITEM_TYPE(iron_hoe, "Hoe", 1, 3, 250, TC_RARITIES["Uncommon"]),
-        "Bucket": ITEM_TYPE(bucket, "Item", 64, None, None, TC_RARITIES["Common"]),
-        "Water Bucket": ITEM_TYPE(water_bucket, "Item", 1, None, None, TC_RARITIES["Common"]),
-        "Lava Bucket": ITEM_TYPE(lava_bucket, "Item", 1, None, None, TC_RARITIES["Common"]),
-        "Shield": ITEM_TYPE(shield, "Shield", 1, None, 336, TC_RARITIES["Uncommon"]),
-        "Flint and Steel": ITEM_TYPE(flint_and_steel, "Item", 1, None, 64, TC_RARITIES["Common"]),
-        "Iron Plate": ITEM_TYPE(iron_plate, "Item", 64, None, None, TC_RARITIES["Uncommon"]),
-        "Tier 1 Iron Plate": ITEM_TYPE(tier1_iron_plate, "Tier1", 1, None, 120, TC_RARITIES["Uncommon"]),
-        "Tier 2 Iron Plate": ITEM_TYPE(tier2_iron_plate, "Tier2", 1, None, 240, TC_RARITIES["Uncommon"]),
-        "Tier 3 Iron Plate": ITEM_TYPE(tier3_iron_plate, "Tier3", 1, None, 480, TC_RARITIES["Uncommon"]),
-        "Diamond": ITEM_TYPE(diamond, "Item", 64, None, None, TC_RARITIES["Rare"]),
-        "Diamond Pickaxe": ITEM_TYPE(diamond_pickaxe, "Pickaxe", 1, 4, 1561, TC_RARITIES["Rare"]),
-        "Diamond Axe": ITEM_TYPE(diamond_axe, "Axe", 1, 4, 1561, TC_RARITIES["Rare"]),
-        "Diamond Shovel": ITEM_TYPE(diamond_shovel, "Shovel", 1, 4, 1561, TC_RARITIES["Rare"]),
-        "Diamond Hoe": ITEM_TYPE(diamond_hoe, "Hoe", 1, 4, 1561, TC_RARITIES["Rare"]),
-        "Diamond Plate": ITEM_TYPE(diamond_plate, "Item", 64, None, None, TC_RARITIES["Rare"]),
-        "Tier 1 Diamond Plate": ITEM_TYPE(tier1_diamond_plate, "Tier1", 1, None, 280, TC_RARITIES["Rare"]),
-        "Tier 2 Diamond Plate": ITEM_TYPE(tier2_diamond_plate, "Tier2", 1, None, 560, TC_RARITIES["Rare"]),
-        "Tier 3 Diamond Plate": ITEM_TYPE(tier3_diamond_plate, "Tier3", 1, None, 1120, TC_RARITIES["Rare"]),
-        "Jukebox": ITEM_TYPE(jukebox, "Item", 64, None, None, TC_RARITIES["Common"]),
-        "Pigstep Disc": ITEM_TYPE(pigstep_disc, "Item", 1, None, None, TC_RARITIES["Rare"]),
-        "Obsidian": ITEM_TYPE(obsidian, "Item", 64, None, None, TC_RARITIES["Common"]),
-        "Enchanting Table": ITEM_TYPE(enchanting_table, "Item", 64, None, None, TC_RARITIES["Common"]),
-        "Book": ITEM_TYPE(book, "Item", 64, None, None, TC_RARITIES["Common"]),
-        "Bookshelf": ITEM_TYPE(bookshelf, "Item", 64, None, None, TC_RARITIES["Common"]),
-        "Lapis Lazuli": ITEM_TYPE(lapis, "Item", 64, None, None, TC_RARITIES["Uncommon"]),
-        "Bread": ITEM_TYPE(bread, "Food", 64, None, None, TC_RARITIES["Common"]),
-        "Golden Carrot": ITEM_TYPE(golden_carrot, "Food", 64, None, None, TC_RARITIES["Common"]),
-        "Golden Apple": ITEM_TYPE(golden_apple, "Food", 64, None, None, TC_RARITIES["Uncommon"]),
-        "Dirt": ITEM_TYPE(dirt, "Item", 64, None, None, TC_RARITIES["Common"]),
-        "Sand": ITEM_TYPE(sand, "Item", 64, None, None, TC_RARITIES["Common"]),
-        "Snow": ITEM_TYPE(snow, "Item", 64, None, None, TC_RARITIES["Common"]),
-        "Gravel": ITEM_TYPE(gravel, "Item", 64, None, None, TC_RARITIES["Common"]),
-        "Flint": ITEM_TYPE(flint, "Item", 64, None, None, TC_RARITIES["Common"]),
-        "Bed": ITEM_TYPE(bed, "Item", 1, None, None, TC_RARITIES["Common"]),
-        "Hay Bale": ITEM_TYPE(hay, "Item", 64, None, None, TC_RARITIES["Common"]),
+    # [EXPORT] Create PYGAME inventory images for hotbar
+    ITEM_IMAGES = {
+        "wood": pygame.image.load("assets/item_imgs/oak_log.png").convert_alpha(), #0
+        "planks": pygame.image.load("assets/item_imgs/oak_planks.png").convert_alpha(), #1
+        "stick": pygame.image.load("assets/item_imgs/stick.png").convert_alpha(), #2
+        "crafting_table": pygame.image.load("assets/item_imgs/crafting_table.png").convert_alpha(), #3
+        "wooden_pickaxe": pygame.image.load("assets/item_imgs/wooden_pickaxe.png").convert_alpha(), #4
+        "wooden_axe": pygame.image.load("assets/item_imgs/wooden_axe.png").convert_alpha(), #5
+        "wooden_shovel": pygame.image.load("assets/item_imgs/wooden_shovel.png").convert_alpha(), #6
+        "wooden_hoe": pygame.image.load("assets/item_imgs/wooden_hoe.png").convert_alpha(), #7
+        "cobblestone": pygame.image.load("assets/item_imgs/cobblestone.png").convert_alpha(), #8
+        "mine_entrance": pygame.image.load("assets/item_imgs/mine_entrance.png").convert_alpha(), #9
+        "stone_pickaxe": pygame.image.load("assets/item_imgs/stone_pickaxe.png").convert_alpha(), #10
+        "stone_axe": pygame.image.load("assets/item_imgs/stone_axe.png").convert_alpha(), #11
+        "stone_shovel": pygame.image.load("assets/item_imgs/stone_shovel.png").convert_alpha(), #12
+        "stone_hoe": pygame.image.load("assets/item_imgs/stone_hoe.png").convert_alpha(), #13
+        "furnace": pygame.image.load("assets/item_imgs/furnace.png").convert_alpha(), #14
+        "compressor": pygame.image.load("assets/item_imgs/compressor.png").convert_alpha(), #15
+        "grindstone": pygame.image.load("assets/item_imgs/grindstone.png").convert_alpha(), #16
+        "coal": pygame.image.load("assets/item_imgs/coal.png").convert_alpha(), #17
+        "iron_ore": pygame.image.load("assets/item_imgs/iron_ore.png").convert_alpha(), #18
+        "iron_ingot": pygame.image.load("assets/item_imgs/iron_ingot.png").convert_alpha(), #19
+        "iron_pickaxe": pygame.image.load("assets/item_imgs/iron_pickaxe.png").convert_alpha(), #20
+        "iron_axe": pygame.image.load("assets/item_imgs/iron_axe.png").convert_alpha(), #21
+        "iron_shovel": pygame.image.load("assets/item_imgs/iron_shovel.png").convert_alpha(), #22
+        "iron_hoe": pygame.image.load("assets/item_imgs/iron_hoe.png").convert_alpha(), #23
+        "bucket": pygame.image.load("assets/item_imgs/bucket.png").convert_alpha(), #24
+        "water_bucket": pygame.image.load("assets/item_imgs/water_bucket.png").convert_alpha(), #25
+        "lava_bucket": pygame.image.load("assets/item_imgs/lava_bucket.png").convert_alpha(), #26
+        "shield": pygame.image.load("assets/item_imgs/shield.png").convert_alpha(), #27
+        "flint_and_steel": pygame.image.load("assets/item_imgs/flint_and_steel.png").convert_alpha(), #28
+        "iron_plate": pygame.image.load("assets/item_imgs/iron_plate.png").convert_alpha(), #29
+        "tier1_iron_plate": pygame.image.load("assets/item_imgs/tier1_iron_plate.png").convert_alpha(), #30
+        "tier2_iron_plate": pygame.image.load("assets/item_imgs/tier2_iron_plate.png").convert_alpha(), #31
+        "tier3_iron_plate": pygame.image.load("assets/item_imgs/tier3_iron_plate.png").convert_alpha(), #32
+        "diamond": pygame.image.load("assets/item_imgs/diamond.png").convert_alpha(), #33
+        "diamond_pickaxe": pygame.image.load("assets/item_imgs/diamond_pickaxe.png").convert_alpha(), #34
+        "diamond_axe": pygame.image.load("assets/item_imgs/diamond_axe.png").convert_alpha(), #35
+        "diamond_shovel": pygame.image.load("assets/item_imgs/diamond_shovel.png").convert_alpha(), #36
+        "diamond_hoe": pygame.image.load("assets/item_imgs/diamond_hoe.png").convert_alpha(), #37
+        "diamond_plate": pygame.image.load("assets/item_imgs/diamond_plate.png").convert_alpha(), #38
+        "tier1_diamond_plate": pygame.image.load("assets/item_imgs/tier1_diamond_plate.png").convert_alpha(), #39
+        "tier2_diamond_plate": pygame.image.load("assets/item_imgs/tier2_diamond_plate.png").convert_alpha(), #40
+        "tier3_diamond_plate": pygame.image.load("assets/item_imgs/tier3_diamond_plate.png").convert_alpha(), #41
+        "jukebox": pygame.image.load("assets/item_imgs/jukebox.png").convert_alpha(), #42
+        "pigstep_disc": pygame.image.load("assets/item_imgs/pigstep_disc.png").convert_alpha(), #43
+        "obsidian": pygame.image.load("assets/item_imgs/obsidian.png").convert_alpha(), #44
+        "enchanting_table": pygame.image.load("assets/item_imgs/enchanting_table.png").convert_alpha(), #45
+        "book": pygame.image.load("assets/item_imgs/book.png").convert_alpha(), #46
+        "bookshelf": pygame.image.load("assets/item_imgs/bookshelf.png").convert_alpha(), #47
+        "lapis": pygame.image.load("assets/item_imgs/lapis_lazuli.png").convert_alpha(), #48
+        "bread": pygame.image.load("assets/item_imgs/bread.png").convert_alpha(), #49
+        "golden_carrot": pygame.image.load("assets/item_imgs/golden_carrot.png").convert_alpha(), #50
+        "golden_apple": pygame.image.load("assets/item_imgs/golden_apple.png"), #51
+        "dirt": pygame.image.load("assets/item_imgs/dirt.png").convert_alpha(), #52
+        "sand": pygame.image.load("assets/item_imgs/sand.png").convert_alpha(), #53
+        "snow": pygame.image.load("assets/item_imgs/snow.png").convert_alpha(), #54
+        "gravel": pygame.image.load("assets/item_imgs/gravel.png").convert_alpha(), #55
+        "flint": pygame.image.load("assets/item_imgs/flint.png").convert_alpha(), #56
+        "bed": pygame.image.load("assets/item_imgs/bed.png").convert_alpha(), #57
+        "hay": pygame.image.load("assets/item_imgs/hay_bale.png").convert_alpha(), #58
+        "none_img": pygame.image.load("assets/item_imgs/slot.png").convert_alpha(),  # White Space
+        "fire": pygame.image.load("assets/item_imgs/fire.png").convert_alpha(),  # Fire when smelting
+        "no_fire": pygame.image.load("assets/item_imgs/no_fire.png").convert_alpha(),  # No fire when smelting
     }
 
     # Create GLINT images for enchanted items
-    global TC_GLINTS
     glint_list = []
     glint_fullname_list = []
     glint_num_list = []
@@ -3623,291 +3465,89 @@ def IntialiseDetails():
     for i in new_glint_name_list:
         image = pygame.image.load('assets/glints/' + i + '.png').convert_alpha()
         glint_list.append(image)
-    for key, value in TC_ITEMS.items():
+    for key in ITEM_TYPES.keys():
         item_names.append(key)
+
+    # [EXPORT]
     TC_GLINTS = dict(zip(item_names, glint_list))
 
-    '''Create Tiles'''
+    def set_alpha(path: str) -> pygame.Surface:
+        image = pygame.image.load(path).convert()
+        image.set_alpha(200)
+        return image
 
-    # Create Tile Images
-    global oak_log_tile, water_tile, leaf_tile, tree_tile, \
-        grass_tile, netherrack_tile, sand_tile, snow_tile, stone_tile,  alpha_stone_tile, \
-        mine_entrance_tile, coal_ore_tile, iron_ore_tile, lapis_ore_tile, diamond_ore_tile, alpha_lava_tile
-    grass_tile = pygame.image.load('assets/tile_imgs/grass.png').convert()  # Grass
-    netherrack_tile = pygame.image.load('assets/tile_imgs/netherrack.png').convert()  # Netherrack
-    sand_tile = pygame.image.load('assets/tile_imgs/sand.png').convert()  # Sand
-    snow_tile = pygame.image.load('assets/tile_imgs/snow.png').convert()  # Snow
-    bookshelf_tile = pygame.image.load("assets/tile_imgs/bookshelf_tile.png").convert()
-    coal_ore_tile = pygame.image.load("assets/tile_imgs/coal_ore_tile.png").convert()
-    cobblestone_tile = pygame.image.load("assets/tile_imgs/cobblestone_tile.png").convert()
-    diamond_ore_tile = pygame.image.load("assets/tile_imgs/diamond_ore_tile.png").convert()
-    dirt_tile = pygame.image.load("assets/tile_imgs/dirt_tile.png").convert()
-    gravel_tile = pygame.image.load("assets/tile_imgs/gravel_tile.png").convert()
-    hay_bale_tile = pygame.image.load("assets/tile_imgs/hay_bale_tile.png").convert()
-    iron_ore_tile = pygame.image.load("assets/tile_imgs/iron_ore_tile.png").convert()
-    lapis_ore_tile = pygame.image.load("assets/tile_imgs/lapis_ore_tile.png").convert()
-    lava_tile = pygame.image.load("assets/tile_imgs/lava_tile.png").convert()
-    leaf_tile = pygame.image.load("assets/tile_imgs/leaf.png").convert_alpha()
-    mine_entrance_tile = pygame.image.load("assets/tile_imgs/mine_entrance_tile.png").convert()
-    oak_log_tile = pygame.image.load("assets/tile_imgs/oak_log_tile.png").convert()
-    oak_planks_tile = pygame.image.load("assets/tile_imgs/oak_planks_tile.png").convert()
-    obsidian_tile = pygame.image.load("assets/tile_imgs/obsidian_tile.png").convert()
-    stone_tile = pygame.image.load("assets/tile_imgs/stone_tile.png").convert()
-    tree_tile = pygame.image.load("assets/tile_imgs/oak_log_tile.png")
-    water_tile = pygame.image.load("assets/tile_imgs/water_tile.png").convert()
-
-    # Create Background Tile Images
-    global alpha_grass_tile, alpha_sand_tile, alpha_snow_tile, alpha_water_tile, alpha_gravel_tile, alpha_lava_tile, alpha_stone_tile
-    alpha_grass_tile = pygame.image.load('assets/tile_imgs/grass.png').convert()  # Grass
-    alpha_grass_tile.set_alpha(200)
-    alpha_netherrack_tile = pygame.image.load('assets/tile_imgs/netherrack.png').convert()  # Netherrack
-    alpha_netherrack_tile.set_alpha(200)
-    alpha_sand_tile = pygame.image.load('assets/tile_imgs/sand.png').convert()  # Sand
-    alpha_sand_tile.set_alpha(200)
-    alpha_snow_tile = pygame.image.load('assets/tile_imgs/snow.png').convert()  # Snow
-    alpha_snow_tile.set_alpha(200)
-    alpha_bookshelf_tile = pygame.image.load("assets/tile_imgs/bookshelf_tile.png").convert()
-    alpha_bookshelf_tile.set_alpha(200)
-    alpha_coal_ore_tile = pygame.image.load("assets/tile_imgs/coal_ore_tile.png").convert()
-    alpha_coal_ore_tile.set_alpha(200)
-    alpha_cobblestone_tile = pygame.image.load("assets/tile_imgs/cobblestone_tile.png").convert()
-    alpha_cobblestone_tile.set_alpha(200)
-    alpha_diamond_ore_tile = pygame.image.load("assets/tile_imgs/diamond_ore_tile.png").convert()
-    alpha_diamond_ore_tile.set_alpha(200)
-    alpha_dirt_tile = pygame.image.load("assets/tile_imgs/dirt_tile.png").convert()
-    alpha_dirt_tile.set_alpha(200)
-    alpha_gravel_tile = pygame.image.load("assets/tile_imgs/gravel_tile.png").convert()
-    alpha_gravel_tile.set_alpha(200)
-    alpha_hay_bale_tile = pygame.image.load("assets/tile_imgs/hay_bale_tile.png").convert()
-    alpha_hay_bale_tile.set_alpha(200)
-    alpha_iron_ore_tile = pygame.image.load("assets/tile_imgs/iron_ore_tile.png").convert()
-    alpha_iron_ore_tile.set_alpha(200)
-    alpha_lapis_ore_tile = pygame.image.load("assets/tile_imgs/lapis_ore_tile.png").convert()
-    alpha_lapis_ore_tile.set_alpha(200)
-    alpha_lava_tile = pygame.image.load("assets/tile_imgs/lava_tile.png").convert()
-    alpha_lava_tile.set_alpha(200)
-    alpha_leaf_tile = pygame.image.load("assets/tile_imgs/leaf.png").convert_alpha()
-    alpha_leaf_tile.set_alpha(200)
-    alpha_mine_entrance_tile = pygame.image.load("assets/tile_imgs/mine_entrance_tile.png").convert()
-    alpha_mine_entrance_tile.set_alpha(200)
-    alpha_oak_log_tile = pygame.image.load("assets/tile_imgs/oak_log_tile.png").convert()
-    alpha_oak_log_tile.set_alpha(200)
-    alpha_oak_planks_tile = pygame.image.load("assets/tile_imgs/oak_planks_tile.png").convert()
-    alpha_oak_planks_tile.set_alpha(200)
-    alpha_obsidian_tile = pygame.image.load("assets/tile_imgs/obsidian_tile.png").convert()
-    alpha_obsidian_tile.set_alpha(200)
-    alpha_stone_tile = pygame.image.load("assets/tile_imgs/stone_tile.png").convert()
-    alpha_stone_tile.set_alpha(200)
-    alpha_tree_tile = pygame.image.load("assets/tile_imgs/oak_log_tile.png")
-    alpha_tree_tile.set_alpha(200)
-    alpha_water_tile = pygame.image.load("assets/tile_imgs/water_tile.png").convert()
-    alpha_water_tile.set_alpha(200)
-
-    global bedrock_tile
-    bedrock_tile = pygame.image.load("assets/tile_imgs/bedrock.png").convert()
-    bedrock_tile.set_alpha(200)
-
-    global TC_TILES
-    TC_TILES = {
-        "Air": TILE_TYPE(None, None, None, None, None),
-        "Grass": TILE_TYPE(grass_tile, alpha_grass_tile, 0.6, "Shovel", 0),
-        "Netherrack": TILE_TYPE(netherrack_tile, alpha_netherrack_tile, None, None, None),
-        "Sand": TILE_TYPE(sand_tile, alpha_sand_tile, 0.6, "Shovel", 0),
-        "Snow": TILE_TYPE(snow_tile, alpha_snow_tile, 0.6, "Shovel", 0),
-        "Bookshelf": TILE_TYPE(bookshelf_tile, alpha_bookshelf_tile, 2, "Axe", 0),
-        "Coal Ore": TILE_TYPE(coal_ore_tile, alpha_coal_ore_tile, 3, "Pickaxe", 1),
-        "Cobblestone": TILE_TYPE(cobblestone_tile, alpha_cobblestone_tile, 2, "Pickaxe", 1),
-        "Diamond Ore": TILE_TYPE(diamond_ore_tile, alpha_diamond_ore_tile, 3, "Pickaxe", 3),
-        "Dirt": TILE_TYPE(dirt_tile, alpha_dirt_tile, 0.6, "Shovel", 0),
-        "Gravel": TILE_TYPE(gravel_tile, alpha_gravel_tile, 0.6, "Shovel", 0),
-        "Hay Bale": TILE_TYPE(hay_bale_tile, alpha_hay_bale_tile, 0.5, "Hoe", 0),
-        "Iron Ore": TILE_TYPE(iron_ore_tile, alpha_iron_ore_tile, 3, "Pickaxe", 2),
-        "Lapis Ore": TILE_TYPE(lapis_ore_tile, alpha_lapis_ore_tile, 3, "Pickaxe", 2),
-        "Lava": TILE_TYPE(lava_tile, alpha_lava_tile, None, None, None),
-        "Leaf": TILE_TYPE(leaf_tile, alpha_leaf_tile, 0, "None", 0),
-        "Mine Entrance": TILE_TYPE(mine_entrance_tile, alpha_mine_entrance_tile, 2, "Pickaxe", 1),
-        "Oak Log": TILE_TYPE(oak_log_tile, alpha_oak_log_tile, 2, "Axe", 0),
-        "Oak Planks": TILE_TYPE(oak_planks_tile, alpha_oak_planks_tile, 2, "Axe", 0),
-        "Obsidian": TILE_TYPE(obsidian_tile, alpha_obsidian_tile, 50, "Pickaxe", 4),
-        "Stone": TILE_TYPE(stone_tile, alpha_stone_tile, 1.5, "Pickaxe", 1),
-        "Tree": TILE_TYPE(tree_tile, alpha_tree_tile, 2, "Axe", 0),
-        "Water": TILE_TYPE(water_tile, alpha_water_tile, None, None, None)
+    # [EXPORT] Create Tile Images
+    TILE_IMAGES = {
+        "grass_tile": pygame.image.load('assets/tile_imgs/grass.png').convert(),  # Grass
+        "netherrack_tile": pygame.image.load('assets/tile_imgs/netherrack.png').convert(),  # Netherrack
+        "sand_tile": pygame.image.load('assets/tile_imgs/sand.png').convert(),  # Sand
+        "snow_tile": pygame.image.load('assets/tile_imgs/snow.png').convert(),  # Snow
+        "bookshelf_tile": pygame.image.load("assets/tile_imgs/bookshelf_tile.png").convert(),
+        "coal_ore_tile": pygame.image.load("assets/tile_imgs/coal_ore_tile.png").convert(),
+        "cobblestone_tile": pygame.image.load("assets/tile_imgs/cobblestone_tile.png").convert(),
+        "diamond_ore_tile": pygame.image.load("assets/tile_imgs/diamond_ore_tile.png").convert(),
+        "dirt_tile": pygame.image.load("assets/tile_imgs/dirt_tile.png").convert(),
+        "gravel_tile": pygame.image.load("assets/tile_imgs/gravel_tile.png").convert(),
+        "hay_bale_tile": pygame.image.load("assets/tile_imgs/hay_bale_tile.png").convert(),
+        "iron_ore_tile": pygame.image.load("assets/tile_imgs/iron_ore_tile.png").convert(),
+        "lapis_ore_tile": pygame.image.load("assets/tile_imgs/lapis_ore_tile.png").convert(),
+        "lava_tile": pygame.image.load("assets/tile_imgs/lava_tile.png").convert(),
+        "leaf_tile": pygame.image.load("assets/tile_imgs/leaf.png").convert_alpha(),
+        "mine_entrance_tile": pygame.image.load("assets/tile_imgs/mine_entrance_tile.png").convert(),
+        "oak_log_tile": pygame.image.load("assets/tile_imgs/oak_log_tile.png").convert(),
+        "oak_planks_tile": pygame.image.load("assets/tile_imgs/oak_planks_tile.png").convert(),
+        "obsidian_tile": pygame.image.load("assets/tile_imgs/obsidian_tile.png").convert(),
+        "stone_tile": pygame.image.load("assets/tile_imgs/stone_tile.png").convert(),
+        "tree_tile": pygame.image.load("assets/tile_imgs/oak_log_tile.png"),
+        "water_tile": pygame.image.load("assets/tile_imgs/water_tile.png").convert(),
+        "alpha_grass_tile": set_alpha("assets/tile_imgs/grass.png"),  # Grass
+        "alpha_netherrack_tile": set_alpha("assets/tile_imgs/netherrack.png"),  # Netherrack
+        "alpha_sand_tile": set_alpha("assets/tile_imgs/sand.png"),  # Sand
+        "alpha_snow_tile": set_alpha("assets/tile_imgs/snow.png"),  # Snow
+        "alpha_bookshelf_tile": set_alpha("assets/tile_imgs/bookshelf_tile.png"),
+        "alpha_coal_ore_tile": set_alpha("assets/tile_imgs/coal_ore_tile.png"),
+        "alpha_cobblestone_tile": set_alpha("assets/tile_imgs/cobblestone_tile.png"),
+        "alpha_diamond_ore_tile": set_alpha("assets/tile_imgs/diamond_ore_tile.png"),
+        "alpha_dirt_tile": set_alpha("assets/tile_imgs/dirt_tile.png"),
+        "alpha_gravel_tile": set_alpha("assets/tile_imgs/gravel_tile.png"),
+        "alpha_hay_bale_tile": set_alpha("assets/tile_imgs/hay_bale_tile.png"),
+        "alpha_iron_ore_tile": set_alpha("assets/tile_imgs/iron_ore_tile.png"),
+        "alpha_lapis_ore_tile": set_alpha("assets/tile_imgs/lapis_ore_tile.png"),
+        "alpha_lava_tile": set_alpha("assets/tile_imgs/lava_tile.png"),
+        "alpha_leaf_tile": set_alpha("assets/tile_imgs/leaf.png"),
+        "alpha_mine_entrance_tile": set_alpha("assets/tile_imgs/mine_entrance_tile.png"),
+        "alpha_oak_log_tile": set_alpha("assets/tile_imgs/oak_log_tile.png"),
+        "alpha_oak_planks_tile": set_alpha("assets/tile_imgs/oak_planks_tile.png"),
+        "alpha_obsidian_tile": set_alpha("assets/tile_imgs/obsidian_tile.png"),
+        "alpha_stone_tile": set_alpha("assets/tile_imgs/stone_tile.png"),
+        "alpha_tree_tile": set_alpha("assets/tile_imgs/oak_log_tile.png"),
+        "alpha_water_tile": set_alpha("assets/tile_imgs/water_tile.png"),
+        "bedrock_tile": set_alpha("assets/tile_imgs/bedrock.png"),
     }
 
-    # Create Breaking Images
-    global breaking_list, world
-    breaking1 = pygame.image.load('assets/breaking/breaking1.png').convert_alpha()
-    breaking2 = pygame.image.load('assets/breaking/breaking2.png').convert_alpha()
-    breaking3 = pygame.image.load('assets/breaking/breaking3.png').convert_alpha()
-    breaking4 = pygame.image.load('assets/breaking/breaking4.png').convert_alpha()
-    breaking5 = pygame.image.load('assets/breaking/breaking5.png').convert_alpha()
-    breaking6 = pygame.image.load('assets/breaking/breaking6.png').convert_alpha()
-    breaking_list = [breaking1, breaking2, breaking3, breaking4, breaking5, breaking6]
 
-    '''Create Crafting Recipes'''
+    # [EXPORT] Create Breaking Images
+    BREAKING_LIST = [
+        pygame.image.load('assets/breaking/breaking1.png').convert_alpha(),
+        pygame.image.load('assets/breaking/breaking2.png').convert_alpha(),
+        pygame.image.load('assets/breaking/breaking3.png').convert_alpha(),
+        pygame.image.load('assets/breaking/breaking4.png').convert_alpha(),
+        pygame.image.load('assets/breaking/breaking5.png').convert_alpha(),
+        pygame.image.load('assets/breaking/breaking6.png').convert_alpha()
+    ]
 
-    OakPlanks_recipe = Recipe(
-        ["Oak Log", None, None,
-         None, None, None,
-         None, None, None], Item("Oak Planks", 4, None, TC_ITEMS["Oak Planks"].max_durability))
-    Stick_recipe = Recipe(
-        ["Oak Planks", None, None,
-         "Oak Planks", None, None,
-         None, None, None], Item("Stick", 4, None, TC_ITEMS["Stick"].max_durability))
-    CraftingTable_recipe = Recipe(
-        ["Oak Planks", "Oak Planks", None,
-        "Oak Planks", "Oak Planks", None,
-         None, None, None], Item("Crafting Table", 1, None, TC_ITEMS["Crafting Table"].max_durability))
-    WoodenPickaxe_recipe = Recipe(
-        ["Oak Planks", "Oak Planks", "Oak Planks",
-         None, "Stick", None,
-         None, "Stick", None], Item("Wooden Pickaxe", 1, None, TC_ITEMS["Wooden Pickaxe"].max_durability))
-    WoodenAxe_recipe = Recipe(
-        [None, "Oak Planks", "Oak Planks",
-         None, "Stick", "Oak Planks",
-         None, "Stick", None], Item("Wooden Axe", 1, None, TC_ITEMS["Wooden Axe"].max_durability))
-    WoodenShovel_recipe = Recipe(
-        [None, "Oak Planks", None,
-         None, "Stick", None,
-         None, "Stick", None], Item("Wooden Shovel", 1, None, TC_ITEMS["Wooden Shovel"].max_durability))
-    WoodenHoe_recipe = Recipe(
-        [None, "Oak Planks", "Oak Planks",
-         None, "Stick", None,
-         None, "Stick", None], Item("Wooden Hoe", 1, None, TC_ITEMS["Wooden Hoe"].max_durability))
-    MineEntrance_recipe = Recipe(
-        ["Cobblestone", "Cobblestone", "Cobblestone",
-         "Cobblestone", "Wooden Pickaxe", "Cobblestone",
-         "Cobblestone", "Cobblestone", "Cobblestone"], Item("Mine Entrance", 1, None, TC_ITEMS["Mine Entrance"].max_durability))
-    StonePickaxe_recipe = Recipe(
-        ["Cobblestone", "Cobblestone", "Cobblestone",
-         None, "Stick", None,
-         None, "Stick", None], Item("Stone Pickaxe", 1, None, TC_ITEMS["Stone Pickaxe"].max_durability))
-    StoneAxe_recipe = Recipe(
-        [None, "Cobblestone", "Cobblestone",
-         None, "Stick", "Cobblestone",
-         None, "Stick", None], Item("Stone Axe", 1, None, TC_ITEMS["Stone Axe"].max_durability))
-    StoneShovel_recipe = Recipe(
-        [None, "Cobblestone", None,
-         None, "Stick", None,
-         None, "Stick", None], Item("Stone Shovel", 1, None, TC_ITEMS["Stone Shovel"].max_durability))
-    StoneHoe_recipe = Recipe(
-        [None, "Cobblestone", "Cobblestone",
-         None, "Stick", None,
-         None, "Stick", None], Item("Stone Hoe", 1, None, TC_ITEMS["Stone Hoe"].max_durability))
-    Furnace_recipe = Recipe(
-        ["Cobblestone", "Cobblestone", "Cobblestone",
-         "Cobblestone", None, "Cobblestone",
-         "Cobblestone", "Cobblestone", "Cobblestone"], Item("Furnace", 1, None, TC_ITEMS["Furnace"].max_durability))
-    Compressor_recipe = Recipe(
-        ["Cobblestone", "Cobblestone", "Cobblestone",
-         "Cobblestone", "Iron Ingot", "Cobblestone",
-         "Cobblestone", "Cobblestone", "Cobblestone"], Item("Compressor", 1, None, TC_ITEMS["Compressor"].max_durability))
-    Grindstone_recipe = Recipe(
-        ["Stick", "Cobblestone", "Stick",
-         "Oak Planks", None, "Oak Planks",
-         None, None, None], Item("Grindstone", 1, None, TC_ITEMS["Grindstone"].max_durability))
-    IronPickaxe_recipe = Recipe(
-        ["Iron Ingot", "Iron Ingot", "Iron Ingot",
-         None, "Stick", None,
-         None, "Stick", None], Item("Iron Pickaxe", 1, None, TC_ITEMS["Iron Pickaxe"].max_durability))
-    IronAxe_recipe = Recipe(
-        [None, "Iron Ingot", "Iron Ingot",
-         None, "Stick", "Iron Ingot",
-         None, "Stick", None], Item("Iron Axe", 1, None, TC_ITEMS["Iron Axe"].max_durability))
-    IronShovel_recipe = Recipe(
-        [None, "Iron Ingot", None,
-         None, "Stick", None,
-         None, "Stick", None], Item("Iron Shovel", 1, None, TC_ITEMS["Iron Shovel"].max_durability))
-    IronHoe_recipe = Recipe(
-        [None, "Iron Ingot", "Iron Ingot",
-         None, "Stick", None,
-         None, "Stick", None], Item("Iron Hoe", 1, None, TC_ITEMS["Iron Hoe"].max_durability))
-    Bucket_recipe = Recipe(
-        [None, None, None,
-         "Iron Ingot", None, "Iron Ingot",
-         None, "Iron Ingot", None], Item("Bucket", 1, None, TC_ITEMS["Bucket"].max_durability))
-    Shield_recipe = Recipe(
-        ["Oak Planks", "Iron Ingot", "Oak Planks",
-         "Oak Planks", "Oak Planks", "Oak Planks",
-         None, "Oak Planks", None], Item("Shield", 1, None, TC_ITEMS["Shield"].max_durability))
-    FlintAndSteel_recipe = Recipe(
-        ["Iron Ingot", None, None,
-         None, "Flint", None,
-         None, None, None], Item("Flint and Steel", 1, None, TC_ITEMS["Flint and Steel"].max_durability))
-    Tier1IronPlate_recipe = Recipe(
-        [None, "Iron Plate", None,
-         None, None, None,
-         None, "Iron Plate", None], Item("Tier 1 Iron Plate", 1, None, TC_ITEMS["Tier 1 Iron Plate"].max_durability))
-    Tier2IronPlate_recipe = Recipe(
-        [None, "Iron Plate", None,
-         "Iron Plate", None, "Iron Plate",
-         None, "Iron Plate", None], Item("Tier 2 Iron Plate", 1, None, TC_ITEMS["Tier 2 Iron Plate"].max_durability))
-    Tier3IronPlate_recipe = Recipe(
-        ["Iron Plate", "Iron Plate", "Iron Plate",
-         "Iron Plate", None, "Iron Plate",
-         "Iron Plate", "Iron Plate", "Iron Plate"], Item("Tier 3 Iron Plate", 1, None, TC_ITEMS["Tier 3 Iron Plate"].max_durability))
-    DiamondPickaxe_recipe = Recipe(
-        ["Diamond", "Diamond", "Diamond",
-         None, "Stick", None,
-         None, "Stick", None], Item("Diamond Pickaxe", 1, None, TC_ITEMS["Diamond Pickaxe"].max_durability))
-    DiamondAxe_recipe = Recipe(
-        [None, "Diamond", "Diamond",
-         None, "Stick", "Diamond",
-         None, "Stick", None], Item("Diamond Axe", 1, None, TC_ITEMS["Diamond Axe"].max_durability))
-    DiamondShovel_recipe = Recipe(
-        [None, "Diamond", None,
-         None, "Stick", None,
-         None, "Stick", None], Item("Diamond Shovel", 1, None, TC_ITEMS["Diamond Shovel"].max_durability))
-    DiamondHoe_recipe = Recipe(
-        [None, "Diamond", "Diamond",
-         None, "Stick", None,
-         None, "Stick", None], Item("Diamond Hoe", 1, None, TC_ITEMS["Diamond Hoe"].max_durability))
-    Tier1DiamondPlate_recipe = Recipe(
-        [None, "Diamond Plate", None,
-         None, None, None,
-         None, "Diamond Plate", None], Item("Tier 1 Diamond Plate", 1, None, TC_ITEMS["Tier 1 Diamond Plate"].max_durability))
-    Tier2DiamondPlate_recipe = Recipe(
-        [None, "Diamond Plate", None,
-         "Diamond Plate", None, "Diamond Plate",
-         None, "Diamond Plate", None], Item("Tier 2 Diamond Plate", 1, None, TC_ITEMS["Tier 2 Diamond Plate"].max_durability))
-    Tier3DiamondPlate_recipe = Recipe(
-        ["Diamond Plate", "Diamond Plate", "Diamond Plate",
-         "Diamond Plate", None, "Diamond Plate",
-         "Diamond Plate", "Diamond Plate", "Diamond Plate"], Item("Tier 3 Diamond Plate", 1, None, TC_ITEMS["Tier 3 Diamond Plate"].max_durability))
-    Jukebox_recipe = Recipe(
-        ["Oak Planks", "Oak Planks", "Oak Planks",
-         "Oak Planks", "Diamond", "Oak Planks",
-         "Oak Planks", "Oak Planks", "Oak Planks"], Item("Jukebox", 1, None, TC_ITEMS["Jukebox"].max_durability))
-    EnchantingTable_recipe = Recipe(
-        [None, "Book", None,
-         "Diamond", "Obsidian", "Diamond",
-         "Obsidian", "Obsidian", "Obsidian"], Item("Enchanting Table", 1, None, TC_ITEMS["Enchanting Table"].max_durability))
-    Bookshelf_recipe = Recipe(
-        ["Oak Planks", "Oak Planks", "Oak Planks",
-         "Book", "Book", "Book",
-         "Oak Planks", "Oak Planks", "Oak Planks"], Item("Bookshelf", 1, None, TC_ITEMS["Bookshelf"].max_durability))
-    Bread_recipe = Recipe(
-        ["Hay Bale", None, None,
-         None, None, None,
-         None, None, None], Item("Bread", 3, None, TC_ITEMS["Bread"].max_durability))
-
-    global recipe_list
-    recipe_list = [OakPlanks_recipe, Stick_recipe, CraftingTable_recipe, WoodenPickaxe_recipe, WoodenAxe_recipe,
-                   WoodenShovel_recipe, WoodenHoe_recipe, MineEntrance_recipe, StonePickaxe_recipe, StoneAxe_recipe,
-                   StoneShovel_recipe, StoneHoe_recipe, Furnace_recipe, Compressor_recipe, Grindstone_recipe,
-                   IronPickaxe_recipe, IronAxe_recipe, IronShovel_recipe, IronHoe_recipe, Bucket_recipe, Shield_recipe,
-                   FlintAndSteel_recipe, Tier1IronPlate_recipe, Tier2IronPlate_recipe, Tier3IronPlate_recipe,
-                   DiamondPickaxe_recipe, DiamondAxe_recipe, DiamondShovel_recipe, DiamondHoe_recipe,
-                   Tier1DiamondPlate_recipe, Tier2DiamondPlate_recipe, Tier3DiamondPlate_recipe, Jukebox_recipe,
-                   EnchantingTable_recipe, Bookshelf_recipe, Bread_recipe]
-
-    '''Create World and Display'''
+    context = Context(
+        ITEM_IMAGES = ITEM_IMAGES,
+        TC_GLINTS = TC_GLINTS,
+        TILE_IMAGES = TILE_IMAGES,
+        BREAKING_LIST = BREAKING_LIST,
+    )
 
     global player, World, Option1, Option2, Option3, Upgrade, screen, TimerRunning, world
     world = pygame.Surface((750, 750))  # Create Map Surface
     world.fill((0, 0, 0))  # Fill Map Surface Black
     World = TilecraftWorld(GetSeed())  # Create World
-    player = Player()  # Create Player
+    player = Player(context)  # Create Player
     screen = Screen()  # Create Text Screen
     TimerRunning = True
     Upgrade = Button(82, 82, 112, 142, (158, 145, 115))
@@ -3915,6 +3555,9 @@ def IntialiseDetails():
     Option2 = Button(487, 82, 255, 157, (158, 145, 115))
     Option3 = Button(487, 82, 255, 240, (158, 145, 115))
     hasGeneratedOverworld = True
+
+    # return context to be passed around
+    return context
 
 def create_world():
     global hasGeneratedOverworld, hasGeneratedUnderground
@@ -3941,7 +3584,7 @@ def create_world():
     if signal == 'title screen':
         title_screen()
     elif signal == 'death screen':
-            death_screen()
+        death_screen()
 
 '''Function to handle all commands'''
 
@@ -4267,12 +3910,12 @@ def commands(number, val):
                 screen.print("You are not in the overworld")
         elif val == '/table':
             if load == 'Cheats':
-                print_cheats(list(TC_ITEMS.keys()))
+                print_cheats(list(ITEM_TYPES.keys()))
             else:
                 screen.print("REQUIRE CHEATS DATAPACK")
         elif val == '/give':
             if load == 'Cheats':
-                length = len(list(TC_ITEMS.keys())) - 1
+                length = len(list(ITEM_TYPES.keys())) - 1
                 screen.start_typing(f"Item ID (0 - {length}): ")
             else:
                 screen.print("REQUIRE CHEATS DATAPACK")
@@ -4607,12 +4250,11 @@ def Crafting():
             player.craft_list[4] = None
 
 def GridCraft():
-    global recipe_list
     if player.mode == "crafting":
-        for recipe in recipe_list:
-            if recipe.canCraft():
+        for recipe in CRAFTING_RECIPES.values():
+            if recipe.canCraft(player):
                 #print(recipe.requirements, recipe.result.name)
-                recipe.craft()
+                recipe.craft(player)
                 return
             else:
                 player.grid_list[9] = None
@@ -4791,13 +4433,16 @@ def inventory_add(item):
                     player.inventory_list[i] = None
 #UP TO HERE
 # Render Inventory List to Image and Number List
-def image_render():
+def image_render(context: Context):
     global pygame_enchant_imgs, player, enchant_name_list, enchant_img_list, enchanting_list, enchanting_image_list, enchanting_number_list, experience, smelting_time, no_fire, fire, fuel_val, inventory_list, image_list, number_list, armour_image_list, craft_image_list, craft_number_list, grid_image_list, grid_number_list, grid_list, smelting_list, smelt_image_list, smelt_number_list, fuel_img
     player.image_list, player.number_list, player.armour_image_list, player.craft_image_list, \
     player.craft_number_list, player.grid_image_list, player.grid_number_list, player.smelt_image_list, \
     player.smelt_number_list, player.enchanting_image_list, player.enchanting_number_list, player.compressor_image_list, \
     player.compressor_number_list, player.layer_list, player.grindstone_image_list, player.grindstone_number_list = \
         [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
+
+    def item_image(item_name: str) -> pygame.Surface:
+        return context.ITEM_IMAGES[ITEM_IMAGE_MAPPING[item_name]]
 
     '''Inventory Section'''
 
@@ -4810,10 +4455,10 @@ def image_render():
     # Create images list and number list
     for i in player.inventory_list:
         if i is None:  # Set White Background for NONE Slots
-            player.image_list.append(none_img)
+            player.image_list.append(context.ITEM_IMAGES["none_img"])
             player.number_list.append('')
         else:
-            player.image_list.append(i.img)
+            player.image_list.append(item_image(i.name))
             player.number_list.append(str(i.number))
 
     # Remove Value if Number is 1
@@ -4824,10 +4469,10 @@ def image_render():
 
     #Create Holding Item for Inventory
     if player.holding_item is None:
-        player.holding_item_image = none_img
+        player.holding_item_image = context.ITEM_IMAGES["none_img"]
         player.holding_item_number = ''
     else:
-        player.holding_item_image = player.holding_item.img
+        player.holding_item_image = item_image(player.holding_item.name)
         player.holding_item_number = str(player.holding_item.number)
 
     if player.holding_item is not None:
@@ -4839,9 +4484,9 @@ def image_render():
     # Create armour image list for armour slots
     for j in player.armour_list:
         if j is None:  # Set White Background for NONE Slots
-            player.armour_image_list.append(none_img)
+            player.armour_image_list.append(context.ITEM_IMAGES["none_img"])
         else:
-            player.armour_image_list.append(j.img)
+            player.armour_image_list.append(item_image(j.name))
 
     for i in player.armour_list:
         if i is not None:
@@ -4864,10 +4509,10 @@ def image_render():
 
     for i in player.craft_list:
         if i is None:  # Set White Background for NONE Slots
-            player.craft_image_list.append(none_img)
+            player.craft_image_list.append(context.ITEM_IMAGES["none_img"])
             player.craft_number_list.append('')
         else:
-            player.craft_image_list.append(i.img)
+            player.craft_image_list.append(item_image(i.name))
             player.craft_number_list.append(str(i.number))
 
     # Remove Value if Number is 1
@@ -4880,10 +4525,10 @@ def image_render():
 
     for i in player.grid_list:
         if i is None:  # Set White Background for NONE Slots
-            player.grid_image_list.append(none_img)
+            player.grid_image_list.append(context.ITEM_IMAGES["none_img"])
             player.grid_number_list.append('')
         else:
-            player.grid_image_list.append(i.img)
+            player.grid_image_list.append(item_image(i.name))
             player.grid_number_list.append(str(i.number))
 
     # Remove Value if Number is 1
@@ -4903,10 +4548,10 @@ def image_render():
     # Convert List to Images and Numbers
     for i in player.smelting_list:
         if i is None:  # Set White Background for NONE Slots
-            player.smelt_image_list.append(none_img)
+            player.smelt_image_list.append(context.ITEM_IMAGES["none_img"])
             player.smelt_number_list.append('')
         else:
-            player.smelt_image_list.append(i.img)
+            player.smelt_image_list.append(item_image(i.name))
             player.smelt_number_list.append(str(i.number))
 
     # Remove Value if Number is 1
@@ -4926,10 +4571,10 @@ def image_render():
     # Convert List to Images and Numbers
     for i in player.enchanting_list:
         if i is None:  # Set White Background for NONE Slots
-            player.enchanting_image_list.append(none_img)
+            player.enchanting_image_list.append(context.ITEM_IMAGES["none_img"])
             player.enchanting_number_list.append('')
         else:
-            player.enchanting_image_list.append(i.img)
+            player.enchanting_image_list.append(item_image(i.name))
             player.enchanting_number_list.append(str(i.number))
 
     # Remove Value if Number is 1
@@ -4948,10 +4593,10 @@ def image_render():
 
     for i in player.compressor_list:
         if i is None: #Set Background for NONE Slots
-            player.compressor_image_list.append(none_img)
+            player.compressor_image_list.append(context.ITEM_IMAGES["none_img"])
             player.compressor_number_list.append('')
         else:
-            player.compressor_image_list.append(i.img)
+            player.compressor_image_list.append(item_image(i.name))
             player.compressor_number_list.append(str(i.number))
 
     # Remove Value if Number is 1
@@ -4970,10 +4615,10 @@ def image_render():
 
     for i in player.grindstone_list:
         if i is None:  # Set Background for NONE Slots
-            player.grindstone_image_list.append(none_img)
+            player.grindstone_image_list.append(context.ITEM_IMAGES["none_img"])
             player.grindstone_number_list.append('')
         else:
-            player.grindstone_image_list.append(i.img)
+            player.grindstone_image_list.append(item_image(i.name))
             player.grindstone_number_list.append(str(i.number))
 
     # Remove Value if Number is 1
