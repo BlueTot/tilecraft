@@ -13,11 +13,157 @@ from cheats import *
 
 title_screen_mode = 'normal'
 
-'''Advancements Section'''
+
+class SpeedrunTimer:
+    def __init__(self, load_val: str):
+        self.font = pygame.font.Font('assets/monofur/monof55.ttf', 25)
+        self.enabled = (load_val in ("Music Player", "God Gear"))
+        self.running = True 
+        self.latest_time_string = ""
+
+    def render(self, display, play_time: float):
+        if not self.enabled:
+            return
+
+        if self.running:
+            if play_time // 3600 >= 10:  # HOURS 2 digits
+                HourTime = str(int(play_time // 3600))
+            else:  # HOURS 1 digit
+                HourTime = f"0{int(play_time // 3600)}"
+            if play_time // 60 >= 10:  # MINUTES 2 digits
+                MinuteTime = str(int(play_time // 60))
+            else:  # MINUTES 1 digit
+                MinuteTime = f"0{int(play_time // 60)}"
+            if play_time % 60 >= 10:  # SECONDS 2 digits
+                SecondTime = str(round(play_time % 60))
+            else:  # SECONDS 1 digit
+                SecondTime = f"0{round(play_time % 60)}"
+            MSecondTime = (round(play_time, 3) - math.floor(play_time)) * 1000  # Milliseconds
+            if MSecondTime >= 100:  # 3 digits
+                MSecondTime = str(int(MSecondTime))
+            elif MSecondTime >= 10:  # 2 digits
+                MSecondTime = f"0{int(MSecondTime)}"
+            else:  # 1 digit
+                MSecondTime = f"00{int(MSecondTime)}"
+            self.latest_time_string = HourTime + ":" + MinuteTime + ":" + SecondTime + '.' + MSecondTime  # Current in-game time
+
+        display.blit(
+            self.font.render( self.latest_time_string, True, (0, 0, 0), (255, 255, 255)), 
+            (504 - (13 * len(self.latest_time_string)), 0)
+        ) #Render Speedrun Timer
+
+
+class Screen:
+    def __init__(self, rng: RandomNumberGenerator):
+        self.x = 0
+        self.y = 570
+        self.input_line = 0
+        self.print_list = []
+        self.isTyping = False
+        self.typingText = ''
+        self.position = 0
+        self.foretext = ''
+        self.timer = 0
+        self.rng = rng
+
+    def scroll_up(self):
+        if self.position < len(self.print_list) - 15:
+            self.position += 1
+
+    def scroll_down(self):
+        if self.position > 0:
+            self.position -= 1
+
+    def start_typing(self, text):
+        self.input_line = 15
+        self.isTyping = True
+        self.foretext = text
+        self.timer = 0
+
+    def type(self, char):
+        self.typingText += char
+
+    def stop_typing(self, timer: SpeedrunTimer, player):
+        self.input_line = 0
+        self.isTyping = False
+        length = len(list(ITEM_TYPES.keys())) - 1
+        if self.foretext == f'Item ID (0 - {length}): ':
+            inventory_add(give(self, self.typingText))
+            self.foretext = ''
+        elif self.foretext == 'Coordinates (X,Y): ':
+            player.x, player.y = teleport(self, player.x, player.y, self.typingText)
+            self.foretext = ''
+        elif self.foretext == "Enchantment (Name, Lvl): ":
+            index = HOTBAR_ORDER.index(player.selected_hotbar)
+            item = enchant(self, player, self.typingText)
+            if item is not None:
+                player.inventory_list[27 + index] = item
+            self.foretext = ''
+        elif self.foretext == "Experience Level: ":
+            experience(self, player, self.typingText)
+            self.foretext = ''
+        else:
+            self.text_validate(timer)
+        self.typingText = ''
+        self.position = 0
+
+    def delete(self):
+        self.typingText = self.typingText[0:-1]
+
+    def text_validate(self, timer: SpeedrunTimer):
+        if len(self.typingText) != 0:
+            if self.typingText[0] == '/':
+                self.typingText = self.typingText.replace(' ', '')  # REMOVE WHITESPACES
+                if ',' in self.typingText and self.typingText[-1] != ',':
+                    comma = self.typingText.index(',')
+                    number = self.typingText[comma + 1:len(self.typingText)]
+                    self.typingText = self.typingText[0: comma]
+                    try:
+                        number = int(number)
+                        # Prevent crashes by limiting number size
+                        NumberLimit(number, self.typingText, self.rng, self, timer)
+                    except ValueError:
+                        self.print("Invalid integer")
+                else:
+                    number = 1  # Set number to 1 when number is not specified
+                    NumberLimit(number, self.typingText, self.rng, self, timer)
+            # Regular text message
+            else:
+                self.print(f"<Player> {self.typingText}")
+
+    def print(self, text):
+        self.timer = 0
+        self.print_list.append(text)
+
+    def render(self, display):
+        if self.timer != 600:
+            if len(self.print_list) <= 16:
+                self.screen_list = self.print_list[:]
+                height = len(self.print_list) * 15 + self.input_line
+            else:
+                if self.position == 0:
+                    self.screen_list = self.print_list[-16 - self.position:]
+                    height = 16 * 15 + self.input_line
+                else:
+                    self.screen_list = self.print_list[-16 - self.position: 0 - self.position]
+                    height = 16 * 15 + self.input_line
+            self.screen_list.reverse()
+            width = 375
+            x = self.x
+            y = self.y - height
+            surface = pygame.Surface((width, height))
+            surface.fill((125, 125, 125))
+            surface.set_alpha(200)
+            display.blit(surface, (x, y))
+            font = pygame.font.Font('assets/monofur/monof55.ttf', 18)
+            for i in range(len(self.screen_list)):
+                display.blit(font.render(self.screen_list[i], False, (255, 255, 255)), (x, y + height - (i + 1) * 15 - self.input_line))
+            display.blit(font.render(self.foretext + self.typingText, True, (255, 255, 255)), (x, y + height - 15))
+            self.timer += 1
+
 
 #Check for completed advancements
-def advancements_update(advancements, inventory_list, armour_list, dimension):
-    global screen, TimerRunning
+def advancements_update(screen: Screen, timer: SpeedrunTimer, advancements, inventory_list, armour_list, dimension):
     name_list = []
     enchantments_list = []
     for i in inventory_list: #Compile list of item names and enchantments
@@ -89,45 +235,16 @@ def advancements_update(advancements, inventory_list, armour_list, dimension):
     if max_t1 and max_t2 and max_t3 and 'God Gear' not in advancements: #Get a full set of Protection V Unbreaking III Diamond Armour
         advancements.append("God Gear")
         screen.print("Advancement unlocked: God Gear")
-        TimerRunning = False
+        timer.running = False
 
     return advancements
 
-def MusicPlayer(advancements):
-    global screen, speedrun_timer, TimerRunning
+def MusicPlayer(screen: Screen, timer: SpeedrunTimer, advancements):
     if "Music Player" not in advancements:  # Music Player: Play Pigstep
         advancements.append("Music Player")
         screen.print("Advancement unlocked: Music Player")
-        TimerRunning = False
-
-        return advancements
-
-def SpeedrunTimer(display, PlayTime): #Speedrun Timer Function
-    global speedrun_time, TimerRunning
-    font = pygame.font.Font('assets/monofur/monof55.ttf', 25)
-    if load == 'Music Player' or load == 'God Gear':
-        if TimerRunning:
-            if PlayTime // 3600 >= 10:  # HOURS 2 digits
-                HourTime = str(int(PlayTime // 3600))
-            else:  # HOURS 1 digit
-                HourTime = f"0{int(PlayTime // 3600)}"
-            if PlayTime // 60 >= 10:  # MINUTES 2 digits
-                MinuteTime = str(int(PlayTime // 60))
-            else:  # MINUTES 1 digit
-                MinuteTime = f"0{int(PlayTime // 60)}"
-            if PlayTime % 60 >= 10:  # SECONDS 2 digits
-                SecondTime = str(round(PlayTime % 60))
-            else:  # SECONDS 1 digit
-                SecondTime = f"0{round(PlayTime % 60)}"
-            MSecondTime = (round(PlayTime, 3) - math.floor(PlayTime)) * 1000  # Milliseconds
-            if MSecondTime >= 100:  # 3 digits
-                MSecondTime = str(int(MSecondTime))
-            elif MSecondTime >= 10:  # 2 digits
-                MSecondTime = f"0{int(MSecondTime)}"
-            else:  # 1 digit
-                MSecondTime = f"00{int(MSecondTime)}"
-            speedrun_time = HourTime + ":" + MinuteTime + ":" + SecondTime + '.' + MSecondTime  # Current in-game time
-        display.blit(font.render(speedrun_time, True, (0, 0, 0), (255, 255, 255)), (504 - (13 * len(speedrun_time)), 0)) #Render Speedrun Timer
+        timer.running = False
+    return advancements
 
 
 '''Main Part of Game Code'''
@@ -702,6 +819,7 @@ def Main():
 
     context: Context = None
     rng: RandomNumberGenerator = None
+    timer: SpeedrunTimer = SpeedrunTimer(load)
 
     while True:
         clock.tick()
@@ -870,7 +988,7 @@ def Main():
                             if event.key == pygame.K_SPACE: #Type Space
                                 screen.type(' ')
                             elif event.key == pygame.K_RETURN: #Enter Key
-                                screen.stop_typing()
+                                screen.stop_typing(timer, player)
                             elif event.key == pygame.K_BACKSPACE: #Delete
                                 screen.delete()
                             else:
@@ -887,8 +1005,8 @@ def Main():
                 RemoveItem() #Remove Items if their number is 0
                 hotbar_identify() #Update hotbar item
                 player.render(context, world)  # Render player and player accessories to world
-                SpeedrunTimer(world, PlayTime)
-                advancements_update(player.advancements, player.inventory_list, player.armour_list, player.dimension)  # Update Advancements
+                timer.render(world, PlayTime)
+                advancements_update(screen, timer, player.advancements, player.inventory_list, player.armour_list, player.dimension)  # Update Advancements
                 screen.render(world) #Render Text Screen
 
             elif player.mode == 'inventory':
@@ -1521,122 +1639,14 @@ def DropItem(Type, box):
                 player.holding_item.number -= 1
 
 #Limit number of times a player can repeat a command
-def NumberLimit(number, val, rng: RandomNumberGenerator):
+def NumberLimit(number, val, rng: RandomNumberGenerator, screen: Screen, timer: SpeedrunTimer):
     if number > 16:
         screen.print("ERROR: Invalid Integer")
     elif number < 1:
         screen.print("ERROR: Invalid Integer")
     else:
-        commands(number, val, rng)
+        commands(number, val, rng, screen, timer)
 
-class Screen:
-    def __init__(self, rng: RandomNumberGenerator):
-        self.x = 0
-        self.y = 570
-        self.input_line = 0
-        self.print_list = []
-        self.isTyping = False
-        self.typingText = ''
-        self.position = 0
-        self.foretext = ''
-        self.timer = 0
-        self.rng = rng
-
-    def scroll_up(self):
-        if self.position < len(self.print_list) - 15:
-            self.position += 1
-
-    def scroll_down(self):
-        if self.position > 0:
-            self.position -= 1
-
-    def start_typing(self, text):
-        self.input_line = 15
-        self.isTyping = True
-        self.foretext = text
-        self.timer = 0
-
-    def type(self, char):
-        self.typingText += char
-
-    def stop_typing(self):
-        global player 
-        self.input_line = 0
-        self.isTyping = False
-        length = len(list(ITEM_TYPES.keys())) - 1
-        if self.foretext == f'Item ID (0 - {length}): ':
-            inventory_add(give(self, self.typingText))
-            self.foretext = ''
-        elif self.foretext == 'Coordinates (X,Y): ':
-            player.x, player.y = teleport(self, player.x, player.y, self.typingText)
-            self.foretext = ''
-        elif self.foretext == "Enchantment (Name, Lvl): ":
-            index = HOTBAR_ORDER.index(player.selected_hotbar)
-            item = enchant(self, player, self.typingText)
-            if item is not None:
-                player.inventory_list[27 + index] = item
-            self.foretext = ''
-        elif self.foretext == "Experience Level: ":
-            experience(self, player, self.typingText)
-            self.foretext = ''
-        else:
-            self.text_validate()
-        self.typingText = ''
-        self.position = 0
-
-    def delete(self):
-        self.typingText = self.typingText[0:-1]
-
-    def text_validate(self):
-        if len(self.typingText) != 0:
-            if self.typingText[0] == '/':
-                self.typingText = self.typingText.replace(' ', '')  # REMOVE WHITESPACES
-                if ',' in self.typingText and self.typingText[-1] != ',':
-                    comma = self.typingText.index(',')
-                    number = self.typingText[comma + 1:len(self.typingText)]
-                    self.typingText = self.typingText[0: comma]
-                    try:
-                        number = int(number)
-                        # Prevent crashes by limiting number size
-                        NumberLimit(number, self.typingText, self.rng)
-                    except ValueError:
-                        self.print("Invalid integer")
-                else:
-                    number = 1  # Set number to 1 when number is not specified
-                    NumberLimit(number, self.typingText, self.rng)
-            # Regular text message
-            else:
-                self.print(f"<Player> {self.typingText}")
-
-    def print(self, text):
-        self.timer = 0
-        self.print_list.append(text)
-
-    def render(self, display):
-        if self.timer != 600:
-            if len(self.print_list) <= 16:
-                self.screen_list = self.print_list[:]
-                height = len(self.print_list) * 15 + self.input_line
-            else:
-                if self.position == 0:
-                    self.screen_list = self.print_list[-16 - self.position:]
-                    height = 16 * 15 + self.input_line
-                else:
-                    self.screen_list = self.print_list[-16 - self.position: 0 - self.position]
-                    height = 16 * 15 + self.input_line
-            self.screen_list.reverse()
-            width = 375
-            x = self.x
-            y = self.y - height
-            surface = pygame.Surface((width, height))
-            surface.fill((125, 125, 125))
-            surface.set_alpha(200)
-            display.blit(surface, (x, y))
-            font = pygame.font.Font('assets/monofur/monof55.ttf', 18)
-            for i in range(len(self.screen_list)):
-                display.blit(font.render(self.screen_list[i], False, (255, 255, 255)), (x, y + height - (i + 1) * 15 - self.input_line))
-            display.blit(font.render(self.foretext + self.typingText, True, (255, 255, 255)), (x, y + height - 15))
-            self.timer += 1
 
 # Create Hotbar Outline
 class Hotbar:
@@ -2962,8 +2972,8 @@ def create_world():
 '''Function to handle all commands'''
 
 #UP TO HERE
-def commands(number, val, rng: RandomNumberGenerator):
-    global screen, player, cobblestone_index, obsidian_index, item_name_list, FPS, experience, inventory_list, hotbar_order, hotbar_index, mode, hotbar_item, item_val_list, background, enchantable_list, flint_val, gravel_val, blacksmith_book, bool_blacksmith_iron, bool_blacksmith_diamond, bool_blacksmith_bread, blacksmith_iron, blacksmith_diamond, blacksmith_bread, endTime, bound_overworld_portal, overworld_portal, diaval, call, actualX, actualY, dimension
+def commands(number, val, rng: RandomNumberGenerator, screen: Screen, timer: SpeedrunTimer):
+    global player, cobblestone_index, obsidian_index, item_name_list, FPS, experience, inventory_list, hotbar_order, hotbar_index, mode, hotbar_item, item_val_list, background, enchantable_list, flint_val, gravel_val, blacksmith_book, bool_blacksmith_iron, bool_blacksmith_diamond, bool_blacksmith_bread, blacksmith_iron, blacksmith_diamond, blacksmith_bread, endTime, bound_overworld_portal, overworld_portal, diaval, call, actualX, actualY, dimension
     for o in range(number):
         if val == "/lootvillagehay":  # Loot Village Hay
             if player.dimension == 'Overworld':
@@ -3185,7 +3195,7 @@ def commands(number, val, rng: RandomNumberGenerator):
                 pygame.mixer.music.load("assets/pigstep.mp3")
                 pygame.mixer.music.set_volume(10)
                 pygame.mixer.music.play()
-                MusicPlayer(player.advancements) #Update Advancement and Speedrun Details
+                MusicPlayer(screen, timer, player.advancements) #Update Advancement and Speedrun Details
             else:
                 screen.print("Error: Not Enough Resources")
         elif val == '/lootruinedportal':  # Loot Ruined Portal
