@@ -2,6 +2,44 @@ from dataclasses import dataclass
 from typing import Optional
 import pygame
 
+class Button:
+    def __init__(self, length, width, x, y, colour):
+        self.length = length
+        self.width = width
+        self.x = x
+        self.y = y
+        self.colour = colour
+        self.rect = pygame.Rect((x, y), (length, width))
+
+    def render(self, display, text, size):
+        self.font = pygame.font.Font('assets/minecraft-font/MinecraftRegular-Bmg3.otf', size)
+        self.text = self.font.render(text, False, (0, 0, 0))
+        pygame.draw.rect(display, self.colour, self.rect)
+        pygame.draw.rect(display, (255, 255, 255), self.rect, 3)
+        self.text_x = (self.length - len(text) * size) // 2
+        if self.text_x < 0:
+            self.text_x = 0
+        self.text_y = (self.width - size) // 2
+        display.blit(self.text, (self.x + self.text_x, self.y + self.text_y))
+
+class Grid:
+    def __init__(self, colour, rect, width, img):
+        self.colour = colour
+        self.rect = rect
+        self.width = width
+        self.img = img
+
+class Text:
+    def __init__(self, surface, x, y):
+        self.surface = surface
+        self.x = x
+        self.y = y
+
+@dataclass
+class Coordinate:
+    x: int
+    y: int
+
 @dataclass
 class ItemType: #Class to store item details for every item in game
     type: str
@@ -15,24 +53,6 @@ class TileType: #Class to store tile details for every tile type in the game
     breaking_time: Optional[int]
     tool: Optional[str]
     tier: Optional[int]
-
-class Recipe:
-    def __init__(self, requirements, result):
-        self.requirements = requirements
-        self.result = (result.name, result.number, result.enchantments, result.durability)
-
-    def canCraft(self, player):
-        for i in range(9):
-            if player.grid_list[i] is not None:
-                if player.grid_list[i].name != self.requirements[i]:
-                    return False
-            elif player.grid_list[i] != self.requirements[i]:
-                return False
-        return True
-
-    def craft(self, player):
-        if player.grid_list[9] != Item(self.result[0], self.result[1], self.result[2], self.result[3]):
-            player.grid_list[9] = Item(self.result[0], self.result[1], self.result[2], self.result[3])
 
 # List for Hotbar Orders
 HOTBAR_ORDER = ['Hotbar1', 'Hotbar2', 'Hotbar3', 'Hotbar4', 'Hotbar5', 'Hotbar6', 'Hotbar7', 'Hotbar8', 'Hotbar9']
@@ -180,6 +200,61 @@ ITEM_IMAGE_MAPPING = {
     "Hay Bale": "hay",
 }
 
+class Item: #Item in the inventory
+    def __init__(self, name: str, number: int, enchantments, durability):
+        self.name: str = name #Item Name
+        self.number: int = number #Quantity
+        self.enchantments = enchantments #Enchantments List
+        self.durability = durability #Durability of tool
+        # self.img = context.ITEM_TYPES[self.name].img #Image
+        self.stackNum = ITEM_TYPES[self.name].stack #Stackability
+        self.itemType = ITEM_TYPES[self.name].type #Type of item
+        self.toolTier = ITEM_TYPES[self.name].tier #Tier of tool
+        self.max_durability = ITEM_TYPES[self.name].max_durability #Maximum durability
+        self.rarity = ITEM_TYPES[self.name].rarity #Rarity of item
+        if self.enchantments is not None:
+            self.rarity += 1
+        self.colour = ITEM_COLOURS[self.rarity]
+        if self.toolTier is not None:
+            self.mining_speed = 2 * self.toolTier - 1 #Mining speed
+        else:
+            self.mining_speed = None
+        if self.enchantments is not None:
+            if self.mining_speed is not None:
+                for i in self.enchantments:
+                    if i[0] == "Efficiency":
+                        self.mining_speed += i[1]**2 + 1
+        if self.name == "Bookshelf" or self.name == "Cobblestone" or self.name == "Gravel" or self.name == "Hay Bale" or \
+                self.name == "Iron Ore" or self.name == "Oak Log" or self.name == "Oak Planks" or self.name == "Obsidian" or \
+                self.name == "Mine Entrance" or self.name == "Dirt" or self.name == "Sand" or self.name == "Snow":
+            self.hasTile = True #Has a placable tile
+            self.targetTile = self.name #Placable tile name
+            # self.tile_img = context.TILE_TYPES[self.targetTile].img
+            # self.alpha_tile_img = context.TILE_TYPES[self.targetTile].alpha_img
+        else: #Item cannot be placed
+            self.hasTile = False
+            self.targetTile = None
+            # self.tile_img = None
+            # self.alpha_tile_img = None
+
+class Recipe:
+    def __init__(self, requirements, result):
+        self.requirements = requirements
+        self.result = (result.name, result.number, result.enchantments, result.durability)
+
+    def canCraft(self, crafting_grid: list[Optional[Item]]):
+        for i in range(9):
+            if crafting_grid[i] is not None:
+                if crafting_grid[i].name != self.requirements[i]:
+                    return False
+            elif crafting_grid[i] != self.requirements[i]:
+                return False
+        return True
+
+    def craft(self, crafting_grid: list[Optional[Item]]):
+        if crafting_grid[9] != Item(self.result[0], self.result[1], self.result[2], self.result[3]):
+            crafting_grid[9] = Item(self.result[0], self.result[1], self.result[2], self.result[3])
+
 @dataclass
 class TileImageEntry:
     regular_image_name: Optional[str]
@@ -237,42 +312,6 @@ TILE_TYPES = {
     "Water": TileType(None, None, None) 
 }
 
-class Item: #Item in the inventory
-    def __init__(self, name: str, number: int, enchantments, durability):
-        self.name: str = name #Item Name
-        self.number: int = number #Quantity
-        self.enchantments = enchantments #Enchantments List
-        self.durability = durability #Durability of tool
-        # self.img = context.ITEM_TYPES[self.name].img #Image
-        self.stackNum = ITEM_TYPES[self.name].stack #Stackability
-        self.itemType = ITEM_TYPES[self.name].type #Type of item
-        self.toolTier = ITEM_TYPES[self.name].tier #Tier of tool
-        self.max_durability = ITEM_TYPES[self.name].max_durability #Maximum durability
-        self.rarity = ITEM_TYPES[self.name].rarity #Rarity of item
-        if self.enchantments is not None:
-            self.rarity += 1
-        self.colour = ITEM_COLOURS[self.rarity]
-        if self.toolTier is not None:
-            self.mining_speed = 2 * self.toolTier - 1 #Mining speed
-        else:
-            self.mining_speed = None
-        if self.enchantments is not None:
-            if self.mining_speed is not None:
-                for i in self.enchantments:
-                    if i[0] == "Efficiency":
-                        self.mining_speed += i[1]**2 + 1
-        if self.name == "Bookshelf" or self.name == "Cobblestone" or self.name == "Gravel" or self.name == "Hay Bale" or \
-                self.name == "Iron Ore" or self.name == "Oak Log" or self.name == "Oak Planks" or self.name == "Obsidian" or \
-                self.name == "Mine Entrance" or self.name == "Dirt" or self.name == "Sand" or self.name == "Snow":
-            self.hasTile = True #Has a placable tile
-            self.targetTile = self.name #Placable tile name
-            # self.tile_img = context.TILE_TYPES[self.targetTile].img
-            # self.alpha_tile_img = context.TILE_TYPES[self.targetTile].alpha_img
-        else: #Item cannot be placed
-            self.hasTile = False
-            self.targetTile = None
-            # self.tile_img = None
-            # self.alpha_tile_img = None
 
 # Create crafting recipes
 CRAFTING_RECIPES = {
