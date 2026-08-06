@@ -1,14 +1,15 @@
 from constants import ITEM_TYPES, Item
+from inventory import Inventory, Experience
 
 #Print Item List
-def print_cheats(screen, name):
+def print_cheats(screen, name: str):
     screen.print("CODE   ITEM NAME")
     screen.print('-' * 25)
     for i in range(len(name)):
         screen.print((str(i) + ' ' * (7 - len(str(i))) + str(name[i])))
 
 #/give command
-def give(screen, item_id):
+def give(screen, item_id: str):
     item_id = item_id.replace(' ', '') #REMOVE WHITESPACES
     # CALCULATE CODE AND AMOUNT
     if ',' in item_id and item_id[-1] != ',':
@@ -32,7 +33,7 @@ def give(screen, item_id):
         screen.print("Invalid Input")
 
 #/teleport command
-def teleport(screen, internalX, internalY, coords):
+def teleport(screen, internalX: int, internalY: int, coords):
     if ',' in coords:
         try:
             x = coords[0:coords.index(',')]
@@ -48,8 +49,8 @@ def teleport(screen, internalX, internalY, coords):
     return internalX, internalY
 
 #/enchant command
-def enchant(screen, player, enchantment):
-    if player.hotbar_item is not None:
+def enchant(screen, inventory: Inventory, enchantment):
+    if inventory.hotbar_item is not None:
         enchantment = enchantment.replace(' ', '') #remove whitespaces
         if ',' in enchantment and enchantment[-1] != ',':
             comma = enchantment.index(',')
@@ -58,12 +59,12 @@ def enchant(screen, player, enchantment):
             try:
                 lvl = int(lvl)
                 if name == "protection" or name == "efficiency" or name == "unbreaking":
-                    enchantments = player.hotbar_item.enchantments
+                    enchantments = inventory.hotbar_item.enchantments
                     if enchantments is not None:
                         enchantments.append([name.capitalize(), lvl])
                     else:
                         enchantments = [[name.capitalize(), lvl]]
-                    return Item(player.hotbar_item.name, player.hotbar_item.number, enchantments, player.hotbar_item.durability)
+                    return Item(inventory.hotbar_item.name, inventory.hotbar_item.number, enchantments, inventory.hotbar_item.durability)
             except ValueError:
                 screen.print("Invalid Input")
     else:
@@ -71,10 +72,10 @@ def enchant(screen, player, enchantment):
     return None
 
 #/experience command
-def experience(screen, player, level):
+def experience(screen, exp: Experience, level: str):
     try:
         level = int(level)
         if level > 0:
-            player.experience.add_points(level)
+            exp.add_points(level)
     except ValueError:
         screen.print("Invalid Input")
