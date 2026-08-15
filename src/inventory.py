@@ -3,42 +3,8 @@ import pygame
 import math
 
 from constants import Coordinate, Item, Context, ITEM_IMAGE_MAPPING, CRAFTING_RECIPES, RandomNumberGenerator, Button
+from player_info import Experience
 
-class Experience:
-    def __init__(self) -> None:
-        self.__levels: float = 0
-
-    def add_points(self, experience_points: int) -> None:
-        self.__levels += (-1 + (1 + 4 * (experience_points + self.__levels ** 2 + self.__levels)) ** 0.5) / 2 - self.__levels
-
-    @property
-    def levels(self) -> float:
-        return self.__levels
-
-    def subtract(self, levels: int) -> None:
-        if self.__levels - levels < 0:
-            return
-        self.__levels -= levels
-
-class ExperienceBar:
-    def __init__(self):
-        self.__font = pygame.font.Font('assets/minecraft-font/MinecraftRegular-Bmg3.otf', 45)
-
-    def render(self, display: pygame.Surface, levels: float):
-        try:
-            percent_xp_to_next_level = (levels - math.floor(levels))
-        except ZeroDivisionError:
-            percent_xp_to_next_level = 0
-
-        # DRAW EXPERIENCE BAR
-        pygame.draw.rect(display, "#72a34c", (5, 630, round(percent_xp_to_next_level * 738), 30))
-        pygame.draw.rect(display, "#424d42", (round(percent_xp_to_next_level * 738) + 5, 630, round((1 - percent_xp_to_next_level) * 738), 30))
-        for i in range(18):
-            pygame.draw.rect(display, (0, 0, 0), (i * 41 + 5, 630, 41, 30), 2)
-        experience_number = self.__font.render(str(math.floor(levels)), True, '#82b054', (255, 255, 255))
-        experience_number_r = experience_number.get_rect()
-        experience_number_r.center = (378, 615)
-        display.blit(experience_number, experience_number_r)  # Experience Number
 
 def DurabilityBar(durability, max_durability):
     durabilityPercent = math.floor((durability / max_durability) * 100)
@@ -224,6 +190,57 @@ class Inventory:
                 RenderDurabilityBar(display, x, y, self.holding_item.durability, self.holding_item.max_durability)
 
 
+class Hotbar:
+    def __init__(self):
+        self.__COORDINATES: list[Coordinate] = []
+        for i in range(9):
+            self.__COORDINATES.append(Coordinate(7 + 82*i, 667))
+
+        self.__HOTBAR_BACKGROUNDS: list[pygame.Rect] = []
+        for i in range(9):
+            self.__HOTBAR_BACKGROUNDS.append(pygame.Rect((7 + 82*i, 667), (82, 82)))
+
+        self.__font = pygame.font.Font("assets/minecraft-font/MinecraftRegular-Bmg3.otf", 24)
+        
+    def render(self, display: pygame.Surface, context: Context, items: list[Item], selected: int):
+
+        images = [None]*9
+        numbers = ['']*9
+        
+        # populate images and numbers arrays
+        for i in range(9):
+            if items[i] is None: # Set White Background for NONE Slots
+                images[i] = context.INFOBAR_IMAGES["slot"]
+            else: # no enchantments
+                images[i] = context.ITEM_IMAGES[ITEM_IMAGE_MAPPING[items[i].name]]
+                if items[i].number != 1:
+                    numbers[i] = str(items[i].number)
+
+        # draw images
+        for i, coordinate in enumerate(self.__COORDINATES):
+            display.blit(context.INFOBAR_IMAGES["slot"], (coordinate.x, coordinate.y)) # background
+            display.blit(images[i], (coordinate.x, coordinate.y))
+            if items[i] is not None:
+                if items[i].enchantments is not None:
+                    display.blit(context.TC_GLINTS[items[i].name], (coordinate.x, coordinate.y))
+                if items[i].durability is not None:
+                    RenderDurabilityBar(display, coordinate.x, coordinate.y, items[i].durability, items[i].max_durability)
+
+        # draw background rects based on selected hotbar value
+        for i in range(9):
+            if selected == i:
+                pygame.draw.rect(display, (255, 255, 255), self.__HOTBAR_BACKGROUNDS[i], 3)
+            else:
+                pygame.draw.rect(display, (83, 83, 83), self.__HOTBAR_BACKGROUNDS[i], 2)
+
+        # draw numbers
+        for i in range(9):
+            surface = self.__font.render(numbers[i], True, (255, 0, 0), (255, 255, 255))
+            x = 60 + 82*i
+            y = 720
+            display.blit(surface, (x, y))
+
+
 class Armour:
     def __init__(self):
         self.items: list[Optional[Item]] = [None]*4
@@ -281,8 +298,6 @@ class Armour:
                     pygame.draw.rect(display, item[0], (99, 54, 133, 133), 12)
                 elif item[1] == 3: #Tier 3
                     pygame.draw.rect(display, item[0], (84, 39, 165, 165), 12)
-
-    
 
 
 class SmallCraftingInterface:

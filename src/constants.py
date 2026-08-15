@@ -486,4 +486,3 @@ class Context:
     BREAKING_LIST: list[pygame.Surface]
     INFOBAR_IMAGES: dict[str, pygame.Surface]
 
-
