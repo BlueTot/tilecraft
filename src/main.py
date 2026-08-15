@@ -7,10 +7,11 @@ import math #Math module
 import os #OS module
 import sys #SYS module
 
-from cheats import *
-from constants import *
-from generation import *
-from inventory import *
+from cheats import print_cheats, give, enchant, teleport, experience
+from constants import ITEM_TYPES, Item, TILE_IMAGE_MAPPING, RandomNumberGenerator, Context
+from generation import Tile, OverworldGeneratedList, OverworldGenerate, SpawnOverworldGenerate, SpawnOverworldBoundGenerate, UndergroundGeneratedList, SpawnUndergroundGenerate, UndergroundGenerate, UndergroundGeneratePortal, OverworldGeneratePortal, NetherGeneratedList, SpawnNetherGenerate, SpawnNetherBoundGenerate, NetherGenerate
+from inventory import Inventory, Hotbar, Armour, SmallCraftingInterface, CraftingTableInterface, FurnaceInterface, EnchantingTable, Compressor, Grindstone
+from player_info import HealthBar, HungerBar, Experience, ExperienceBar
 
 title_screen_mode = 'normal'
 
@@ -1224,110 +1225,6 @@ def NumberLimit(number, val, rng: RandomNumberGenerator, screen: Screen, timer: 
         screen.print("ERROR: Invalid Integer")
     else:
         commands(number, val, rng, screen, timer)
-
-
-# Create HotbarInfo Outline
-class HotbarInfo:
-    def __init__(self, colour, rect, width):
-        self.colour = colour
-        self.rect = rect
-        self.width = width
-
-#Health and Hunger Info Bar Class
-class InfoBar:
-    def __init__(self, img, x, y):
-        self.img = img
-        self.x = x
-        self.y = y
-
-
-class HealthBar:
-    def __init__(self):
-        self.__COORDINATES: list[Coordinate] = []
-        for i in range(10):
-            self.__COORDINATES.append(Coordinate(7 + 35*i, 592))
-
-    def render(self, display: pygame.Surface, context: Context, health_value: int):
-        curr = health_value
-        for coordinate in self.__COORDINATES:
-            if curr >= 2:
-                image = context.INFOBAR_IMAGES["full_heart"]
-                curr -= 2
-            elif curr == 1:
-                image = context.INFOBAR_IMAGES["half_heart"] 
-                curr -= 1
-            else:
-                image = context.INFOBAR_IMAGES["empty_heart"] 
-            display.blit(image, (coordinate.x, coordinate.y))
-
-class HungerBar:
-    def __init__(self):
-        self.__COORDINATES: list[Coordinate] = []
-        for i in range(10):
-            self.__COORDINATES.append(Coordinate(715 - 34*i, 592))
-
-    def render(self, display: pygame.Surface, context: Context, hunger_value: int):
-        curr = hunger_value
-        for coordinate in self.__COORDINATES:
-            if curr >= 2:
-                image = context.INFOBAR_IMAGES["full_hunger"]
-                curr -= 2
-            elif curr == 1:
-                image = context.INFOBAR_IMAGES["half_hunger"] 
-                curr -= 1
-            else:
-                image = context.INFOBAR_IMAGES["empty_hunger"] 
-            display.blit(image, (coordinate.x, coordinate.y))
-
-class Hotbar:
-    def __init__(self):
-        self.__COORDINATES: list[Coordinate] = []
-        for i in range(9):
-            self.__COORDINATES.append(Coordinate(7 + 82*i, 667))
-
-        self.__HOTBAR_BACKGROUNDS: list[pygame.Rect] = []
-        for i in range(9):
-            self.__HOTBAR_BACKGROUNDS.append(pygame.Rect((7 + 82*i, 667), (82, 82)))
-
-        self.__font = pygame.font.Font("assets/minecraft-font/MinecraftRegular-Bmg3.otf", 24)
-        
-    def render(self, display: pygame.Surface, context: Context, items: list[Item], selected: int):
-
-        images = [None]*9
-        numbers = ['']*9
-        
-        # populate images and numbers arrays
-        for i in range(9):
-            if items[i] is None: # Set White Background for NONE Slots
-                images[i] = context.INFOBAR_IMAGES["slot"]
-            else: # no enchantments
-                images[i] = context.ITEM_IMAGES[ITEM_IMAGE_MAPPING[items[i].name]]
-                if items[i].number != 1:
-                    numbers[i] = str(items[i].number)
-
-        # draw images
-        for i, coordinate in enumerate(self.__COORDINATES):
-            display.blit(context.INFOBAR_IMAGES["slot"], (coordinate.x, coordinate.y)) # background
-            display.blit(images[i], (coordinate.x, coordinate.y))
-            if items[i] is not None:
-                if items[i].enchantments is not None:
-                    display.blit(context.TC_GLINTS[items[i].name], (coordinate.x, coordinate.y))
-                if items[i].durability is not None:
-                    RenderDurabilityBar(display, coordinate.x, coordinate.y, items[i].durability, items[i].max_durability)
-
-        # draw background rects based on selected hotbar value
-        for i in range(9):
-            if selected == i:
-                pygame.draw.rect(display, (255, 255, 255), self.__HOTBAR_BACKGROUNDS[i], 3)
-            else:
-                pygame.draw.rect(display, (83, 83, 83), self.__HOTBAR_BACKGROUNDS[i], 2)
-
-        # draw numbers
-        for i in range(9):
-            surface = self.__font.render(numbers[i], True, (255, 0, 0), (255, 255, 255))
-            x = 60 + 82*i
-            y = 720
-            display.blit(surface, (x, y))
 
 
 #Player Class and Methods
