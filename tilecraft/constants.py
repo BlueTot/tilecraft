@@ -2,6 +2,8 @@ from dataclasses import dataclass
 from typing import Optional
 import pygame
 
+from tilecraft import ASSETS_DIR
+
 class Button:
     def __init__(self, length, width, x, y, colour):
         self.length = length
@@ -12,7 +14,7 @@ class Button:
         self.rect = pygame.Rect((x, y), (length, width))
 
     def render(self, display, text, size):
-        self.font = pygame.font.Font('assets/minecraft-font/MinecraftRegular-Bmg3.otf', size)
+        self.font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), size)
         self.text = self.font.render(text, False, (0, 0, 0))
         pygame.draw.rect(display, self.colour, self.rect)
         pygame.draw.rect(display, (255, 255, 255), self.rect, 3)

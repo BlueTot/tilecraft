@@ -2,8 +2,9 @@ from typing import Optional
 import pygame
 import math
 
-from constants import Coordinate, Item, Context, ITEM_IMAGE_MAPPING, CRAFTING_RECIPES, RandomNumberGenerator, Button
-from player_info import Experience
+from tilecraft import ASSETS_DIR
+from .constants import Coordinate, Item, Context, ITEM_IMAGE_MAPPING, CRAFTING_RECIPES, RandomNumberGenerator, Button
+from .player_info import Experience
 
 
 def DurabilityBar(durability, max_durability):
@@ -31,7 +32,7 @@ def RenderDurabilityBar(display, x, y, durability, max_durability):
 class HoldingItem:
     def __init__(self):
         self.item: Optional[Item] = None
-        self.__font = pygame.font.Font('assets/minecraft-font/MinecraftRegular-Bmg3.otf', 25)
+        self.__font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 25)
 
     def render(self, display: pygame.Surface, context: Context):
 
@@ -65,7 +66,7 @@ class Inventory:
     def __init__(self):
         self.items = [None]*36
         self.full = False
-        self.__font = pygame.font.Font('assets/minecraft-font/MinecraftRegular-Bmg3.otf', 25)
+        self.__font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 25)
         self.__selected_hotbar = 0
 
         self.__INVENTORY_SLOTS: list[pygame.Rect] = [None]*36
@@ -243,7 +244,7 @@ class Inventory:
         if (index := self.get_hover_box(mouse)) is None:
             return
         
-        font = pygame.font.Font('assets/monofur/monof55.ttf', 22)
+        font = pygame.font.Font(str(ASSETS_DIR / "monofur/monof55.ttf"), 22)
         TextBox(display, self.items[index], mouse[0], mouse[1], font) 
 
 
@@ -257,7 +258,7 @@ class Hotbar:
         for i in range(9):
             self.__HOTBAR_BACKGROUNDS.append(pygame.Rect((7 + 82*i, 667), (82, 82)))
 
-        self.__font = pygame.font.Font("assets/minecraft-font/MinecraftRegular-Bmg3.otf", 24)
+        self.__font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 24)
         
     def render(self, display: pygame.Surface, context: Context, items: list[Item], selected: int):
 
@@ -412,7 +413,7 @@ class Armour:
         if (index := self.get_hover_box(mouse)) is None:
             return
         
-        font = pygame.font.Font('assets/monofur/monof55.ttf', 22)
+        font = pygame.font.Font(str(ASSETS_DIR / "monofur/monof55.ttf"), 22)
         TextBox(display, self.items[index], mouse[0], mouse[1], font) 
 
 
@@ -436,8 +437,8 @@ class SmallCraftingInterface:
             Coordinate(690, 169)
         ]
 
-        self.__font = pygame.font.Font('assets/minecraft-font/MinecraftRegular-Bmg3.otf', 25)
-        self.__arrow_font = pygame.font.Font('assets/minecraft-font/MinecraftBold-nMK1.otf', 36)
+        self.__font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 25)
+        self.__arrow_font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftBold-nMK1.otf"), 36)
 
     def update(self):
         if self.items[0] is not None and self.items[1] is None and self.items[2] is None and self.items[3] is None:
@@ -552,16 +553,16 @@ class SmallCraftingInterface:
         if (index := self.get_hover_box(mouse)) is None:
             return
         
-        font = pygame.font.Font('assets/monofur/monof55.ttf', 22)
+        font = pygame.font.Font(str(ASSETS_DIR / "monofur/monof55.ttf"), 22)
         TextBox(display, self.items[index], mouse[0], mouse[1], font) 
 
 
 class CraftingTableInterface:
     def __init__(self):
         self.items: list[Optional[Item]] = [None]*10
-        self.__font = pygame.font.Font('assets/minecraft-font/MinecraftRegular-Bmg3.otf', 25)
-        self.__title_font = pygame.font.Font('assets/minecraft-font/MinecraftRegular-Bmg3.otf', 40)
-        self.__arrow_font = pygame.font.Font('assets/minecraft-font/MinecraftBold-nMK1.otf', 40)
+        self.__font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 25)
+        self.__title_font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 40)
+        self.__arrow_font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftBold-nMK1.otf"), 40)
 
         self.__CELLS: list[pygame.Rect] = [
             pygame.Rect((195, 75), (82, 82)),
@@ -689,7 +690,7 @@ class CraftingTableInterface:
         if (index := self.get_hover_box(mouse)) is None:
             return
         
-        font = pygame.font.Font('assets/monofur/monof55.ttf', 22)
+        font = pygame.font.Font(str(ASSETS_DIR / "monofur/monof55.ttf"), 22)
         TextBox(display, self.items[index], mouse[0], mouse[1], font) 
 
 
@@ -701,10 +702,10 @@ class FurnaceInterface:
         self.fuel_img = context.ITEM_IMAGES["no_fire"]
         self.smelting_time = 0
 
-        self.__font = pygame.font.Font('assets/minecraft-font/MinecraftRegular-Bmg3.otf', 25)
-        self.__side_font = pygame.font.Font('assets/minecraft-font/MinecraftRegular-Bmg3.otf', 36)
-        self.__title_font = pygame.font.Font('assets/minecraft-font/MinecraftRegular-Bmg3.otf', 40)
-        self.__arrow_font = pygame.font.Font('assets/minecraft-font/MinecraftBold-nMK1.otf', 45)
+        self.__font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 25)
+        self.__side_font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 36)
+        self.__title_font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 40)
+        self.__arrow_font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftBold-nMK1.otf"), 45)
         
         self.__CELLS: list[pygame.Rect] = [
             pygame.Rect((225, 67), (82, 82)),
@@ -850,7 +851,7 @@ class FurnaceInterface:
         if (index := self.get_hover_box(mouse)) is None:
             return
         
-        font = pygame.font.Font('assets/monofur/monof55.ttf', 22)
+        font = pygame.font.Font(str(ASSETS_DIR / "monofur/monof55.ttf"), 22)
         TextBox(display, self.items[index], mouse[0], mouse[1], font) 
 
 
@@ -865,7 +866,7 @@ class EnchantingTable:
         self.optional_enchant2 = None
         self.optional_enchant3 = None
 
-        self.__font = pygame.font.Font('assets/minecraft-font/MinecraftRegular-Bmg3.otf', 25)
+        self.__font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 25)
 
         self.upgrade = Button(82, 82, 112, 142, (158, 145, 115))
         self.option1 = Button(487, 82, 255, 75, (158, 145, 115))
@@ -1167,7 +1168,7 @@ class EnchantingTable:
         if index >= 3: # buttons are out of bounds
             return
         
-        font = pygame.font.Font('assets/monofur/monof55.ttf', 22)
+        font = pygame.font.Font(str(ASSETS_DIR / "monofur/monof55.ttf"), 22)
         TextBox(display, self.items[index], mouse[0], mouse[1], font) 
 
 
@@ -1178,10 +1179,10 @@ class Compressor:
         self.compressor_number_list = []
         self.compressing_time = 0
 
-        self.__font = pygame.font.Font('assets/minecraft-font/MinecraftRegular-Bmg3.otf', 25)
-        self.__title_font = pygame.font.Font('assets/minecraft-font/MinecraftRegular-Bmg3.otf', 40)
-        self.__arrow_font = pygame.font.Font('assets/minecraft-font/MinecraftBold-nMK1.otf', 45)
-        self.__side_font = pygame.font.Font('assets/minecraft-font/MinecraftRegular-Bmg3.otf', 36)
+        self.__font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 25)
+        self.__title_font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 40)
+        self.__arrow_font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftBold-nMK1.otf"), 45)
+        self.__side_font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 36)
 
         self.__CELLS: list[pygame.Rect] = [
             pygame.Rect((225, 142), (82, 82)),
@@ -1325,7 +1326,7 @@ class Compressor:
         if (index := self.get_hover_box(mouse)) is None:
             return
         
-        font = pygame.font.Font('assets/monofur/monof55.ttf', 22)
+        font = pygame.font.Font(str(ASSETS_DIR / "monofur/monof55.ttf"), 22)
         TextBox(display, self.items[index], mouse[0], mouse[1], font) 
 
 
@@ -1333,9 +1334,9 @@ class Grindstone:
     def __init__(self):
         self.items: list[Optional[Item]] = [None, None, None]
 
-        self.__font = pygame.font.Font('assets/minecraft-font/MinecraftRegular-Bmg3.otf', 25)
-        self.__title_font = pygame.font.Font('assets/minecraft-font/MinecraftRegular-Bmg3.otf', 35)
-        self.__arrow_font = pygame.font.Font('assets/minecraft-font/MinecraftBold-nMK1.otf', 45)
+        self.__font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 25)
+        self.__title_font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 35)
+        self.__arrow_font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftBold-nMK1.otf"), 45)
 
         self.__CELLS: list[pygame.Rect] = [
             pygame.Rect((225, 87), (82, 82)),
@@ -1476,7 +1477,7 @@ class Grindstone:
         if (index := self.get_hover_box(mouse)) is None:
             return
         
-        font = pygame.font.Font('assets/monofur/monof55.ttf', 22)
+        font = pygame.font.Font(str(ASSETS_DIR / "monofur/monof55.ttf"), 22)
         TextBox(display, self.items[index], mouse[0], mouse[1], font) 
 
 
