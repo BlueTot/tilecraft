@@ -1,7 +1,7 @@
 PATCH NOTES FOR TILECRAFT
 
 ------------------------------------------------------------
-Patch Alpha 1.0 Pre-Release 1 ---- Jan 11 2021
+Patch Alpha 1.0 Pre-Release 1 ---- Jan 11 2021  [0.1.0a1]
 
 World Generation:
 	- Added Seed generator
@@ -10,7 +10,7 @@ World Generation:
 - Fixed bugs
 
 ------------------------------------------------------------
-Patch Alpha 1.0_02 Pre-Release 2 ---- Jan 12 2021
+Patch Alpha 1.0_02 Pre-Release 2 ---- Jan 12 2021 [0.1.0a2]
 
 World Generation:
 	- Added cave structure- Added Turtle screen
@@ -22,7 +22,7 @@ Graphics:
 - Fixed bugs
 
 ------------------------------------------------------------
-Patch Alpha 1.0 Release ---- Jan 13 2021
+Patch Alpha 1.0 Release ---- Jan 13 2021 [0.1.0]
 
 World Generation:
 	- Added functionally for village
@@ -31,7 +31,7 @@ World Generation:
 - Fixed bugs
 
 ------------------------------------------------------------
-Patch Alpha 1.1 Pre-Release 1 ---- Jan 16 2021
+Patch Alpha 1.1 Pre-Release 1 ---- Jan 16 2021 [0.2.0a1]
 
 Game Engine:
 	- Added Tkinter GUI Input Box
@@ -39,7 +39,7 @@ Game Engine:
 - Fixed bugs
 
 ------------------------------------------------------------
-Patch Alpha 1.1 Pre-Release 2 ---- Jan 17 2021
+Patch Alpha 1.1 Pre-Release 2 ---- Jan 17 2021 [0.2.0a2]
 
 Commands:
 	- Added crafting recipes
@@ -51,7 +51,7 @@ Inventory:
 
 
 ------------------------------------------------------------
-Patch Alpha 1.1 Release ---- Jan 23 2021
+Patch Alpha 1.1 Release ---- Jan 23 2021 [0.2.0]
 
 World Generation:
 	- Overhauled world generation
@@ -78,7 +78,7 @@ Advancements:
 - Fixed bugs
 
 ------------------------------------------------------------
-Patch Alpha 1.2 Pre-Release 1 ---- Jan 28 2021
+Patch Alpha 1.2 Pre-Release 1 ---- Jan 28 2021 [0.3.0rc1]
 
 World Generation:
 	- Added functionality to lava pools
@@ -99,13 +99,13 @@ Game Engine:
 - Fixed bugs
 
 ------------------------------------------------------------
-Patch Alpha 1.2 Release ---- Jan 29 2021
+Patch Alpha 1.2 Release ---- Jan 29 2021 [0.3.0]
 
 Game Engine:
 	- REPLIT Minecraft Launched
 
 ------------------------------------------------------------
-Patch Alpha 1.3 Release ---- Feb 1 2021
+Patch Alpha 1.3 Release ---- Feb 1 2021 [0.4.0]
 
 Game Engine:
 	- Reconfigured title screen
@@ -125,7 +125,7 @@ Music:
 - Fixed Bugs
 
 ------------------------------------------------------------
-Patch Alpha 1.4 Release ---- Mar 7 2021
+Patch Alpha 1.4 Release ---- Mar 7 2021 [0.5.0]
 
 Game Engine:
 	- Removed turtle screen
@@ -147,12 +147,12 @@ Datapacks:
 - Fixed bugs
 
 ------------------------------------------------------------
-Patch Alpha 1.4.1 Release ---- Apr 26 2021
+Patch Alpha 1.4.1 Release ---- Apr 26 2021 [0.5.1]
 
 - Fixed bugs
 
 ------------------------------------------------------------
-Patch Alpha 1.5 Release ---- Apr 30 2021
+Patch Alpha 1.5 Release ---- Apr 30 2021 [0.6.0]
 
 Source Code Changes:
 	- Reworked source code files
@@ -185,7 +185,7 @@ Datapacks:
 - Fixed bugs
 
 ------------------------------------------------------------
-Patch Alpha 1.5.1 Release ---- May 2 2021
+Patch Alpha 1.5.1 Release ---- May 2 2021 [0.6.1]
 
 Survival:
 	- Added natural regeneration of health
@@ -193,12 +193,12 @@ Survival:
 - Fixed more bugs
 
 ------------------------------------------------------------
-Patch Alpha 1.5.2 Release ---- May 10 2021
+Patch Alpha 1.5.2 Release ---- May 10 2021 [0.6.2]
 
 - Fixed more bugs
 
 ------------------------------------------------------------
-Patch Alpha 1.6 Pre-release 1 ---- May 25 2021
+Patch Alpha 1.6 Pre-release 1 ---- May 25 2021 [0.7.0a1]
 
 Game Engine:
 	- Worlds load infinitely
@@ -223,7 +223,7 @@ Datapacks:
 - Fixed bugs
 
 ------------------------------------------------------------
-Patch Alpha 1.6 Pre-release 2 ---- July 8 2021
+Patch Alpha 1.6 Pre-release 2 ---- July 8 2021 [0.7.0a2]
 
 Commands:
 	- Removed crafting commands
@@ -258,7 +258,7 @@ Enchanting:
 - Fixed bugs
 
 ------------------------------------------------------------
-Patch Alpha 1.6 Release ---- July 8 2021
+Patch Alpha 1.6 Release ---- July 8 2021 [0.7.0]
 
 Advancements:
 	- Added God Gear Advancement
@@ -266,7 +266,7 @@ Advancements:
 	- Added Music Player Advancement
 
 ------------------------------------------------------------
-Patch Alpha 1.6.1 Release ---- July 10 2021
+Patch Alpha 1.6.1 Release ---- July 10 2021 [0.7.1]
 
 Commands:
 	- Commands with multiple whitespaces now work
@@ -278,7 +278,7 @@ Datapacks:
 - Fixed bugs
 
 ------------------------------------------------------------
-Patch Alpha 1.6.2 Release ---- July 12 2021
+Patch Alpha 1.6.2 Release ---- July 12 2021 [0.7.2]
 
 Inventory:
 	- Added keybinds to move items to hotbar
@@ -286,7 +286,7 @@ Inventory:
 - Fixed bugs
 
 ------------------------------------------------------------
-Patch Alpha 1.7 Release ---- Dec 8 2021
+Patch Alpha 1.7 Release ---- Dec 8 2021 [0.8.0]
 
 World Generation:
 	- Overworld and Nether structures generate infinitely
@@ -327,7 +327,7 @@ Title Screen:
 - Fixed bugs
 
 ------------------------------------------------------------
-Patch Alpha 1.7.1 Release ---- Dec 13 2021
+Patch Alpha 1.7.1 Release ---- Dec 13 2021 [0.8.1]
 
 Title Screen:
     - Updated How to Play Menu
@@ -350,7 +350,7 @@ Accessory Functions:
      - Info box for text not big enough for text inside
 
 ------------------------------------------------------------
-Patch Alpha 1.7.2 Release ---- Dec 22 2021
+Patch Alpha 1.7.2 Release ---- Dec 22 2021 [0.8.2]
 
 World Generation:
     - Ruined Portal Obsidian Remaining is now dependent on the seed
@@ -374,7 +374,7 @@ Inventory:
      - Game crashes when item is placed in the compressor
 
 ------------------------------------------------------------
-Patch Alpha 1.7.3 Release ---- Dec 27 2021
+Patch Alpha 1.7.3 Release ---- Dec 27 2021 [0.8.3]
 
 - Fixed bugs from Alpha 1.7.2:
     - Advancements are not properly printed in chat
@@ -382,7 +382,7 @@ Patch Alpha 1.7.3 Release ---- Dec 27 2021
     - Patch Notes and How to Play menus do not appear
 
 ------------------------------------------------------------
-Patch Alpha 1.7.4 Release ---- Dec 28 2021
+Patch Alpha 1.7.4 Release ---- Dec 28 2021 [0.8.4]
 
 Survival:
     - Hunger mechanics tweaked again
@@ -394,14 +394,14 @@ Survival:
     - Item info boxes are too large
 
 ------------------------------------------------------------
-Patch Alpha 1.7.5 Release ---- Feb 9 2022
+Patch Alpha 1.7.5 Release ---- Feb 9 2022 [0.8.5]
 
 - Fixed bugs from Alpha 1.7.4:
     - Pre Alpha 1.7 armour crafting recipes still exist and crash the game when crafted
     - Prompt from cheat commands still visible after command has been executed
 
 ------------------------------------------------------------
-Patch Beta 1.0 Pre-Release 1 ---- Apr 7 2022
+Patch Beta 1.0 Pre-Release 1 ---- Apr 7 2022 [0.9.0a1]
 
 Version Updates:
     - Python updated to version v3.10.1
@@ -484,7 +484,7 @@ Music:
 - Fixed bugs
 
 ------------------------------------------------------------
-Patch Beta 1.0 Pre-Release 2 ---- Jun 9 2022
+Patch Beta 1.0 Pre-Release 2 ---- Jun 9 2022 [0.9.0a2]
 
 Version Updates:
     - Reverted version change to Python 3.10.1 due to a bug
@@ -516,7 +516,7 @@ Repairing and Disenchanting:
     - RNG for enchantment selection follows same RNG for world generation
 
 ------------------------------------------------------------
-Patch Beta 1.0 Pre-Release 3 ---- Early August
+Patch Beta 1.0 Pre-Release 3 ---- Early August [0.9.0a3]
 
 World Generation:
     - Added physical water pools

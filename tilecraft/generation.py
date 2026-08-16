@@ -1,7 +1,7 @@
 import random
 import noise
 
-from constants import TILE_TYPES, RandomNumberGenerator
+from .constants import TILE_TYPES, RandomNumberGenerator
 
 class Tile:
     def __init__(self, tile, x, y):

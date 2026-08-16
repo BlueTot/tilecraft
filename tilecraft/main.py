@@ -7,18 +7,19 @@ import math #Math module
 import os #OS module
 import sys #SYS module
 
-from cheats import print_cheats, give, enchant, teleport, experience
-from constants import ITEM_TYPES, Item, TILE_IMAGE_MAPPING, RandomNumberGenerator, Context
-from generation import Tile, OverworldGeneratedList, OverworldGenerate, SpawnOverworldGenerate, SpawnOverworldBoundGenerate, UndergroundGeneratedList, SpawnUndergroundGenerate, UndergroundGenerate, UndergroundGeneratePortal, OverworldGeneratePortal, NetherGeneratedList, SpawnNetherGenerate, SpawnNetherBoundGenerate, NetherGenerate
-from inventory import Inventory, Hotbar, Armour, SmallCraftingInterface, CraftingTableInterface, FurnaceInterface, EnchantingTable, Compressor, Grindstone, HoldingItem
-from player_info import HealthBar, HungerBar, Experience, ExperienceBar
+from tilecraft import ASSETS_DIR
+from .cheats import print_cheats, give, enchant, teleport, experience
+from .constants import ITEM_TYPES, Item, TILE_IMAGE_MAPPING, RandomNumberGenerator, Context
+from .generation import Tile, OverworldGeneratedList, OverworldGenerate, SpawnOverworldGenerate, SpawnOverworldBoundGenerate, UndergroundGeneratedList, SpawnUndergroundGenerate, UndergroundGenerate, UndergroundGeneratePortal, OverworldGeneratePortal, NetherGeneratedList, SpawnNetherGenerate, SpawnNetherBoundGenerate, NetherGenerate
+from .inventory import Inventory, Hotbar, Armour, SmallCraftingInterface, CraftingTableInterface, FurnaceInterface, EnchantingTable, Compressor, Grindstone, HoldingItem
+from .player_info import HealthBar, HungerBar, Experience, ExperienceBar
 
 title_screen_mode = 'normal'
 
 
 class SpeedrunTimer:
     def __init__(self, load_val: str):
-        self.font = pygame.font.Font('assets/monofur/monof55.ttf', 25)
+        self.font = pygame.font.Font(str(ASSETS_DIR / "monofur/monof55.ttf"), 25)
         self.enabled = (load_val in ("Music Player", "God Gear"))
         self.running = True 
         self.latest_time_string = ""
@@ -156,7 +157,7 @@ class Screen:
             surface.fill((125, 125, 125))
             surface.set_alpha(200)
             display.blit(surface, (x, y))
-            font = pygame.font.Font('assets/monofur/monof55.ttf', 18)
+            font = pygame.font.Font(str(ASSETS_DIR / "monofur/monof55.ttf"), 18)
             for i in range(len(self.screen_list)):
                 display.blit(font.render(self.screen_list[i], False, (255, 255, 255)), (x, y + height - (i + 1) * 15 - self.input_line))
             display.blit(font.render(self.foretext + self.typingText, True, (255, 255, 255)), (x, y + height - 15))
@@ -715,7 +716,7 @@ def Main():
             for i in range(0, 750, 32):
                 for j in range(0, 750, 32):
                     display.blit(loading, (i, j))
-            font = pygame.font.Font('assets/minecraft-font/MinecraftRegular-Bmg3.otf', 37)
+            font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 37)
             display.blit(font.render("Generating Overworld", False, (255, 255, 255)), (180, 225))
             pygame.display.flip()
             context, rng = PygameInitialise()
@@ -726,7 +727,7 @@ def Main():
             for i in range(0, 750, 32):
                 for j in range(0, 750, 32):
                     display.blit(loading, (i, j))
-            font = pygame.font.Font('assets/minecraft-font/MinecraftRegular-Bmg3.otf', 37)
+            font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 37)
             display.blit(font.render("Generating Underground", False, (255, 255, 255)), (180, 225))
             pygame.display.flip()
             World.undergroundGenerated = True
@@ -736,7 +737,7 @@ def Main():
 
         if not pygame.mixer.music.get_busy():
             if rng.next_random(1, 500) == 1:
-                pygame.mixer.music.load("assets/music/song" + str(random.choice([3, 5, 7, 11, 12, 13, 14, 18])) + ".mp3")
+                pygame.mixer.music.load(str(ASSETS_DIR / "music/song") + str(random.choice([3, 5, 7, 11, 12, 13, 14, 18])) + ".mp3")
                 pygame.mixer.music.play()
 
 
@@ -1480,7 +1481,7 @@ class Player:
         # RENDER DEBUG MENU
         if player.debug_menu:
             font9 = pygame.font.Font(
-                'assets/minecraft-font/MinecraftRegular-Bmg3.otf', 25)
+                str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 25)
             version = font9.render("Tilecraft vBeta 1.0 Pre-Release 3", True, (0, 0, 0), (255, 255, 255))
             display.blit(version, (0, 0))
             python_version = font9.render(f"Python {sys.version[0:6]}", True, (0, 0, 0), (255, 255, 255))
@@ -1540,73 +1541,73 @@ def PygameInitialise() -> tuple[Context, RandomNumberGenerator]:
 
     # Play Minecraft Music (Sweden)
     pygame.mixer.init()
-    pygame.mixer.music.load("assets/music/song" + str(random.choice([3, 5, 7, 11, 12, 13, 14, 18])) + ".mp3")
+    pygame.mixer.music.load(str(ASSETS_DIR / "music/song") + str(random.choice([3, 5, 7, 11, 12, 13, 14, 18])) + ".mp3")
     pygame.mixer.music.play()
 
     # [EXPORT] Create PYGAME inventory images for hotbar
     ITEM_IMAGES = {
-        "wood": pygame.image.load("assets/item_imgs/oak_log.png").convert_alpha(), #0
-        "planks": pygame.image.load("assets/item_imgs/oak_planks.png").convert_alpha(), #1
-        "stick": pygame.image.load("assets/item_imgs/stick.png").convert_alpha(), #2
-        "crafting_table": pygame.image.load("assets/item_imgs/crafting_table.png").convert_alpha(), #3
-        "wooden_pickaxe": pygame.image.load("assets/item_imgs/wooden_pickaxe.png").convert_alpha(), #4
-        "wooden_axe": pygame.image.load("assets/item_imgs/wooden_axe.png").convert_alpha(), #5
-        "wooden_shovel": pygame.image.load("assets/item_imgs/wooden_shovel.png").convert_alpha(), #6
-        "wooden_hoe": pygame.image.load("assets/item_imgs/wooden_hoe.png").convert_alpha(), #7
-        "cobblestone": pygame.image.load("assets/item_imgs/cobblestone.png").convert_alpha(), #8
-        "mine_entrance": pygame.image.load("assets/item_imgs/mine_entrance.png").convert_alpha(), #9
-        "stone_pickaxe": pygame.image.load("assets/item_imgs/stone_pickaxe.png").convert_alpha(), #10
-        "stone_axe": pygame.image.load("assets/item_imgs/stone_axe.png").convert_alpha(), #11
-        "stone_shovel": pygame.image.load("assets/item_imgs/stone_shovel.png").convert_alpha(), #12
-        "stone_hoe": pygame.image.load("assets/item_imgs/stone_hoe.png").convert_alpha(), #13
-        "furnace": pygame.image.load("assets/item_imgs/furnace.png").convert_alpha(), #14
-        "compressor": pygame.image.load("assets/item_imgs/compressor.png").convert_alpha(), #15
-        "grindstone": pygame.image.load("assets/item_imgs/grindstone.png").convert_alpha(), #16
-        "coal": pygame.image.load("assets/item_imgs/coal.png").convert_alpha(), #17
-        "iron_ore": pygame.image.load("assets/item_imgs/iron_ore.png").convert_alpha(), #18
-        "iron_ingot": pygame.image.load("assets/item_imgs/iron_ingot.png").convert_alpha(), #19
-        "iron_pickaxe": pygame.image.load("assets/item_imgs/iron_pickaxe.png").convert_alpha(), #20
-        "iron_axe": pygame.image.load("assets/item_imgs/iron_axe.png").convert_alpha(), #21
-        "iron_shovel": pygame.image.load("assets/item_imgs/iron_shovel.png").convert_alpha(), #22
-        "iron_hoe": pygame.image.load("assets/item_imgs/iron_hoe.png").convert_alpha(), #23
-        "bucket": pygame.image.load("assets/item_imgs/bucket.png").convert_alpha(), #24
-        "water_bucket": pygame.image.load("assets/item_imgs/water_bucket.png").convert_alpha(), #25
-        "lava_bucket": pygame.image.load("assets/item_imgs/lava_bucket.png").convert_alpha(), #26
-        "shield": pygame.image.load("assets/item_imgs/shield.png").convert_alpha(), #27
-        "flint_and_steel": pygame.image.load("assets/item_imgs/flint_and_steel.png").convert_alpha(), #28
-        "iron_plate": pygame.image.load("assets/item_imgs/iron_plate.png").convert_alpha(), #29
-        "tier1_iron_plate": pygame.image.load("assets/item_imgs/tier1_iron_plate.png").convert_alpha(), #30
-        "tier2_iron_plate": pygame.image.load("assets/item_imgs/tier2_iron_plate.png").convert_alpha(), #31
-        "tier3_iron_plate": pygame.image.load("assets/item_imgs/tier3_iron_plate.png").convert_alpha(), #32
-        "diamond": pygame.image.load("assets/item_imgs/diamond.png").convert_alpha(), #33
-        "diamond_pickaxe": pygame.image.load("assets/item_imgs/diamond_pickaxe.png").convert_alpha(), #34
-        "diamond_axe": pygame.image.load("assets/item_imgs/diamond_axe.png").convert_alpha(), #35
-        "diamond_shovel": pygame.image.load("assets/item_imgs/diamond_shovel.png").convert_alpha(), #36
-        "diamond_hoe": pygame.image.load("assets/item_imgs/diamond_hoe.png").convert_alpha(), #37
-        "diamond_plate": pygame.image.load("assets/item_imgs/diamond_plate.png").convert_alpha(), #38
-        "tier1_diamond_plate": pygame.image.load("assets/item_imgs/tier1_diamond_plate.png").convert_alpha(), #39
-        "tier2_diamond_plate": pygame.image.load("assets/item_imgs/tier2_diamond_plate.png").convert_alpha(), #40
-        "tier3_diamond_plate": pygame.image.load("assets/item_imgs/tier3_diamond_plate.png").convert_alpha(), #41
-        "jukebox": pygame.image.load("assets/item_imgs/jukebox.png").convert_alpha(), #42
-        "pigstep_disc": pygame.image.load("assets/item_imgs/pigstep_disc.png").convert_alpha(), #43
-        "obsidian": pygame.image.load("assets/item_imgs/obsidian.png").convert_alpha(), #44
-        "enchanting_table": pygame.image.load("assets/item_imgs/enchanting_table.png").convert_alpha(), #45
-        "book": pygame.image.load("assets/item_imgs/book.png").convert_alpha(), #46
-        "bookshelf": pygame.image.load("assets/item_imgs/bookshelf.png").convert_alpha(), #47
-        "lapis": pygame.image.load("assets/item_imgs/lapis_lazuli.png").convert_alpha(), #48
-        "bread": pygame.image.load("assets/item_imgs/bread.png").convert_alpha(), #49
-        "golden_carrot": pygame.image.load("assets/item_imgs/golden_carrot.png").convert_alpha(), #50
-        "golden_apple": pygame.image.load("assets/item_imgs/golden_apple.png"), #51
-        "dirt": pygame.image.load("assets/item_imgs/dirt.png").convert_alpha(), #52
-        "sand": pygame.image.load("assets/item_imgs/sand.png").convert_alpha(), #53
-        "snow": pygame.image.load("assets/item_imgs/snow.png").convert_alpha(), #54
-        "gravel": pygame.image.load("assets/item_imgs/gravel.png").convert_alpha(), #55
-        "flint": pygame.image.load("assets/item_imgs/flint.png").convert_alpha(), #56
-        "bed": pygame.image.load("assets/item_imgs/bed.png").convert_alpha(), #57
-        "hay": pygame.image.load("assets/item_imgs/hay_bale.png").convert_alpha(), #58
-        "none_img": pygame.image.load("assets/item_imgs/slot.png").convert_alpha(),  # White Space
-        "fire": pygame.image.load("assets/item_imgs/fire.png").convert_alpha(),  # Fire when smelting
-        "no_fire": pygame.image.load("assets/item_imgs/no_fire.png").convert_alpha(),  # No fire when smelting
+        "wood": pygame.image.load(str(ASSETS_DIR / "item_imgs/oak_log.png")).convert_alpha(), #0
+        "planks": pygame.image.load(str(ASSETS_DIR / "item_imgs/oak_planks.png")).convert_alpha(), #1
+        "stick": pygame.image.load(str(ASSETS_DIR / "item_imgs/stick.png")).convert_alpha(), #2
+        "crafting_table": pygame.image.load(str(ASSETS_DIR / "item_imgs/crafting_table.png")).convert_alpha(), #3
+        "wooden_pickaxe": pygame.image.load(str(ASSETS_DIR / "item_imgs/wooden_pickaxe.png")).convert_alpha(), #4
+        "wooden_axe": pygame.image.load(str(ASSETS_DIR / "item_imgs/wooden_axe.png")).convert_alpha(), #5
+        "wooden_shovel": pygame.image.load(str(ASSETS_DIR / "item_imgs/wooden_shovel.png")).convert_alpha(), #6
+        "wooden_hoe": pygame.image.load(str(ASSETS_DIR / "item_imgs/wooden_hoe.png")).convert_alpha(), #7
+        "cobblestone": pygame.image.load(str(ASSETS_DIR / "item_imgs/cobblestone.png")).convert_alpha(), #8
+        "mine_entrance": pygame.image.load(str(ASSETS_DIR / "item_imgs/mine_entrance.png")).convert_alpha(), #9
+        "stone_pickaxe": pygame.image.load(str(ASSETS_DIR / "item_imgs/stone_pickaxe.png")).convert_alpha(), #10
+        "stone_axe": pygame.image.load(str(ASSETS_DIR / "item_imgs/stone_axe.png")).convert_alpha(), #11
+        "stone_shovel": pygame.image.load(str(ASSETS_DIR / "item_imgs/stone_shovel.png")).convert_alpha(), #12
+        "stone_hoe": pygame.image.load(str(ASSETS_DIR / "item_imgs/stone_hoe.png")).convert_alpha(), #13
+        "furnace": pygame.image.load(str(ASSETS_DIR / "item_imgs/furnace.png")).convert_alpha(), #14
+        "compressor": pygame.image.load(str(ASSETS_DIR / "item_imgs/compressor.png")).convert_alpha(), #15
+        "grindstone": pygame.image.load(str(ASSETS_DIR / "item_imgs/grindstone.png")).convert_alpha(), #16
+        "coal": pygame.image.load(str(ASSETS_DIR / "item_imgs/coal.png")).convert_alpha(), #17
+        "iron_ore": pygame.image.load(str(ASSETS_DIR / "item_imgs/iron_ore.png")).convert_alpha(), #18
+        "iron_ingot": pygame.image.load(str(ASSETS_DIR / "item_imgs/iron_ingot.png")).convert_alpha(), #19
+        "iron_pickaxe": pygame.image.load(str(ASSETS_DIR / "item_imgs/iron_pickaxe.png")).convert_alpha(), #20
+        "iron_axe": pygame.image.load(str(ASSETS_DIR / "item_imgs/iron_axe.png")).convert_alpha(), #21
+        "iron_shovel": pygame.image.load(str(ASSETS_DIR / "item_imgs/iron_shovel.png")).convert_alpha(), #22
+        "iron_hoe": pygame.image.load(str(ASSETS_DIR / "item_imgs/iron_hoe.png")).convert_alpha(), #23
+        "bucket": pygame.image.load(str(ASSETS_DIR / "item_imgs/bucket.png")).convert_alpha(), #24
+        "water_bucket": pygame.image.load(str(ASSETS_DIR / "item_imgs/water_bucket.png")).convert_alpha(), #25
+        "lava_bucket": pygame.image.load(str(ASSETS_DIR / "item_imgs/lava_bucket.png")).convert_alpha(), #26
+        "shield": pygame.image.load(str(ASSETS_DIR / "item_imgs/shield.png")).convert_alpha(), #27
+        "flint_and_steel": pygame.image.load(str(ASSETS_DIR / "item_imgs/flint_and_steel.png")).convert_alpha(), #28
+        "iron_plate": pygame.image.load(str(ASSETS_DIR / "item_imgs/iron_plate.png")).convert_alpha(), #29
+        "tier1_iron_plate": pygame.image.load(str(ASSETS_DIR / "item_imgs/tier1_iron_plate.png")).convert_alpha(), #30
+        "tier2_iron_plate": pygame.image.load(str(ASSETS_DIR / "item_imgs/tier2_iron_plate.png")).convert_alpha(), #31
+        "tier3_iron_plate": pygame.image.load(str(ASSETS_DIR / "item_imgs/tier3_iron_plate.png")).convert_alpha(), #32
+        "diamond": pygame.image.load(str(ASSETS_DIR / "item_imgs/diamond.png")).convert_alpha(), #33
+        "diamond_pickaxe": pygame.image.load(str(ASSETS_DIR / "item_imgs/diamond_pickaxe.png")).convert_alpha(), #34
+        "diamond_axe": pygame.image.load(str(ASSETS_DIR / "item_imgs/diamond_axe.png")).convert_alpha(), #35
+        "diamond_shovel": pygame.image.load(str(ASSETS_DIR / "item_imgs/diamond_shovel.png")).convert_alpha(), #36
+        "diamond_hoe": pygame.image.load(str(ASSETS_DIR / "item_imgs/diamond_hoe.png")).convert_alpha(), #37
+        "diamond_plate": pygame.image.load(str(ASSETS_DIR / "item_imgs/diamond_plate.png")).convert_alpha(), #38
+        "tier1_diamond_plate": pygame.image.load(str(ASSETS_DIR / "item_imgs/tier1_diamond_plate.png")).convert_alpha(), #39
+        "tier2_diamond_plate": pygame.image.load(str(ASSETS_DIR / "item_imgs/tier2_diamond_plate.png")).convert_alpha(), #40
+        "tier3_diamond_plate": pygame.image.load(str(ASSETS_DIR / "item_imgs/tier3_diamond_plate.png")).convert_alpha(), #41
+        "jukebox": pygame.image.load(str(ASSETS_DIR / "item_imgs/jukebox.png")).convert_alpha(), #42
+        "pigstep_disc": pygame.image.load(str(ASSETS_DIR / "item_imgs/pigstep_disc.png")).convert_alpha(), #43
+        "obsidian": pygame.image.load(str(ASSETS_DIR / "item_imgs/obsidian.png")).convert_alpha(), #44
+        "enchanting_table": pygame.image.load(str(ASSETS_DIR / "item_imgs/enchanting_table.png")).convert_alpha(), #45
+        "book": pygame.image.load(str(ASSETS_DIR / "item_imgs/book.png")).convert_alpha(), #46
+        "bookshelf": pygame.image.load(str(ASSETS_DIR / "item_imgs/bookshelf.png")).convert_alpha(), #47
+        "lapis": pygame.image.load(str(ASSETS_DIR / "item_imgs/lapis_lazuli.png")).convert_alpha(), #48
+        "bread": pygame.image.load(str(ASSETS_DIR / "item_imgs/bread.png")).convert_alpha(), #49
+        "golden_carrot": pygame.image.load(str(ASSETS_DIR / "item_imgs/golden_carrot.png")).convert_alpha(), #50
+        "golden_apple": pygame.image.load(str(ASSETS_DIR / "item_imgs/golden_apple.png")), #51
+        "dirt": pygame.image.load(str(ASSETS_DIR / "item_imgs/dirt.png")).convert_alpha(), #52
+        "sand": pygame.image.load(str(ASSETS_DIR / "item_imgs/sand.png")).convert_alpha(), #53
+        "snow": pygame.image.load(str(ASSETS_DIR / "item_imgs/snow.png")).convert_alpha(), #54
+        "gravel": pygame.image.load(str(ASSETS_DIR / "item_imgs/gravel.png")).convert_alpha(), #55
+        "flint": pygame.image.load(str(ASSETS_DIR / "item_imgs/flint.png")).convert_alpha(), #56
+        "bed": pygame.image.load(str(ASSETS_DIR / "item_imgs/bed.png")).convert_alpha(), #57
+        "hay": pygame.image.load(str(ASSETS_DIR / "item_imgs/hay_bale.png")).convert_alpha(), #58
+        "none_img": pygame.image.load(str(ASSETS_DIR / "item_imgs/slot.png")).convert_alpha(),  # White Space
+        "fire": pygame.image.load(str(ASSETS_DIR / "item_imgs/fire.png")).convert_alpha(),  # Fire when smelting
+        "no_fire": pygame.image.load(str(ASSETS_DIR / "item_imgs/no_fire.png")).convert_alpha(),  # No fire when smelting
     }
 
     # Create GLINT images for enchanted items
@@ -1616,7 +1617,7 @@ def PygameInitialise() -> tuple[Context, RandomNumberGenerator]:
     new_glint_name_list = []
     int_glint_num_list = []
     item_names = []
-    for filename in os.listdir('assets/glints'):
+    for filename in os.listdir(str(ASSETS_DIR / "glints")):
         glint_num_list.append(filename[5:-4])
         glint_fullname_list.append(filename[:-4])
     for i in glint_num_list:
@@ -1626,7 +1627,7 @@ def PygameInitialise() -> tuple[Context, RandomNumberGenerator]:
         index = glint_num_list.index(str(i))
         new_glint_name_list.append(glint_fullname_list[index])
     for i in new_glint_name_list:
-        image = pygame.image.load('assets/glints/' + i + '.png').convert_alpha()
+        image = pygame.image.load(str(ASSETS_DIR / f"glints/{i}.png")).convert_alpha()
         glint_list.append(image)
     for key in ITEM_TYPES.keys():
         item_names.append(key)
@@ -1641,73 +1642,73 @@ def PygameInitialise() -> tuple[Context, RandomNumberGenerator]:
 
     # [EXPORT] Create Tile Images
     TILE_IMAGES = {
-        "grass_tile": pygame.image.load('assets/tile_imgs/grass.png').convert(),  # Grass
-        "netherrack_tile": pygame.image.load('assets/tile_imgs/netherrack.png').convert(),  # Netherrack
-        "sand_tile": pygame.image.load('assets/tile_imgs/sand.png').convert(),  # Sand
-        "snow_tile": pygame.image.load('assets/tile_imgs/snow.png').convert(),  # Snow
-        "bookshelf_tile": pygame.image.load("assets/tile_imgs/bookshelf_tile.png").convert(),
-        "coal_ore_tile": pygame.image.load("assets/tile_imgs/coal_ore_tile.png").convert(),
-        "cobblestone_tile": pygame.image.load("assets/tile_imgs/cobblestone_tile.png").convert(),
-        "diamond_ore_tile": pygame.image.load("assets/tile_imgs/diamond_ore_tile.png").convert(),
-        "dirt_tile": pygame.image.load("assets/tile_imgs/dirt_tile.png").convert(),
-        "gravel_tile": pygame.image.load("assets/tile_imgs/gravel_tile.png").convert(),
-        "hay_bale_tile": pygame.image.load("assets/tile_imgs/hay_bale_tile.png").convert(),
-        "iron_ore_tile": pygame.image.load("assets/tile_imgs/iron_ore_tile.png").convert(),
-        "lapis_ore_tile": pygame.image.load("assets/tile_imgs/lapis_ore_tile.png").convert(),
-        "lava_tile": pygame.image.load("assets/tile_imgs/lava_tile.png").convert(),
-        "leaf_tile": pygame.image.load("assets/tile_imgs/leaf.png").convert_alpha(),
-        "mine_entrance_tile": pygame.image.load("assets/tile_imgs/mine_entrance_tile.png").convert(),
-        "oak_log_tile": pygame.image.load("assets/tile_imgs/oak_log_tile.png").convert(),
-        "oak_planks_tile": pygame.image.load("assets/tile_imgs/oak_planks_tile.png").convert(),
-        "obsidian_tile": pygame.image.load("assets/tile_imgs/obsidian_tile.png").convert(),
-        "stone_tile": pygame.image.load("assets/tile_imgs/stone_tile.png").convert(),
-        "tree_tile": pygame.image.load("assets/tile_imgs/oak_log_tile.png"),
-        "water_tile": pygame.image.load("assets/tile_imgs/water_tile.png").convert(),
-        "alpha_grass_tile": set_alpha("assets/tile_imgs/grass.png"),  # Grass
-        "alpha_netherrack_tile": set_alpha("assets/tile_imgs/netherrack.png"),  # Netherrack
-        "alpha_sand_tile": set_alpha("assets/tile_imgs/sand.png"),  # Sand
-        "alpha_snow_tile": set_alpha("assets/tile_imgs/snow.png"),  # Snow
-        "alpha_bookshelf_tile": set_alpha("assets/tile_imgs/bookshelf_tile.png"),
-        "alpha_coal_ore_tile": set_alpha("assets/tile_imgs/coal_ore_tile.png"),
-        "alpha_cobblestone_tile": set_alpha("assets/tile_imgs/cobblestone_tile.png"),
-        "alpha_diamond_ore_tile": set_alpha("assets/tile_imgs/diamond_ore_tile.png"),
-        "alpha_dirt_tile": set_alpha("assets/tile_imgs/dirt_tile.png"),
-        "alpha_gravel_tile": set_alpha("assets/tile_imgs/gravel_tile.png"),
-        "alpha_hay_bale_tile": set_alpha("assets/tile_imgs/hay_bale_tile.png"),
-        "alpha_iron_ore_tile": set_alpha("assets/tile_imgs/iron_ore_tile.png"),
-        "alpha_lapis_ore_tile": set_alpha("assets/tile_imgs/lapis_ore_tile.png"),
-        "alpha_lava_tile": set_alpha("assets/tile_imgs/lava_tile.png"),
-        "alpha_leaf_tile": set_alpha("assets/tile_imgs/leaf.png"),
-        "alpha_mine_entrance_tile": set_alpha("assets/tile_imgs/mine_entrance_tile.png"),
-        "alpha_oak_log_tile": set_alpha("assets/tile_imgs/oak_log_tile.png"),
-        "alpha_oak_planks_tile": set_alpha("assets/tile_imgs/oak_planks_tile.png"),
-        "alpha_obsidian_tile": set_alpha("assets/tile_imgs/obsidian_tile.png"),
-        "alpha_stone_tile": set_alpha("assets/tile_imgs/stone_tile.png"),
-        "alpha_tree_tile": set_alpha("assets/tile_imgs/oak_log_tile.png"),
-        "alpha_water_tile": set_alpha("assets/tile_imgs/water_tile.png"),
-        "bedrock_tile": set_alpha("assets/tile_imgs/bedrock.png"),
+        "grass_tile": pygame.image.load(str(ASSETS_DIR / "tile_imgs/grass.png")).convert(),  # Grass
+        "netherrack_tile": pygame.image.load(str(ASSETS_DIR / "tile_imgs/netherrack.png")).convert(),  # Netherrack
+        "sand_tile": pygame.image.load(str(ASSETS_DIR / "tile_imgs/sand.png")).convert(),  # Sand
+        "snow_tile": pygame.image.load(str(ASSETS_DIR / "tile_imgs/snow.png")).convert(),  # Snow
+        "bookshelf_tile": pygame.image.load(str(ASSETS_DIR / "tile_imgs/bookshelf_tile.png")).convert(),
+        "coal_ore_tile": pygame.image.load(str(ASSETS_DIR / "tile_imgs/coal_ore_tile.png")).convert(),
+        "cobblestone_tile": pygame.image.load(str(ASSETS_DIR / "tile_imgs/cobblestone_tile.png")).convert(),
+        "diamond_ore_tile": pygame.image.load(str(ASSETS_DIR / "tile_imgs/diamond_ore_tile.png")).convert(),
+        "dirt_tile": pygame.image.load(str(ASSETS_DIR / "tile_imgs/dirt_tile.png")).convert(),
+        "gravel_tile": pygame.image.load(str(ASSETS_DIR / "tile_imgs/gravel_tile.png")).convert(),
+        "hay_bale_tile": pygame.image.load(str(ASSETS_DIR / "tile_imgs/hay_bale_tile.png")).convert(),
+        "iron_ore_tile": pygame.image.load(str(ASSETS_DIR / "tile_imgs/iron_ore_tile.png")).convert(),
+        "lapis_ore_tile": pygame.image.load(str(ASSETS_DIR / "tile_imgs/lapis_ore_tile.png")).convert(),
+        "lava_tile": pygame.image.load(str(ASSETS_DIR / "tile_imgs/lava_tile.png")).convert(),
+        "leaf_tile": pygame.image.load(str(ASSETS_DIR / "tile_imgs/leaf.png")).convert_alpha(),
+        "mine_entrance_tile": pygame.image.load(str(ASSETS_DIR / "tile_imgs/mine_entrance_tile.png")).convert(),
+        "oak_log_tile": pygame.image.load(str(ASSETS_DIR / "tile_imgs/oak_log_tile.png")).convert(),
+        "oak_planks_tile": pygame.image.load(str(ASSETS_DIR / "tile_imgs/oak_planks_tile.png")).convert(),
+        "obsidian_tile": pygame.image.load(str(ASSETS_DIR / "tile_imgs/obsidian_tile.png")).convert(),
+        "stone_tile": pygame.image.load(str(ASSETS_DIR / "tile_imgs/stone_tile.png")).convert(),
+        "tree_tile": pygame.image.load(str(ASSETS_DIR / "tile_imgs/oak_log_tile.png")),
+        "water_tile": pygame.image.load(str(ASSETS_DIR / "tile_imgs/water_tile.png")).convert(),
+        "alpha_grass_tile": set_alpha(str(ASSETS_DIR / "tile_imgs/grass.png")),  # Grass
+        "alpha_netherrack_tile": set_alpha(str(ASSETS_DIR / "tile_imgs/netherrack.png")),  # Netherrack
+        "alpha_sand_tile": set_alpha(str(ASSETS_DIR / "tile_imgs/sand.png")),  # Sand
+        "alpha_snow_tile": set_alpha(str(ASSETS_DIR / "tile_imgs/snow.png")),  # Snow
+        "alpha_bookshelf_tile": set_alpha(str(ASSETS_DIR / "tile_imgs/bookshelf_tile.png")),
+        "alpha_coal_ore_tile": set_alpha(str(ASSETS_DIR / "tile_imgs/coal_ore_tile.png")),
+        "alpha_cobblestone_tile": set_alpha(str(ASSETS_DIR / "tile_imgs/cobblestone_tile.png")),
+        "alpha_diamond_ore_tile": set_alpha(str(ASSETS_DIR / "tile_imgs/diamond_ore_tile.png")),
+        "alpha_dirt_tile": set_alpha(str(ASSETS_DIR / "tile_imgs/dirt_tile.png")),
+        "alpha_gravel_tile": set_alpha(str(ASSETS_DIR / "tile_imgs/gravel_tile.png")),
+        "alpha_hay_bale_tile": set_alpha(str(ASSETS_DIR / "tile_imgs/hay_bale_tile.png")),
+        "alpha_iron_ore_tile": set_alpha(str(ASSETS_DIR / "tile_imgs/iron_ore_tile.png")),
+        "alpha_lapis_ore_tile": set_alpha(str(ASSETS_DIR / "tile_imgs/lapis_ore_tile.png")),
+        "alpha_lava_tile": set_alpha(str(ASSETS_DIR / "tile_imgs/lava_tile.png")),
+        "alpha_leaf_tile": set_alpha(str(ASSETS_DIR / "tile_imgs/leaf.png")),
+        "alpha_mine_entrance_tile": set_alpha(str(ASSETS_DIR / "tile_imgs/mine_entrance_tile.png")),
+        "alpha_oak_log_tile": set_alpha(str(ASSETS_DIR / "tile_imgs/oak_log_tile.png")),
+        "alpha_oak_planks_tile": set_alpha(str(ASSETS_DIR / "tile_imgs/oak_planks_tile.png")),
+        "alpha_obsidian_tile": set_alpha(str(ASSETS_DIR / "tile_imgs/obsidian_tile.png")),
+        "alpha_stone_tile": set_alpha(str(ASSETS_DIR / "tile_imgs/stone_tile.png")),
+        "alpha_tree_tile": set_alpha(str(ASSETS_DIR / "tile_imgs/oak_log_tile.png")),
+        "alpha_water_tile": set_alpha(str(ASSETS_DIR / "tile_imgs/water_tile.png")),
+        "bedrock_tile": set_alpha(str(ASSETS_DIR / "tile_imgs/bedrock.png")),
     }
 
     # [EXPORT] Create Breaking Images
     BREAKING_LIST = [
-        pygame.image.load('assets/breaking/breaking1.png').convert_alpha(),
-        pygame.image.load('assets/breaking/breaking2.png').convert_alpha(),
-        pygame.image.load('assets/breaking/breaking3.png').convert_alpha(),
-        pygame.image.load('assets/breaking/breaking4.png').convert_alpha(),
-        pygame.image.load('assets/breaking/breaking5.png').convert_alpha(),
-        pygame.image.load('assets/breaking/breaking6.png').convert_alpha()
+        pygame.image.load(str(ASSETS_DIR / "breaking/breaking1.png")).convert_alpha(),
+        pygame.image.load(str(ASSETS_DIR / "breaking/breaking2.png")).convert_alpha(),
+        pygame.image.load(str(ASSETS_DIR / "breaking/breaking3.png")).convert_alpha(),
+        pygame.image.load(str(ASSETS_DIR / "breaking/breaking4.png")).convert_alpha(),
+        pygame.image.load(str(ASSETS_DIR / "breaking/breaking5.png")).convert_alpha(),
+        pygame.image.load(str(ASSETS_DIR / "breaking/breaking6.png")).convert_alpha()
     ]
 
     # [EXPORT]
     INFOBAR_IMAGES = {
-        "full_heart" : pygame.image.load('assets/FullHeart_20x20.png').convert(),  # Full Heart (2)
-        "half_heart" : pygame.image.load('assets/half_heart_20x20.png').convert(),  # Half Heart (1)
-        "empty_heart" : pygame.image.load('assets/empty_heart_20x20.png').convert(),  # Empty Heart (0)
-        "full_hunger" : pygame.image.load('assets/hunger_20x20.png'),  # Full Hunger (2)
-        "half_hunger" : pygame.image.load('assets/half_hunger_20x20.png'),  # Half Hunger (1)
-        "empty_hunger" : pygame.image.load('assets/empty_hunger_20x20.png'),  # Empty Hunger (0)
-        "slot": pygame.image.load("assets/item_imgs/slot.png").convert(),
-        "experience_bar": pygame.image.load('assets/item_imgs/experience.png').convert(),
+        "full_heart" : pygame.image.load(str(ASSETS_DIR / "FullHeart_20x20.png")).convert(),  # Full Heart (2)
+        "half_heart" : pygame.image.load(str(ASSETS_DIR / "half_heart_20x20.png")).convert(),  # Half Heart (1)
+        "empty_heart" : pygame.image.load(str(ASSETS_DIR / "empty_heart_20x20.png")).convert(),  # Empty Heart (0)
+        "full_hunger" : pygame.image.load(str(ASSETS_DIR / "hunger_20x20.png")),  # Full Hunger (2)
+        "half_hunger" : pygame.image.load(str(ASSETS_DIR / "half_hunger_20x20.png")),  # Half Hunger (1)
+        "empty_hunger" : pygame.image.load(str(ASSETS_DIR / "empty_hunger_20x20.png")),  # Empty Hunger (0)
+        "slot": pygame.image.load(str(ASSETS_DIR / "item_imgs/slot.png")).convert(),
+        "experience_bar": pygame.image.load(str(ASSETS_DIR / "item_imgs/experience.png")).convert(),
     }
 
     context = Context(
@@ -1751,7 +1752,7 @@ def create_world():
     previous_frame = 0
     difference = 0
     frame = 0
-    loading = pygame.image.load("assets/loading.png").convert()
+    loading = pygame.image.load(str(ASSETS_DIR / "loading.png")).convert()
     signal = Main()  #Start Game by Calling the Main Loop
     if signal == 'title screen':
         title_screen()
@@ -1981,7 +1982,7 @@ def commands(number, val, rng: RandomNumberGenerator, screen: Screen, timer: Spe
 
             if pigstep_disc_bool and jukebox_bool:  # Play Pigstep
                 pygame.mixer.init()
-                pygame.mixer.music.load("assets/pigstep.mp3")
+                pygame.mixer.music.load(str(ASSETS_DIR / "pigstep.mp3"))
                 pygame.mixer.music.set_volume(10)
                 pygame.mixer.music.play()
                 MusicPlayer(screen, timer, player.advancements) #Update Advancement and Speedrun Details
@@ -2292,7 +2293,7 @@ def title_screen():
 
     # Play Minecraft Music
     pygame.mixer.init()
-    pygame.mixer.music.load(random.choice(["assets/music/song6.mp3", "assets/music/song8.mp3"]))
+    pygame.mixer.music.load(random.choice([str(ASSETS_DIR / "music/song6.mp3"), str(ASSETS_DIR / "music/song8.mp3")]))
     pygame.mixer.music.play()
 
     # Create tkinter window
@@ -2305,7 +2306,7 @@ def title_screen():
     screen_height = window.winfo_screenheight()
 
     # Create background image
-    bg = tkinter.PhotoImage(file="assets/background_vB1_0_pre3.png")
+    bg = tkinter.PhotoImage(file=str(ASSETS_DIR / "background_vB1_0_pre3.png"))
 
     # Create fonts
     bold_font = tkinter.font.Font(family='Minecraft Ten', size=60)
@@ -2388,5 +2389,3 @@ def RemoveItem():
         elif player.holding_item.item.durability is not None:
             if player.holding_item.item.durability <= 0:
                 player.holding_item.item = None
-
-title_screen()
