@@ -1,7 +1,8 @@
 import pygame
 import math
 
-from constants import Context, Coordinate
+from tilecraft import ASSETS_DIR
+from .constants import Context, Coordinate
 
 class HealthBar:
     def __init__(self):
@@ -60,7 +61,7 @@ class Experience:
 
 class ExperienceBar:
     def __init__(self):
-        self.__font = pygame.font.Font('assets/minecraft-font/MinecraftRegular-Bmg3.otf', 45)
+        self.__font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 45)
 
     def render(self, display: pygame.Surface, levels: float):
         try:
