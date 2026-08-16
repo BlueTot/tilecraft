@@ -164,6 +164,20 @@ class Inventory:
             return
         self.items[key_pressed + 26], self.items[index] = self.items[index], self.items[key_pressed + 26]
 
+    # interface method?
+    def handle_left_click(self, mouse: tuple[int, int], holding_item: HoldingItem) -> None:
+        if (index := self.get_hover_box(mouse)) is None:
+            return
+
+        if holding_item.item is not None and self.items[index] is not None:
+            if holding_item.item.name == self.items[index].name and (self.items[index].number + holding_item.item.number <= holding_item.item.stackNum): #Items can be combined
+                self.items[index].number += holding_item.item.number
+                holding_item.item = None
+            else:
+                holding_item.item, self.items[index] = self.items[index], holding_item.item
+        else:
+            holding_item.item, self.items[index] = self.items[index], holding_item.item
+
     # render inventory to screen
     def render(self, context: Context, display: pygame.Surface, mouse: tuple[int, int], is_holding: bool):
 
@@ -277,11 +291,54 @@ class Armour:
         for i in range(4):
             self.__CELLS.append(pygame.Rect((0 + 82*i, 240), (82, 82)))
 
+    # interface method?
     def get_hover_box(self, mouse: tuple[int, int]) -> Optional[int]:
         for i, rect in enumerate(self.__CELLS):
             if rect.collidepoint(mouse):
                 return i
         return None
+
+    # interface method?
+    def handle_left_click(self, mouse: tuple[int, int], holding_item: HoldingItem) -> None:
+        if (index := self.get_hover_box(mouse)) is None:
+            return
+
+        if index == 0: #Tier 1
+            if holding_item.item is not None and self.items[index] is None:
+                if holding_item.item.itemType == 'Tier1':
+                    holding_item.item, self.items[index] = self.items[index], holding_item.item
+            elif holding_item.item is None and self.items[index] is not None:
+                holding_item.item, self.items[index] = self.items[index], holding_item.item
+            elif holding_item.item is not None and self.items[index] is not None:
+                if holding_item.item.itemType == 'Tier1' and self.items[index].itemType == 'Tier1':
+                    holding_item.item, self.items[index] = self.items[index], holding_item.item
+
+        elif index == 1: #Tier 2
+            if holding_item.item is not None and self.items[index] is None:
+                if holding_item.item.itemType == 'Tier2':
+                    holding_item.item, self.items[index] = self.items[index], holding_item.item
+            elif holding_item.item is None and self.items[index] is not None:
+                holding_item.item, self.items[index] = self.items[index], holding_item.item
+            elif holding_item.item is not None and self.items[index] is not None:
+                if holding_item.item.itemType == 'Tier2' and self.items[index].itemType == 'Tier2':
+                    holding_item.item, self.items[index] = self.items[index], holding_item.item
+
+        elif index == 2: #Tier 3
+            if holding_item.item is not None and self.items[index] is None:
+                if holding_item.item.itemType == 'Tier3':
+                    holding_item.item, self.items[index] = self.items[index], holding_item.item
+            elif holding_item.item is None and self.items[index] is not None:
+                holding_item.item, self.items[index] = self.items[index], holding_item.item
+            elif holding_item.item is not None and self.items[index] is not None:
+                if holding_item.item.itemType == 'Tier3' and self.items[index].itemType == 'Tier3':
+                    holding_item.item, self.items[index] = self.items[index], holding_item.item
+
+        elif index == 3: #Shield
+            if holding_item.item is not None and self.items[index] is None:
+                if holding_item.item.itemType == 'Shield':
+                    holding_item.item, self.items[index] = self.items[index], holding_item.item
+            elif holding_item.item is None and self.items[index] is not None:
+                holding_item.item, self.items[index] = self.items[index], holding_item.item
 
     def render(self, display: pygame.Surface, context: Context, mouse: tuple[int, int], is_holding: bool):
 
@@ -397,6 +454,30 @@ class SmallCraftingInterface:
                 return i
         return None
 
+    # interface method?
+    def handle_left_click(self, mouse: tuple[int, int], holding_item: HoldingItem, inventory: Inventory):
+        if (index := self.get_hover_box(mouse)) is None:
+            return
+
+        # main crafting grid
+        if index != 4:
+            if holding_item.item is not None and self.items[index] is not None: #Items can be combined
+                if holding_item.item.name == self.items[index].name and (self.items[index].number + holding_item.item.number <= holding_item.item.stackNum):
+                    self.items[index].number += holding_item.item.number
+                    holding_item.item = None
+                else:
+                    holding_item.item, self.items[index] = self.items[index], holding_item.item
+            else:
+                holding_item.item, self.items[index] = self.items[index], holding_item.item
+
+        # result cell 
+        else:
+            if self.items[4] is not None:
+                inventory.add(self.items[4])
+                for i in range(4):
+                    if self.items[i] is not None:
+                        self.items[i].number -= 1
+
     def render(self, display: pygame.Surface, context: Context, mouse: tuple[int, int], is_holding: bool):
 
         images = []
@@ -483,11 +564,36 @@ class CraftingTableInterface:
             else:
                 self.items[9] = None
 
+    # interface method?
     def get_hover_box(self, mouse: tuple[int, int]) -> Optional[int]:
         for i, rect in enumerate(self.__CELLS):
             if rect.collidepoint(mouse):
                 return i
         return None
+
+    # interface method?
+    def handle_left_click(self, mouse: tuple[int, int], holding_item: HoldingItem, inventory: Inventory) -> None:
+        if (index := self.get_hover_box(mouse)) is None:
+            return
+
+        # main crafting grid
+        if index != 9:
+            if holding_item.item is not None and self.items[index] is not None: #Items can be combined
+                if holding_item.item.name == self.items[index].name and (self.items[index].number + holding_item.item.number <= holding_item.item.stackNum):
+                    self.items[index].number += holding_item.item.number
+                    holding_item.item = None
+                else:
+                    holding_item.item, self.items[index] = self.items[index], holding_item.item
+            else:
+                holding_item.item, self.items[index] = self.items[index], holding_item.item
+
+        # result cell
+        else:
+            if self.items[9] is not None:
+                inventory.add(self.items[9])
+                for i in range(9):
+                    if self.items[i] is not None:
+                        self.items[i].number -= 1
 
     def render(self, display: pygame.Surface, context: Context, mouse: tuple[int, int], is_holding: bool):
 
@@ -594,11 +700,33 @@ class FurnaceInterface:
         else:
             self.fuel_img = context.ITEM_IMAGES["no_fire"]
 
+    # interface method?
     def get_hover_box(self, mouse: tuple[int, int]) -> Optional[int]:
         for i, rect in enumerate(self.__CELLS):
             if rect.collidepoint(mouse):
                 return i
         return None
+
+    # interface method?
+    def handle_left_click(self, mouse: tuple[int, int], holding_item: HoldingItem, inventory: Inventory) -> None:
+        if (index := self.get_hover_box(mouse)) is None:
+            return
+
+        # main furnace cells
+        if index != 2:
+            if holding_item.item is not None and self.items[index] is not None: #Items can be combined
+                if holding_item.item.name == self.items[index].name and (self.items[index].number + holding_item.item.number <= holding_item.item.stackNum):
+                    self.items[index].number += holding_item.item.number
+                    holding_item.item = None
+                else:
+                    holding_item.item, self.items[index] = self.items[index], holding_item.item
+            else:
+                holding_item.item, self.items[index] = self.items[index], holding_item.item
+
+        # result cell
+        else:
+            inventory.add(self.items[2])
+            self.items[2] = None
 
     def render(self, display: pygame.Surface, context: Context, mouse: tuple[int, int], fps: float, is_holding: bool):
 
@@ -675,7 +803,7 @@ class EnchantingTable:
         self.option2 = Button(487, 82, 255, 157, (158, 145, 115))
         self.option3 = Button(487, 82, 255, 240, (158, 145, 115))
 
-        self.__CELLS = [
+        self.__CELLS: list[pygame.Rect] = [
             pygame.Rect((30, 225), (82, 82)),
             pygame.Rect((112, 225), (82, 82)),
             pygame.Rect((30, 142), (82, 82))
@@ -685,6 +813,11 @@ class EnchantingTable:
             Coordinate(82, 277),
             Coordinate(165, 277),
             Coordinate(82, 195)
+        ]
+
+        self.__RECTS: list[pygame.Rect] = [
+            self.__CELLS[0], self.__CELLS[1], self.__CELLS[2], 
+            self.upgrade.rect, self.option1.rect, self.option2.rect, self.option3.rect
         ]
 
 
@@ -850,11 +983,46 @@ class EnchantingTable:
                     experience.subtract(3)
                     self.enchant_set(rng)  # Remove Enchants
 
+    # interface method?
     def get_hover_box(self, mouse: tuple[int, int]) -> Optional[int]:
-        for i, rect in enumerate(self.__CELLS):
+        for i, rect in enumerate(self.__RECTS):
             if rect.collidepoint(mouse):
                 return i
         return None
+
+    # interface method?
+    def handle_left_click(self, mouse: tuple[int, int], holding_item: HoldingItem, experience: Experience, rng: RandomNumberGenerator) -> None:
+        if (index := self.get_hover_box(mouse)) is None:
+            return
+
+        # regular cells
+        if index >= 0 and index < 3:
+            if holding_item.item is not None and self.items[index] is not None: #Items can be combined
+                if holding_item.item.name == self.items[index].name and (self.items[index].number + holding_item.item.number <= holding_item.item.stackNum):
+                    self.items[index].number += holding_item.item.number
+                    holding_item.item = None
+                else:
+                    holding_item.item, self.items[index] = self.items[index], holding_item.item
+            else:
+                holding_item.item, self.items[index] = self.items[index], holding_item.item
+            if index == 0:
+                self.enchant_set(rng)
+
+        # upgrade button
+        elif index == 3:
+            self.enchant_upgrade(rng)
+
+        # option 1
+        elif index == 4:
+            self.enchant1(rng, experience)
+
+        # option 2
+        elif index == 5:
+            self.enchant2(rng, experience)
+
+        # option 3
+        elif index == 6:
+            self.enchant3(rng, experience)
 
     def render(self, display: pygame.Surface, context: Context, mouse: tuple[int, int], is_holding: bool):
 
@@ -907,6 +1075,9 @@ class EnchantingTable:
 
     def render_hovering_label(self, display: pygame.Surface, mouse: tuple[int, int]):
         if (index := self.get_hover_box(mouse)) is None:
+            return
+
+        if index >= 3: # buttons are out of bounds
             return
         
         font = pygame.font.Font('assets/monofur/monof55.ttf', 22)
@@ -970,11 +1141,33 @@ class Compressor:
                 elif self.items[0].name == 'Diamond' and self.items[1].name == 'Diamond Plate':
                     self.items[1] = Item("Diamond Plate", self.items[1].number + 1, None, None)
 
+    # interface method?
     def get_hover_box(self, mouse: tuple[int, int]) -> Optional[int]:
         for i, rect in enumerate(self.__CELLS):
             if rect.collidepoint(mouse):
                 return i
         return None
+
+    # interface method?
+    def handle_left_click(self, mouse: tuple[int, int], holding_item: HoldingItem, inventory: Inventory) -> None:
+        if (index := self.get_hover_box(mouse)) is None:
+            return
+
+        # input box
+        if index != 1:
+            if holding_item.item is not None and self.items[index] is not None: #Items can be combined
+                if holding_item.item.name == self.items[index].name and (self.items[index].number + holding_item.item.number <= holding_item.item.stackNum):
+                    self.items[index].number += holding_item.item.number
+                    holding_item.item = None
+                else:
+                    holding_item.item, self.items[index] = self.items[index], holding_item.item
+            else:
+                holding_item.item, self.items[index] = self.items[index], holding_item.item
+
+        # result index
+        else:
+            inventory.add(self.items[1])
+            self.items[1] = None
 
     def render(self, display: pygame.Surface, context: Context, mouse: tuple[int, int], fps: float, is_holding: bool):
 
@@ -1074,11 +1267,37 @@ class Grindstone:
             experience.add_points(int(i[1]) * 8)
 
 
+    # interface method?
     def get_hover_box(self, mouse: tuple[int, int]) -> Optional[int]:
         for i, rect in enumerate(self.__CELLS):
             if rect.collidepoint(mouse):
                 return i
         return None
+
+
+    # interface method?
+    def handle_left_click(self, mouse: tuple[int, int], holding_item: HoldingItem, inventory: Inventory, experience: Experience) -> None:
+        if (index := self.get_hover_box(mouse)) is None:
+            return
+
+        # input boxes
+        if index != 2:
+            if holding_item.item is not None and self.items[index] is not None:  # Items can be combined
+                if holding_item.item.name == self.items[index].name and (self.items[index].number + holding_item.item.number <= holding_item.item.stackNum):
+                    self.items[index].number += holding_item.item.number
+                    holding_item.item = None
+                else:
+                    holding_item.item, self.items[index] = self.items[index], holding_item.item
+            else:
+                holding_item.item, self.items[index] = self.items[index], holding_item.item
+
+        # result index
+        else:
+            inventory.add(self.items[2])
+            if self.items[0] is not None and self.items[1] is None:
+                if self.items[0].enchantments is not None:
+                    self.disenchant(experience)
+            self.items[0], self.items[1], self.items[2] = None, None, None
 
 
     def render(self, display: pygame.Surface, context: Context, mouse: tuple[int, int], is_holding: bool):
