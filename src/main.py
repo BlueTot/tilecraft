@@ -10,7 +10,7 @@ import sys #SYS module
 from cheats import print_cheats, give, enchant, teleport, experience
 from constants import ITEM_TYPES, Item, TILE_IMAGE_MAPPING, RandomNumberGenerator, Context
 from generation import Tile, OverworldGeneratedList, OverworldGenerate, SpawnOverworldGenerate, SpawnOverworldBoundGenerate, UndergroundGeneratedList, SpawnUndergroundGenerate, UndergroundGenerate, UndergroundGeneratePortal, OverworldGeneratePortal, NetherGeneratedList, SpawnNetherGenerate, SpawnNetherBoundGenerate, NetherGenerate
-from inventory import Inventory, Hotbar, Armour, SmallCraftingInterface, CraftingTableInterface, FurnaceInterface, EnchantingTable, Compressor, Grindstone
+from inventory import Inventory, Hotbar, Armour, SmallCraftingInterface, CraftingTableInterface, FurnaceInterface, EnchantingTable, Compressor, Grindstone 
 from player_info import HealthBar, HungerBar, Experience, ExperienceBar
 
 title_screen_mode = 'normal'
@@ -603,6 +603,7 @@ def Main():
 
             elif player.mode == 'inventory':
 
+                mouse = pygame.mouse.get_pos()
                 Type, box = SelectedBox()
                 for event in events:
                     if event.type == pygame.KEYDOWN:
@@ -635,16 +636,18 @@ def Main():
 
                 display.fill((0, 0, 0))
                 world.fill((211, 211, 211))
-                player.inventory.render(context, world) #Render Inventory Grid
-                player.armour.render(world, context) #Render Armour Grid for Player
-                player.craft_interface.render(world, context) #Render Small Crafting Grid
+
+                is_holding = player.inventory.holding_item is not None
+                player.inventory.render(context, world, mouse, is_holding) #Render Inventory Grid
+                player.armour.render(world, context, mouse, is_holding) #Render Armour Grid for Player
+                player.craft_interface.render(world, context, mouse, is_holding) #Render Small Crafting Grid
                 player.craft_interface.update() #Update Small 2x2 Crafting Grid
                 RemoveItem() #Remove all items with number of 0 or durability of 0
                 player.inventory.render_holding_item(world, context) #Render the item the user is holding
-                RenderHoveringItem(world, Type, box) #Render Item Name
 
             elif player.mode == 'crafting':
 
+                mouse = pygame.mouse.get_pos()
                 Type, box = SelectedBox()
                 for event in events:
                     if event.type == pygame.KEYDOWN:
@@ -677,15 +680,17 @@ def Main():
 
                 display.fill((0, 0, 0))
                 world.fill((211, 211, 211))
-                player.inventory.render(context, world) #Render Inventory Grid
-                player.crafting_grid.render(world, context) #Render 3x3 Crafting Grid
+
+                is_holding = player.inventory.holding_item is not None
+                player.inventory.render(context, world, mouse, is_holding) #Render Inventory Grid
+                player.crafting_grid.render(world, context, mouse, is_holding) #Render 3x3 Crafting Grid
                 player.crafting_grid.update()  #Update 3x3 Crafting Grid
                 RemoveItem()  #Remove all items with number of 0 or durability of 0
                 player.inventory.render_holding_item(world, context)  # Render the item the user is holding
-                RenderHoveringItem(world, Type, box) #Render Item Name
 
             elif player.mode == 'smelting':
 
+                mouse = pygame.mouse.get_pos()
                 Type, box = SelectedBox()
                 for event in events:
                     if event.type == pygame.KEYDOWN:
@@ -718,15 +723,17 @@ def Main():
 
                 display.fill((0, 0, 0))
                 world.fill((211, 211, 211))
-                player.inventory.render(context, world) #Render Inventory Grid
-                player.furnace.render(world, context, FPS) #Render Furnace Interface
+
+                is_holding = player.inventory.holding_item is not None
+                player.inventory.render(context, world, mouse, is_holding) #Render Inventory Grid
+                player.furnace.render(world, context, mouse, FPS, is_holding) #Render Furnace Interface
                 player.furnace.smelt(context, FPS, player.experience) #Furnace Smelting
                 RemoveItem()  #Remove all items with number of 0 or durability of 0
                 player.inventory.render_holding_item(world, context)  # Render the item the user is holding
-                RenderHoveringItem(world, Type, box) #Render Item Name
 
             elif player.mode == 'enchanting':
 
+                mouse = pygame.mouse.get_pos()
                 Type, box = SelectedBox()
                 for event in events:
                     if event.type == pygame.KEYDOWN:
@@ -759,14 +766,16 @@ def Main():
 
                 display.fill((0, 0, 0))
                 world.fill((211, 211, 211))
-                player.inventory.render(context, world)  # Render Inventory Grid
-                player.enchanting_table.render(world, context) #Render Enchanting Table Interface
+
+                is_holding = player.inventory.holding_item is not None
+                player.inventory.render(context, world, mouse, is_holding)  # Render Inventory Grid
+                player.enchanting_table.render(world, context, mouse, is_holding) #Render Enchanting Table Interface
                 RemoveItem()  #Remove all items with number of 0 or durability of 0
                 player.inventory.render_holding_item(world, context)  # Render the item the user is holding
-                RenderHoveringItem(world, Type, box) #Render Item Name
 
             elif player.mode == 'compressing':
 
+                mouse = pygame.mouse.get_pos()
                 Type, box = SelectedBox()
                 for event in events:
                     if event.type == pygame.KEYDOWN:
@@ -799,15 +808,17 @@ def Main():
 
                 display.fill((0, 0, 0))
                 world.fill((211, 211, 211))
-                player.inventory.render(context, world) #Render Inventory Grid
-                player.compressor.render(world, context, FPS) #Render Compressor Interface
+
+                is_holding = player.inventory.holding_item is not None
+                player.inventory.render(context, world, mouse, is_holding) #Render Inventory Grid
+                player.compressor.render(world, context, mouse, FPS, is_holding) #Render Compressor Interface
                 player.compressor.compress(FPS) #Compressing Process
                 RemoveItem() #Remove all items with number of 0 or durability of 0
                 player.inventory.render_holding_item(world, context) #Render the item the user is holding
-                RenderHoveringItem(world, Type, box) #Render Item Name
 
             elif player.mode == 'repairing and disenchanting':
 
+                mouse = pygame.mouse.get_pos()
                 Type, box = SelectedBox()
                 for event in events:
                     if event.type == pygame.KEYDOWN:
@@ -840,15 +851,17 @@ def Main():
 
                 display.fill((0, 0, 0))
                 world.fill((211, 211, 211))
-                player.inventory.render(context, world) #Render Inventory Grid
-                player.grindstone.render(world, context) #Render Grindstone Interface
+
+                is_holding = player.inventory.holding_item is not None
+                player.inventory.render(context, world, mouse, is_holding) #Render Inventory Grid
+                player.grindstone.render(world, context, mouse, is_holding) #Render Grindstone Interface
                 player.grindstone.repair_and_disenchant() #Update repaired/disenchanted item
                 RemoveItem() #Remove all items with number of 0 or durability of 0
                 player.inventory.render_holding_item(world, context) #Render the item the user is holding
-                RenderHoveringItem(world, Type, box) #Render Item Name
 
             display.blit(world, (0, 0))  # Render map to display
             pygame.display.flip()  # Update Display
+
         elif not hasGeneratedOverworld and hasGeneratedUnderground == "Not Loaded":
             display.fill((255, 255, 255))
             for i in range(0, 750, 32):
@@ -859,6 +872,7 @@ def Main():
             pygame.display.flip()
             context, rng = PygameInitialise()
             print("PYGAME INITIALISED")
+
         if hasGeneratedUnderground == "Generating":
             display.fill((255, 255, 255))
             for i in range(0, 750, 32):
@@ -871,81 +885,12 @@ def Main():
             World.generateUnderground()
             World.UndergroundTiles = UndergroundGeneratePortal(round(player.x), round(player.y), World.UndergroundTiles)
             hasGeneratedUnderground = "Generated"
+
         if not pygame.mixer.music.get_busy():
             if rng.next_random(1, 500) == 1:
                 pygame.mixer.music.load("assets/music/song" + str(random.choice([3, 5, 7, 11, 12, 13, 14, 18])) + ".mp3")
                 pygame.mixer.music.play()
 
-#Convert Numbers to Roman Numerals
-def DecimalToRoman(num):
-    num = int(num)
-    nums = [1, 4, 5, 9, 10, 40, 50, 90, 100, 400, 500, 900, 1000]
-    symbols = ["I", "IV", "V", "IX", "X", "XL", "L", "XC", "C", "CD", "D", "CM", "M"]
-    i = 12
-    roman_value = ""
-    while num:
-        div = num // nums[i]
-        num %= nums[i]
-        while div:
-            roman_value += symbols[i]
-            div -= 1
-        i -= 1
-    return roman_value
-
-#Info Box for Items (with and without enchantments)
-def TextBox(List, x, y, font, box, display):
-    try:
-        if List[box] is not None: #Check to prevent crashes
-            length_list = [len(List[box].name * 15)]
-            if List[box].enchantments is not None:
-                width = (1 + len(List[box].enchantments)) * 37
-                for i in List[box].enchantments:
-                    length_list.append(len(str(i[0]) + DecimalToRoman(str(i[1]))) * 15)
-            else:
-                width = 37
-            if List[box].durability is not None:
-                width += 22
-                length_list.append(len(f"Durability: {List[box].durability}/{List[box].max_durability}") * 15)
-            length = max(length_list)
-            if x + length > 750:
-                x -= length
-            if y + width > 750:
-                y -= width
-            pygame.draw.rect(display, (0, 0, 0), (x, y, length, width))
-            display.blit(font.render(List[box].name, False, List[box].colour), (x + 15, y + 15))
-            if List[box].durability is not None: #WITH DURABILITY
-                if List[box].enchantments is not None:
-                    for i in range(len(List[box].enchantments)):
-                        display.blit(font.render(f'{List[box].enchantments[i][0]} {DecimalToRoman(List[box].enchantments[i][1])}', False, (175, 175, 175)), (x + 15, y + 15 + (i + 1) * 22))
-                display.blit(font.render(f"Durability: {List[box].durability}/{List[box].max_durability}", False, (175, 175, 175)), (x + 15, y + width - 20))
-            else: #EVERYTHING ELSE
-                if List[box].enchantments is not None:
-                    for i in range(len(List[box].enchantments)):
-                        display.blit(font.render(f'{List[box].enchantments[i][0]} {DecimalToRoman(List[box].enchantments[i][1])}', False, (175, 175, 175)), (x + 15, y + 15 + (i + 1) * 22))
-    except IndexError:
-        pass
-
-#Render the Item Label for the Item that the User is Hovering Over
-def RenderHoveringItem(display, Type, box):
-    x, y = pygame.mouse.get_pos()
-    font = pygame.font.Font('assets/monofur/monof55.ttf', 22)
-    if box is not None:
-        if Type == 'inventory grid': #Within 36 Inventory Slots
-            TextBox(player.inventory.items, x, y, font, box, display)
-        elif Type == 'armour grid': #Within Armour Grid
-            TextBox(player.armour.items, x, y, font, box, display)
-        elif Type == 'small crafting grid' or Type == 'small crafting grid item': #2x2 Crafting
-            TextBox(player.craft_interface.items, x, y, font, box, display)
-        elif Type == 'crafting grid' or Type == 'crafting grid item': #3x3 Crafting
-            TextBox(player.crafting_grid.items, x, y, font, box, display)
-        elif Type == 'smelting' or Type == 'smelting item': #Furnace
-            TextBox(player.furnace.items, x, y, font, box, display)
-        elif Type == 'enchanting': #Enchantment Table
-            TextBox(player.enchanting_table.items, x, y, font, box, display)
-        elif Type == 'compressing' or Type == 'compressing item': #Compressor
-            TextBox(player.compressor.items, x, y, font, box, display)
-        elif Type == 'repairing and disenchanting' or Type == 'repairing and disenchanting item': #Grindstone
-            TextBox(player.grindstone.items, x, y, font, box, display)
 
 #Determine which box the user selected
 def SelectedBox():
@@ -2864,6 +2809,5 @@ def RemoveItem():
         elif player.inventory.holding_item.durability is not None:
             if player.inventory.holding_item.durability <= 0:
                 player.inventory.holding_item = None
-
 
 title_screen()

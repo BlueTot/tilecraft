@@ -124,8 +124,14 @@ class Inventory:
                         self.items[none_index] = Item(self.items[i].name, self.items[i].number, self.items[i].enchantments, self.items[i].durability)
                         self.items[i] = None
 
+    def get_hover_box(self, mouse: tuple[int, int]) -> Optional[int]:
+        for i, rect in enumerate(self.__INVENTORY_SLOTS):
+            if rect.collidepoint(mouse):
+                return i
+        return None
+
     # render inventory to screen
-    def render(self, context: Context, display: pygame.Surface):
+    def render(self, context: Context, display: pygame.Surface, mouse: tuple[int, int], is_holding: bool):
 
         images = [None]*36
         numbers = ['']*36
@@ -166,6 +172,9 @@ class Inventory:
             surface = self.__font.render(numbers[i], False, (255, 255, 255))
             display.blit(surface, (coordinate.x, coordinate.y))
 
+        if not is_holding:
+            self.render_hovering_item(display, mouse)
+
     def render_holding_item(self, display: pygame.Surface, context: Context):
 
         if self.holding_item is None:
@@ -188,6 +197,13 @@ class Inventory:
                 display.blit(context.TC_GLINTS[self.holding_item.name], (x, y))
             if self.holding_item.durability is not None:
                 RenderDurabilityBar(display, x, y, self.holding_item.durability, self.holding_item.max_durability)
+
+    def render_hovering_item(self, display: pygame.Surface, mouse: tuple[int, int]):
+        if (index := self.get_hover_box(mouse)) is None:
+            return
+        
+        font = pygame.font.Font('assets/monofur/monof55.ttf', 22)
+        TextBox(display, self.items[index], mouse[0], mouse[1], font) 
 
 
 class Hotbar:
@@ -249,7 +265,13 @@ class Armour:
         for i in range(4):
             self.__CELLS.append(pygame.Rect((0 + 82*i, 240), (82, 82)))
 
-    def render(self, display: pygame.Surface, context: Context):
+    def get_hover_box(self, mouse: tuple[int, int]) -> Optional[int]:
+        for i, rect in enumerate(self.__CELLS):
+            if rect.collidepoint(mouse):
+                return i
+        return None
+
+    def render(self, display: pygame.Surface, context: Context, mouse: tuple[int, int], is_holding: bool):
 
         images = []
         layer_list = []
@@ -299,6 +321,16 @@ class Armour:
                 elif item[1] == 3: #Tier 3
                     pygame.draw.rect(display, item[0], (84, 39, 165, 165), 12)
 
+        if not is_holding:
+            self.render_hovering_item(display, mouse)
+
+    def render_hovering_item(self, display: pygame.Surface, mouse: tuple[int, int]):
+        if (index := self.get_hover_box(mouse)) is None:
+            return
+        
+        font = pygame.font.Font('assets/monofur/monof55.ttf', 22)
+        TextBox(display, self.items[index], mouse[0], mouse[1], font) 
+
 
 class SmallCraftingInterface:
     def __init__(self):
@@ -347,7 +379,13 @@ class SmallCraftingInterface:
         else:
             self.items[4] = None
 
-    def render(self, display: pygame.Surface, context: Context):
+    def get_hover_box(self, mouse: tuple[int, int]) -> Optional[int]:
+        for i, rect in enumerate(self.__CELLS):
+            if rect.collidepoint(mouse):
+                return i
+        return None
+
+    def render(self, display: pygame.Surface, context: Context, mouse: tuple[int, int], is_holding: bool):
 
         images = []
         numbers = []
@@ -380,6 +418,16 @@ class SmallCraftingInterface:
             display.blit(surface, (coordinate.x, coordinate.y))
 
         display.blit(self.__arrow_font.render('-->', False, (0, 0, 0)), (562, 142))
+
+        if not is_holding:
+            self.render_hovering_item(display, mouse)
+
+    def render_hovering_item(self, display: pygame.Surface, mouse: tuple[int, int]):
+        if (index := self.get_hover_box(mouse)) is None:
+            return
+        
+        font = pygame.font.Font('assets/monofur/monof55.ttf', 22)
+        TextBox(display, self.items[index], mouse[0], mouse[1], font) 
 
 
 class CraftingTableInterface:
@@ -415,7 +463,6 @@ class CraftingTableInterface:
             Coordinate(622, 209)
         ]
 
-
     def update(self):
         for recipe in CRAFTING_RECIPES.values():
             if recipe.canCraft(self.items):
@@ -424,7 +471,13 @@ class CraftingTableInterface:
             else:
                 self.items[9] = None
 
-    def render(self, display: pygame.Surface, context: Context):
+    def get_hover_box(self, mouse: tuple[int, int]) -> Optional[int]:
+        for i, rect in enumerate(self.__CELLS):
+            if rect.collidepoint(mouse):
+                return i
+        return None
+
+    def render(self, display: pygame.Surface, context: Context, mouse: tuple[int, int], is_holding: bool):
 
         images = []
         numbers = []
@@ -459,6 +512,16 @@ class CraftingTableInterface:
             display.blit(surface, (coordinate.x, coordinate.y))
 
         display.blit(self.__arrow_font.render('-->', False, (0, 0, 0)), (465, 180))
+
+        if not is_holding:
+            self.render_hovering_item(display, mouse)
+
+    def render_hovering_item(self, display: pygame.Surface, mouse: tuple[int, int]):
+        if (index := self.get_hover_box(mouse)) is None:
+            return
+        
+        font = pygame.font.Font('assets/monofur/monof55.ttf', 22)
+        TextBox(display, self.items[index], mouse[0], mouse[1], font) 
 
 
 class FurnaceInterface:
@@ -519,7 +582,13 @@ class FurnaceInterface:
         else:
             self.fuel_img = context.ITEM_IMAGES["no_fire"]
 
-    def render(self, display: pygame.Surface, context: Context, fps: float):
+    def get_hover_box(self, mouse: tuple[int, int]) -> Optional[int]:
+        for i, rect in enumerate(self.__CELLS):
+            if rect.collidepoint(mouse):
+                return i
+        return None
+
+    def render(self, display: pygame.Surface, context: Context, mouse: tuple[int, int], fps: float, is_holding: bool):
 
         images = []
         numbers = []
@@ -564,6 +633,16 @@ class FurnaceInterface:
         display.blit(self.__side_font.render(str(self.fuel_val), False, (255, 0, 0)), (187, 187)) #Render Power of Fuel Remaining
         display.blit(self.__side_font.render(str(self.smelting_time // fps), False, (255, 0, 0)), (367, 157)) #Render Time to Smelt
         display.blit(self.__arrow_font.render('-->', False, (0, 0, 0)), (337, 187)) #Render Arrow
+
+        if not is_holding:
+            self.render_hovering_item(display, mouse)
+
+    def render_hovering_item(self, display: pygame.Surface, mouse: tuple[int, int]):
+        if (index := self.get_hover_box(mouse)) is None:
+            return
+        
+        font = pygame.font.Font('assets/monofur/monof55.ttf', 22)
+        TextBox(display, self.items[index], mouse[0], mouse[1], font) 
 
 
 class EnchantingTable:
@@ -759,8 +838,13 @@ class EnchantingTable:
                     experience.subtract(3)
                     self.enchant_set(rng)  # Remove Enchants
 
+    def get_hover_box(self, mouse: tuple[int, int]) -> Optional[int]:
+        for i, rect in enumerate(self.__CELLS):
+            if rect.collidepoint(mouse):
+                return i
+        return None
 
-    def render(self, display: pygame.Surface, context: Context):
+    def render(self, display: pygame.Surface, context: Context, mouse: tuple[int, int], is_holding: bool):
 
         images = []
         numbers = []
@@ -805,6 +889,16 @@ class EnchantingTable:
         self.option1.render(display, self.option_list[0], 30)
         self.option2.render(display, self.option_list[1], 30)
         self.option3.render(display, self.option_list[2], 30)
+
+        if not is_holding:
+            self.render_hovering_label(display, mouse)
+
+    def render_hovering_label(self, display: pygame.Surface, mouse: tuple[int, int]):
+        if (index := self.get_hover_box(mouse)) is None:
+            return
+        
+        font = pygame.font.Font('assets/monofur/monof55.ttf', 22)
+        TextBox(display, self.items[index], mouse[0], mouse[1], font) 
 
 
 class Compressor:
@@ -864,7 +958,13 @@ class Compressor:
                 elif self.items[0].name == 'Diamond' and self.items[1].name == 'Diamond Plate':
                     self.items[1] = Item("Diamond Plate", self.items[1].number + 1, None, None)
 
-    def render(self, display: pygame.Surface, context: Context, fps: float):
+    def get_hover_box(self, mouse: tuple[int, int]) -> Optional[int]:
+        for i, rect in enumerate(self.__CELLS):
+            if rect.collidepoint(mouse):
+                return i
+        return None
+
+    def render(self, display: pygame.Surface, context: Context, mouse: tuple[int, int], fps: float, is_holding: bool):
 
         images = []
         numbers = []
@@ -907,6 +1007,16 @@ class Compressor:
 
         display.blit(self.__arrow_font.render('-->', False, (0, 0, 0)), (337, 172))  # Render Arrow
         display.blit(self.__side_font.render(str(self.compressing_time // fps), False, (255, 0, 0)), (360, 142))  # Render Time to Compress
+
+        if not is_holding:
+            self.render_hovering_item(display, mouse)
+
+    def render_hovering_item(self, display: pygame.Surface, mouse: tuple[int, int]):
+        if (index := self.get_hover_box(mouse)) is None:
+            return
+        
+        font = pygame.font.Font('assets/monofur/monof55.ttf', 22)
+        TextBox(display, self.items[index], mouse[0], mouse[1], font) 
 
 
 class Grindstone:
@@ -952,7 +1062,14 @@ class Grindstone:
             experience.add_points(int(i[1]) * 8)
 
 
-    def render(self, display: pygame.Surface, context: Context):
+    def get_hover_box(self, mouse: tuple[int, int]) -> Optional[int]:
+        for i, rect in enumerate(self.__CELLS):
+            if rect.collidepoint(mouse):
+                return i
+        return None
+
+
+    def render(self, display: pygame.Surface, context: Context, mouse: tuple[int, int], is_holding: bool):
 
         images = []
         numbers = []
@@ -996,3 +1113,65 @@ class Grindstone:
         pygame.draw.rect(display, (0, 0, 0), (185, 97, 30, 194), 2)
         pygame.draw.rect(display, (0, 0, 0), (317, 97, 30, 194), 2)
         display.blit(self.__arrow_font.render('-->', False, (0, 0, 0)), (367, 152))  # Render Arrow
+
+        if not is_holding:
+            self.render_hovering_item(display, mouse)
+
+    def render_hovering_item(self, display: pygame.Surface, mouse: tuple[int, int]):
+        if (index := self.get_hover_box(mouse)) is None:
+            return
+        
+        font = pygame.font.Font('assets/monofur/monof55.ttf', 22)
+        TextBox(display, self.items[index], mouse[0], mouse[1], font) 
+
+
+#Convert Numbers to Roman Numerals
+def DecimalToRoman(num):
+    num = int(num)
+    nums = [1, 4, 5, 9, 10, 40, 50, 90, 100, 400, 500, 900, 1000]
+    symbols = ["I", "IV", "V", "IX", "X", "XL", "L", "XC", "C", "CD", "D", "CM", "M"]
+    i = 12
+    roman_value = ""
+    while num:
+        div = num // nums[i]
+        num %= nums[i]
+        while div:
+            roman_value += symbols[i]
+            div -= 1
+        i -= 1
+    return roman_value
+
+
+#Info Box for Items (with and without enchantments)
+def TextBox(display: pygame.Surface, item: Item, x: int, y: int, font: pygame.font.Font):
+    try:
+        if item is not None: #Check to prevent crashes
+            length_list = [len(item.name * 15)]
+            if item.enchantments is not None:
+                width = (1 + len(item.enchantments)) * 37
+                for i in item.enchantments:
+                    length_list.append(len(str(i[0]) + DecimalToRoman(str(i[1]))) * 15)
+            else:
+                width = 37
+            if item.durability is not None:
+                width += 22
+                length_list.append(len(f"Durability: {item.durability}/{item.max_durability}") * 15)
+            length = max(length_list)
+            if x + length > 750:
+                x -= length
+            if y + width > 750:
+                y -= width
+            pygame.draw.rect(display, (0, 0, 0), (x, y, length, width))
+            display.blit(font.render(item.name, False, item.colour), (x + 15, y + 15))
+            if item.durability is not None: #WITH DURABILITY
+                if item.enchantments is not None:
+                    for i in range(len(item.enchantments)):
+                        display.blit(font.render(f'{item.enchantments[i][0]} {DecimalToRoman(item.enchantments[i][1])}', False, (175, 175, 175)), (x + 15, y + 15 + (i + 1) * 22))
+                display.blit(font.render(f"Durability: {item.durability}/{item.max_durability}", False, (175, 175, 175)), (x + 15, y + width - 20))
+            else: #EVERYTHING ELSE
+                if item.enchantments is not None:
+                    for i in range(len(item.enchantments)):
+                        display.blit(font.render(f'{item.enchantments[i][0]} {DecimalToRoman(item.enchantments[i][1])}', False, (175, 175, 175)), (x + 15, y + 15 + (i + 1) * 22))
+    except IndexError:
+        pass
+
