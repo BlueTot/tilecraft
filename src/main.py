@@ -604,7 +604,6 @@ def Main():
             elif player.mode in ("inventory", "crafting", "smelting", "enchanting", "compressing", "repairing and disenchanting"):
 
                 mouse = pygame.mouse.get_pos()
-                Type, box = SelectedBox()
 
                 for event in events:
                     if event.type == pygame.KEYDOWN:
@@ -629,6 +628,7 @@ def Main():
                             player.inventory.hotbar_swap(mouse, 8)
                         elif event.key == pygame.K_9: #9
                             player.inventory.hotbar_swap(mouse, 9)
+
                     elif event.type == pygame.MOUSEBUTTONDOWN: #Mouse Button Down Clicking Event
                         
                         if pygame.mouse.get_pressed(3)[0]: #Left Click
@@ -654,7 +654,25 @@ def Main():
                                 player.grindstone.handle_left_click(mouse, player.holding_item, player.inventory, player.experience)
 
                         elif pygame.mouse.get_pressed(3)[2]: #Right Click
-                            DropItem(Type, box)
+                            player.inventory.handle_right_click(mouse, player.holding_item)
+
+                            if player.mode == "inventory":
+                                player.craft_interface.handle_right_click(mouse, player.holding_item)
+
+                            elif player.mode == "crafting":
+                                player.crafting_grid.handle_right_click(mouse, player.holding_item) 
+
+                            elif player.mode == "smelting":
+                                player.furnace.handle_right_click(mouse, player.holding_item) 
+
+                            elif player.mode == "enchanting":
+                                player.enchanting_table.handle_right_click(mouse, player.holding_item)
+
+                            elif player.mode == "compressing":
+                                player.compressor.handle_right_click(mouse, player.holding_item)
+
+                            elif player.mode == "repairing and disenchanting":
+                                player.grindstone.handle_right_click(mouse, player.holding_item)
 
                 display.fill((0, 0, 0))
                 world.fill((211, 211, 211))
@@ -720,136 +738,6 @@ def Main():
             if rng.next_random(1, 500) == 1:
                 pygame.mixer.music.load("assets/music/song" + str(random.choice([3, 5, 7, 11, 12, 13, 14, 18])) + ".mp3")
                 pygame.mixer.music.play()
-
-
-#Determine which box the user selected
-def SelectedBox():
-    x, y = pygame.mouse.get_pos()
-    if 0 <= x <= 742 and 390 <= y <= 720:
-        column = x // 82
-        row = (y - 390) // 82
-        box = column + 9 * row
-        return "inventory grid", box
-    elif 0 <= x <= 330 and 240 <= y <= 322 and player.mode == 'inventory':
-        box = x // 82
-        return "armour grid", box
-    elif 390 <= x <= 555 and 75 <= y <= 240 and player.mode == 'inventory':
-        column = (x - 390) // 82
-        row = (y - 75) // 82
-        box = column + 2 * row
-        return "small crafting grid", box
-    elif 637 <= x <= 720 and 117 <= y <= 199 and player.mode == 'inventory':
-        box = 4
-        return 'small crafting grid item', box
-    elif 195 <= x <= 442 and 75 <= y <= 322 and player.mode == 'crafting':
-        column = (x - 195) // 82
-        row = (y - 75) // 82
-        box = column + 3 * row
-        return 'crafting grid', box
-    elif 570 <= x <= 652 and 157 <= y <= 240 and player.mode == 'crafting':
-        box = 9
-        return 'crafting grid item', box
-    elif 225 <= x <= 307 and 67 <= y <= 150 and player.mode == 'smelting':
-        box = 0
-        return 'smelting', box
-    elif 225 <= x <= 307 and 262 <= y <= 345 and player.mode == 'smelting':
-        box = 1
-        return 'smelting', box
-    elif 450 <= x <= 532 and 172 <= y <= 255 and player.mode == 'smelting':
-        box = 2
-        return 'smelting item', box
-    elif 30 <= x <= 112 and 225 <= y <= 307 and player.mode == 'enchanting':
-        box = 0
-        return 'enchanting', box
-    elif 112 <= x <= 195 and 225 <= y <= 307 and player.mode == 'enchanting':
-        box = 1
-        return 'enchanting', box
-    elif 30 <= x <= 112 and 142 <= y <= 225 and player.mode == 'enchanting':
-        box = 2
-        return 'enchanting', box
-    elif player.enchanting_table.upgrade.x <= x <= player.enchanting_table.upgrade.x + 82 and player.enchanting_table.upgrade.y <= y <= player.enchanting_table.upgrade.y + 82 and player.mode == 'enchanting':
-        box = 0
-        return 'upgrade', box
-    elif player.enchanting_table.option1.x <= x <= player.enchanting_table.option1.x + 487 and player.enchanting_table.option1.y <= y <= player.enchanting_table.option1.y + 82 and player.mode == 'enchanting':
-        box = 0
-        return 'option1', box
-    elif player.enchanting_table.option2.x <= x <= player.enchanting_table.option2.x + 487 and player.enchanting_table.option2.y <= y <= player.enchanting_table.option2.y + 82 and player.mode == 'enchanting':
-        box = 1
-        return 'option2', box
-    elif player.enchanting_table.option3.x <= x <= (player.enchanting_table.option3.x + 487) and player.enchanting_table.option3.y <= y <= (player.enchanting_table.option3.y + 82) and player.mode == 'enchanting':
-        box = 2
-        return 'option3', box
-    elif 75 <= x <= 307 and 142 <= y <= 225 and player.mode == 'compressing':
-        box = 0
-        return 'compressing', box
-    elif 450 <= x <= 532 and 142 <= y <= 225 and player.mode == 'compressing':
-        box = 1
-        return 'compressing item', box
-    elif 225 <= x <= 307 and 87 <= y <= 169 and player.mode == 'repairing and disenchanting':
-        box = 0
-        return 'repairing and disenchanting', box
-    elif 225 <= x <= 307 and 177 <= y <= 259 and player.mode == 'repairing and disenchanting':
-        box = 1
-        return 'repairing and disenchanting', box
-    elif 475 <= x <= 557 and 133 <= y <= 215 and player.mode == 'repairing and disenchanting':
-        box = 2
-        return 'repairing and disenchanting item', box
-    else:
-        return None, None
-
-
-#Right Click - Drop Item / Separate Item into two different stacks
-def DropItem(Type, box):
-    if Type is not None and box is not None and player.holding_item.item is not None:
-        if Type == 'inventory grid': #Inventory Grid
-            if player.inventory.items[box] is None:
-                player.inventory.items[box] = Item(player.holding_item.item.name, 1, player.holding_item.item.enchantments, player.holding_item.item.durability)
-                player.holding_item.item.number -= 1
-            elif player.inventory.items[box] is not None and player.inventory.items[box].name == player.holding_item.item.name and (player.inventory.items[box].number + 1 <= player.inventory.items[box].stackNum):
-                player.inventory.items[box].number += 1
-                player.holding_item.item.number -= 1
-        elif Type == 'small crafting grid': #Small 2x2 Crafting Grid
-            if player.craft_interface.items[box] is None:
-                player.craft_interface.items[box] = Item(player.holding_item.item.name, 1, player.holding_item.item.enchantments, player.holding_item.item.durability)
-                player.holding_item.item.number -= 1
-            elif player.craft_interface.items[box] is not None and player.craft_interface.items[box].name == player.holding_item.item.name and (player.craft_interface.items[box].number + 1 <= player.craft_interface.items[box].stackNum):
-                player.craft_interface.items[box].number += 1
-                player.holding_item.item.number -= 1
-        elif Type == 'crafting grid': #Big 3x3 Crafting Grid
-            if player.crafting_grid.items[box] is None:
-                player.crafting_grid.items[box] = Item(player.holding_item.item.name, 1, player.holding_item.item.enchantments, player.holding_item.item.durability)
-                player.holding_item.item.number -= 1
-            elif player.crafting_grid.items[box] is not None and player.crafting_grid.items[box].name == player.holding_item.item.name and (player.crafting_grid.items[box].number + 1 <= player.crafting_grid.items[box].stackNum):
-                player.crafting_grid.items[box].number += 1
-                player.holding_item.item.number -= 1
-        elif Type == 'smelting': #Furnace Interface
-            if player.furnace.items[box] is None:
-                player.furnace.items[box] = Item(player.holding_item.item.name, 1, player.holding_item.item.enchantments, player.holding_item.item.durability)
-                player.holding_item.item.number -= 1
-            elif player.furnace.items[box] is not None and player.furnace.items[box].name == player.holding_item.item.name and (player.furnace.items[box].number + 1 <= player.furnace.items[box].stackNum):
-                player.furnace.items[box].number += 1
-                player.holding_item.item.number -= 1
-        elif Type == 'enchanting': #Enchanting Table Interface
-            if player.enchanting_table.items[box] is None:
-                player.enchanting_table.items[box] = Item(player.holding_item.item.name, 1, player.holding_item.item.enchantments, player.holding_item.item.durability)
-                player.holding_item.item.number -= 1
-            elif player.enchanting_table.items[box] is not None and player.enchanting_table.items[box].name == player.holding_item.item.name and (player.enchanting_table.items[box].number + 1 <= player.enchanting_table.items[box].stackNum):
-                player.enchanting_table.items[box].number += 1
-                player.holding_item.item.number -= 1
-        elif Type == 'compressing': #Compressor Interface
-            if player.compressor.items[box] is None:
-                player.compressor.items[box] = Item(player.holding_item.item.name, 1, player.holding_item.item.enchantments, player.holding_item.item.durability)
-                player.holding_item.item.number -= 1
-            elif player.compressor.items[box] is not None and player.compressor.items[box].name == player.holding_item.item.name and (player.compressor.items[box].number + 1 <= player.compressor.items[box].stackNum):
-                player.compressor.items[box].number += 1
-                player.holding_item.item.number -= 1
-        elif Type == 'repairing and disenchanting': #Grindstone Interface
-            if player.grindstone.items[box] is None:
-                player.grindstone.items[box] = Item(player.holding_item.item.name, 1, player.holding_item.item.enchantments, player.holding_item.item.durability)
-                player.holding_item.item.number -= 1
-            elif player.grindstone.items[box] is not None and player.grindstone.items[box].name == player.holding_item.item.name and (player.grindstone.items[box].number + 1 <= player.grindstone.items[box].stackNum):
-                player.grindstone.items[box].number += 1
-                player.holding_item.item.number -= 1
 
 
 #Limit number of times a player can repeat a command
