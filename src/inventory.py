@@ -28,6 +28,35 @@ def RenderDurabilityBar(display, x, y, durability, max_durability):
         pygame.draw.rect(display, colour, (x + 5, y + 72, math.floor(72 * durability / max_durability), 5))
 
 
+class HoldingItem:
+    def __init__(self):
+        self.item: Optional[Item] = None
+        self.__font = pygame.font.Font('assets/minecraft-font/MinecraftRegular-Bmg3.otf', 25)
+
+    def render(self, display: pygame.Surface, context: Context):
+
+        if self.item is None:
+            image = context.ITEM_IMAGES["none_img"]
+            number = ''
+        else:
+            image = context.ITEM_IMAGES[ITEM_IMAGE_MAPPING[self.item.name]]
+            number = str(self.item.number)
+
+        if self.item is not None:
+            if self.item.number == 1:
+                number = ''
+
+        x, y = pygame.mouse.get_pos()
+
+        if self.item is not None:
+            display.blit(image, (x, y))
+            display.blit(self.__font.render(number, False, (255, 255, 255)), (x + 52, y + 52))
+            if self.item.enchantments is not None:
+                display.blit(context.TC_GLINTS[self.item.name], (x, y))
+            if self.item.durability is not None:
+                RenderDurabilityBar(display, x, y, self.item.durability, self.item.max_durability)
+
+
 class Inventory:
 
     COLOUR = (83, 83, 83)
@@ -38,8 +67,6 @@ class Inventory:
         self.full = False
         self.__font = pygame.font.Font('assets/minecraft-font/MinecraftRegular-Bmg3.otf', 25)
         self.__selected_hotbar = 0
-
-        self.holding_item: Optional[Item] = None
 
         self.__INVENTORY_SLOTS: list[pygame.Rect] = [None]*36
         for row in range(4):
@@ -124,11 +151,18 @@ class Inventory:
                         self.items[none_index] = Item(self.items[i].name, self.items[i].number, self.items[i].enchantments, self.items[i].durability)
                         self.items[i] = None
 
+    # interface method?
     def get_hover_box(self, mouse: tuple[int, int]) -> Optional[int]:
         for i, rect in enumerate(self.__INVENTORY_SLOTS):
             if rect.collidepoint(mouse):
                 return i
         return None
+
+    #Switch items in inventory straight to hotbar
+    def hotbar_swap(self, mouse: tuple[int, int], key_pressed: int) -> None:
+        if (index := self.get_hover_box(mouse)) is None:
+            return
+        self.items[key_pressed + 26], self.items[index] = self.items[index], self.items[key_pressed + 26]
 
     # render inventory to screen
     def render(self, context: Context, display: pygame.Surface, mouse: tuple[int, int], is_holding: bool):
@@ -175,28 +209,6 @@ class Inventory:
         if not is_holding:
             self.render_hovering_item(display, mouse)
 
-    def render_holding_item(self, display: pygame.Surface, context: Context):
-
-        if self.holding_item is None:
-            image = context.ITEM_IMAGES["none_img"]
-            number = ''
-        else:
-            image = context.ITEM_IMAGES[ITEM_IMAGE_MAPPING[self.holding_item.name]]
-            number = str(self.holding_item.number)
-
-        if self.holding_item is not None:
-            if self.holding_item.number == 1:
-                number = ''
-
-        x, y = pygame.mouse.get_pos()
-
-        if self.holding_item is not None:
-            display.blit(image, (x, y))
-            display.blit(self.__font.render(number, False, (255, 255, 255)), (x + 52, y + 52))
-            if self.holding_item.enchantments is not None:
-                display.blit(context.TC_GLINTS[self.holding_item.name], (x, y))
-            if self.holding_item.durability is not None:
-                RenderDurabilityBar(display, x, y, self.holding_item.durability, self.holding_item.max_durability)
 
     def render_hovering_item(self, display: pygame.Surface, mouse: tuple[int, int]):
         if (index := self.get_hover_box(mouse)) is None:
