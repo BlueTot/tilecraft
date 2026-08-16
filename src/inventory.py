@@ -178,6 +178,21 @@ class Inventory:
         else:
             holding_item.item, self.items[index] = self.items[index], holding_item.item
 
+    # interface method?
+    def handle_right_click(self, mouse: tuple[int, int], holding_item: HoldingItem) -> None:
+        if (index := self.get_hover_box(mouse)) is None:
+            return
+
+        if holding_item.item is None:
+            return
+
+        if self.items[index] is None:
+            self.items[index] = Item(holding_item.item.name, 1, holding_item.item.enchantments, holding_item.item.durability)
+            holding_item.item.number -= 1
+        elif self.items[index] is not None and self.items[index].name == holding_item.item.name and (self.items[index].number + 1 <= self.items[index].stackNum):
+            self.items[index].number += 1
+            holding_item.item.number -= 1
+
     # render inventory to screen
     def render(self, context: Context, display: pygame.Surface, mouse: tuple[int, int], is_holding: bool):
 
@@ -478,6 +493,24 @@ class SmallCraftingInterface:
                     if self.items[i] is not None:
                         self.items[i].number -= 1
 
+    # interface method?
+    def handle_right_click(self, mouse: tuple[int, int], holding_item: HoldingItem) -> None:
+        if (index := self.get_hover_box(mouse)) is None:
+            return
+
+        if index == 4: # cannot right click on the results box
+            return
+
+        if holding_item.item is None:
+            return
+        
+        if self.items[index] is None:
+            self.items[index] = Item(holding_item.item.name, 1, holding_item.item.enchantments, holding_item.item.durability)
+            holding_item.item.number -= 1
+        elif self.items[index] is not None and self.items[index].name == holding_item.item.name and (self.items[index].number + 1 <= self.items[index].stackNum):
+            self.items[index].number += 1
+            holding_item.item.number -= 1
+
     def render(self, display: pygame.Surface, context: Context, mouse: tuple[int, int], is_holding: bool):
 
         images = []
@@ -594,6 +627,24 @@ class CraftingTableInterface:
                 for i in range(9):
                     if self.items[i] is not None:
                         self.items[i].number -= 1
+
+    # interface method?
+    def handle_right_click(self, mouse: tuple[int, int], holding_item: HoldingItem) -> None:
+        if (index := self.get_hover_box(mouse)) is None:
+            return
+
+        if index == 9: # cannot right click on results box
+            return
+
+        if holding_item.item is None:
+            return
+
+        if self.items[index] is None:
+            self.items[index] = Item(holding_item.item.name, 1, holding_item.item.enchantments, holding_item.item.durability)
+            holding_item.item.number -= 1
+        elif self.items[index] is not None and self.items[index].name == holding_item.item.name and (self.items[index].number + 1 <= self.items[index].stackNum):
+            self.items[index].number += 1
+            holding_item.item.number -= 1
 
     def render(self, display: pygame.Surface, context: Context, mouse: tuple[int, int], is_holding: bool):
 
@@ -727,6 +778,24 @@ class FurnaceInterface:
         else:
             inventory.add(self.items[2])
             self.items[2] = None
+
+    # interface method?
+    def handle_right_click(self, mouse: tuple[int, int], holding_item: HoldingItem) -> None:
+        if (index := self.get_hover_box(mouse)) is None:
+            return
+
+        if index == 2: # cannot right click on result box
+            return
+
+        if holding_item.item is None:
+            return
+            
+        if self.items[index] is None:
+            self.items[index] = Item(holding_item.item.name, 1, holding_item.item.enchantments, holding_item.item.durability)
+            holding_item.item.number -= 1
+        elif self.items[index] is not None and self.items[index].name == holding_item.item.name and (self.items[index].number + 1 <= self.items[index].stackNum):
+            self.items[index].number += 1
+            holding_item.item.number -= 1
 
     def render(self, display: pygame.Surface, context: Context, mouse: tuple[int, int], fps: float, is_holding: bool):
 
@@ -1024,6 +1093,24 @@ class EnchantingTable:
         elif index == 6:
             self.enchant3(rng, experience)
 
+    # interface method?
+    def handle_right_click(self, mouse: tuple[int, int], holding_item: HoldingItem) -> None:
+        if (index := self.get_hover_box(mouse)) is None:
+            return
+
+        if index >= 3: # cannot right click on buttons
+            return
+
+        if holding_item.item is None:
+            return
+
+        if self.items[index] is None:
+            self.items[index] = Item(holding_item.item.name, 1, holding_item.item.enchantments, holding_item.item.durability)
+            holding_item.item.number -= 1
+        elif self.items[index] is not None and self.items[index].name == holding_item.item.name and (self.items[index].number + 1 <= self.items[index].stackNum):
+            self.items[index].number += 1
+            holding_item.item.number -= 1
+
     def render(self, display: pygame.Surface, context: Context, mouse: tuple[int, int], is_holding: bool):
 
         images = []
@@ -1169,6 +1256,24 @@ class Compressor:
             inventory.add(self.items[1])
             self.items[1] = None
 
+    # interface method?
+    def handle_right_click(self, mouse: tuple[int, int], holding_item: HoldingItem) -> None:
+        if (index := self.get_hover_box(mouse)) is None:
+            return
+
+        if index == 1: # cannot right click on result box
+            return
+
+        if holding_item.item is None:
+            return
+
+        if self.items[index] is None:
+            self.items[index] = Item(holding_item.item.name, 1, holding_item.item.enchantments, holding_item.item.durability)
+            holding_item.item.number -= 1
+        elif self.items[index] is not None and self.items[index].name == holding_item.item.name and (self.items[index].number + 1 <= self.items[index].stackNum):
+            self.items[index].number += 1
+            holding_item.item.number -= 1
+
     def render(self, display: pygame.Surface, context: Context, mouse: tuple[int, int], fps: float, is_holding: bool):
 
         images = []
@@ -1298,6 +1403,25 @@ class Grindstone:
                 if self.items[0].enchantments is not None:
                     self.disenchant(experience)
             self.items[0], self.items[1], self.items[2] = None, None, None
+
+
+    # interface method?
+    def handle_right_click(self, mouse: tuple[int, int], holding_item: HoldingItem) -> None:
+        if (index := self.get_hover_box(mouse)) is None:
+            return
+
+        if index == 2: # cannot right click on results box
+            return
+
+        if holding_item.item is None:
+            return
+
+        if self.items[index] is None:
+            self.items[index] = Item(holding_item.item.name, 1, holding_item.item.enchantments, holding_item.item.durability)
+            holding_item.item.number -= 1
+        elif self.items[index] is not None and self.items[index].name == holding_item.item.name and (self.items[index].number + 1 <= self.items[index].stackNum):
+            self.items[index].number += 1
+            holding_item.item.number -= 1
 
 
     def render(self, display: pygame.Surface, context: Context, mouse: tuple[int, int], is_holding: bool):
