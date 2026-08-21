@@ -841,7 +841,7 @@ class FurnaceInterface:
 
         display.blit(self.fuel_img, (225, 172)) #Render Fire Image
         display.blit(self.__side_font.render(str(self.fuel_val), False, (255, 0, 0)), (187, 187)) #Render Power of Fuel Remaining
-        display.blit(self.__side_font.render(str(self.smelting_time // fps), False, (255, 0, 0)), (367, 157)) #Render Time to Smelt
+        display.blit(self.__side_font.render(f"{int(self.smelting_time / fps)}", False, (255, 0, 0)), (367, 157)) #Render Time to Smelt
         display.blit(self.__arrow_font.render('-->', False, (0, 0, 0)), (337, 187)) #Render Arrow
 
         if not is_holding:
@@ -1317,7 +1317,7 @@ class Compressor:
             display.blit(surface, (coordinate.x, coordinate.y))
 
         display.blit(self.__arrow_font.render('-->', False, (0, 0, 0)), (337, 172))  # Render Arrow
-        display.blit(self.__side_font.render(str(self.compressing_time // fps), False, (255, 0, 0)), (360, 142))  # Render Time to Compress
+        display.blit(self.__side_font.render(f"{int(self.compressing_time / fps)}", False, (255, 0, 0)), (360, 142))  # Render Time to Compress
 
         if not is_holding:
             self.render_hovering_item(display, mouse)
