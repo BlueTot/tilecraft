@@ -1,11 +1,10 @@
-import tkinter  # Tkinter module
-import tkinter.font  # Fonts module
-import random  # Random module
-import pygame  # Pygame module
-import time  # Time module
-import math #Math module
-import os #OS module
-import sys #SYS module
+import tkinter  
+import tkinter.font 
+import random  
+import pygame  
+import math 
+import os 
+import sys 
 
 from tilecraft import ASSETS_DIR
 from .cheats import print_cheats, give, enchant, teleport, experience
@@ -425,35 +424,30 @@ class TilecraftWorld:
 
 
 # Game Loop
-def Main():
-    global TimerRunning, screen, furnace_interface, crafting_grid, small_crafting_grid, inventory_grid, World, player, difference, individual_frame, FPS, mode, val, comma, number, called, world, frame, play_time, endTime, minute, seconds, true_play_time, PlayTime, hotbar_backgrounds, selected_hotbar
-    global hasGeneratedOverworld, display, clock, loading, hasGeneratedUnderground, previous_frame
+def Main(display: pygame.Surface, clock: pygame.time.Clock):
+    global screen, World, player, mode, val, comma, number, called, world, play_time, endTime, \
+           minute, seconds, true_play_time, play_time_seconds, hasGeneratedOverworld, loading, hasGeneratedUnderground 
 
     context: Context = None
     rng: RandomNumberGenerator = None
     timer: SpeedrunTimer = SpeedrunTimer(load)
+    frame_count = 0
 
     while True:
-        clock.tick()
 
-        # Calculate FPS
-        frame += 1  # Update frame
-        individual_frame += 1  # Update individual frame for each second
-        end = time.time()  # Calculate current time
-        PlayTime = end - start  # Calculate current playtime
-        if (end - start - difference) > 1:  # Reset every second
-            previous_frame = individual_frame
-            individual_frame = 0
-            difference += 1
-        FPS = previous_frame
+        clock.tick(60) # maximum FPS of 60
+        frame_count += 1 # increment no. of frames
+        fps = clock.get_fps()
+        play_time_seconds = pygame.time.get_ticks() / 1000.0 # in seconds 
+
         events = pygame.event.get()
         if hasGeneratedOverworld and (hasGeneratedUnderground == "Not Loaded" or hasGeneratedUnderground == "Generated"):
             if player.mode == "game":
                 if not screen.isTyping:
                     # Kill Player
                     if player.dead:
-                        minute = int(PlayTime // 60)
-                        seconds = int(round(PlayTime % 60))
+                        minute = int(play_time_seconds // 60)
+                        seconds = int(round(play_time_seconds % 60))
                         true_play_time = "Time Played:   " + str(minute) + "m " + str(seconds) + "s"
                         pygame.quit()
                         return 'death screen'
@@ -569,7 +563,7 @@ def Main():
                                 player.breaking_time = 0
                                 player.isBreaking = False
                     if player.isBreaking:
-                        player.breaking()
+                        player.breaking(fps)
                     player.move()  # Move Player
                 else:
                     keys = pygame.key.get_pressed()
@@ -592,13 +586,13 @@ def Main():
 
                 display.fill((0, 0, 0))  # Fill world border black
                 world.fill(background)  # Fill world background colour
-                player.health_update()  # Update Player Health
+                player.health_update(frame_count)  # Update Player Health
                 World.render_chunks(player.left, player.right, player.top, player.bottom)  # Generate list of all chunks that are loaded
                 World.generate_chunks()  # Generate Chunks that are loaded but have not been generated before
                 World.render(world, context)  # Render all world blocks to world
                 RemoveItem() #Remove Items if their number is 0
-                player.render(context, world, screen_width, screen_height)  # Render player and player accessories to world
-                timer.render(world, PlayTime)
+                player.render(context, world, screen_width, screen_height, fps)  # Render player and player accessories to world
+                timer.render(world, play_time_seconds)
                 advancements_update(screen, timer, player.advancements, player.inventory.items, player.armour.items, player.dimension)  # Update Advancements
                 screen.render(world) #Render Text Screen
 
@@ -691,15 +685,15 @@ def Main():
                     player.crafting_grid.update()  #Update 3x3 Crafting Grid
 
                 elif player.mode == "smelting":
-                    player.furnace.render(world, context, mouse, FPS, is_holding) #Render Furnace Interface
-                    player.furnace.smelt(context, FPS, player.experience) #Furnace Smelting
+                    player.furnace.render(world, context, mouse, fps, is_holding) #Render Furnace Interface
+                    player.furnace.smelt(context, fps, player.experience) #Furnace Smelting
 
                 elif player.mode == "enchanting":
                     player.enchanting_table.render(world, context, mouse, is_holding) #Render Enchanting Table Interface
 
                 elif player.mode == "compressing":
-                    player.compressor.render(world, context, mouse, FPS, is_holding) #Render Compressor Interface
-                    player.compressor.compress(FPS) #Compressing Process
+                    player.compressor.render(world, context, mouse, fps, is_holding) #Render Compressor Interface
+                    player.compressor.compress(fps) #Compressing Process
 
                 elif player.mode == "repairing and disenchanting":
                     player.grindstone.render(world, context, mouse, is_holding) #Render Grindstone Interface
@@ -830,17 +824,17 @@ class Player:
             self.hunger_subtracted += 1
 
     #Update Health and Regeneration
-    def health_update(self):
-        if self.hunger >= 17 and self.health < 20 and frame % 16 == 0:
+    def health_update(self, frame_count: int):
+        if self.hunger >= 17 and self.health < 20 and frame_count % 16 == 0:
             self.hunger -= 1
             self.health += 1
-        if self.hunger == 0 and frame % 16 == 0:
+        if self.hunger == 0 and frame_count % 16 == 0:
             self.health -= 1
         if self.health == 0:
             self.dead = True
         if self.regenerate_val and self.health < 20:
             if self.regenerate_start_time < 60:
-                if frame % 5 == 0:
+                if frame_count % 5 == 0:
                     self.health += 1
                 self.regenerate_start_time += 1
             else:
@@ -1100,8 +1094,7 @@ class Player:
                         if self.inventory.hotbar_item.number == 0:
                             self.inventory.hotbar_item = None  # Remove from inventory
 
-    def breaking(self): #Breaking process of tile
-        global frame, FPS
+    def breaking(self, fps: float): #Breaking process of tile
         if self.breaking_delay == 0:
             if self.isShifting: #can edit background tiles
                 if self.dimension == "Overworld": #Overworld background tiles
@@ -1109,7 +1102,7 @@ class Player:
                     if tile.breaking_time is not None: #Can break tile, targeting correct tile
                         if math.floor(self.breaking_time) >= 7:
                             self.breaking_time = 0
-                            self.break_tile(tile)
+                            self.break_tile(tile, fps)
                         else:
                             try:
                                 CALLED = False
@@ -1120,19 +1113,19 @@ class Player:
                                                 self.breaking_time += 7
                                                 self.isInstantMining = True
                                             else:
-                                                self.breaking_time += ((7 / FPS) / (tile.breaking_time * 1.5)) * (1 + self.inventory.hotbar_item.mining_speed)
+                                                self.breaking_time += ((7 / fps) / (tile.breaking_time * 1.5)) * (1 + self.inventory.hotbar_item.mining_speed)
                                                 self.isInstantMining = False
                                             CALLED = True
                                         elif self.inventory.hotbar_item.itemType == tile.requireTool and self.inventory.hotbar_item.toolTier < tile.requireToolTier:  # correct tool but incorrect tier
-                                            self.breaking_time += ((7 / FPS) / (tile.breaking_time * 5)) * (1 + self.inventory.hotbar_item.mining_speed)
+                                            self.breaking_time += ((7 / fps) / (tile.breaking_time * 5)) * (1 + self.inventory.hotbar_item.mining_speed)
                                             CALLED = True
                                             self.isInstantMining = False
                                 if not CALLED:  # code above didn't run
                                     if tile.requireToolTier == 0:  # no requirement
-                                        self.breaking_time += (7 / FPS) / (tile.breaking_time * 1.5)
+                                        self.breaking_time += (7 / fps) / (tile.breaking_time * 1.5)
                                         self.isInstantMining = False
                                     else:  # incorrect tool and tier
-                                        self.breaking_time += (7 / FPS) / (tile.breaking_time * 5)
+                                        self.breaking_time += (7 / fps) / (tile.breaking_time * 5)
                                         self.isInstantMining = False
                             except ZeroDivisionError:
                                 self.breaking_time += 7
@@ -1141,30 +1134,30 @@ class Player:
                     if tile.breaking_time is not None:  # Can break tile, targeting correct tile
                         if math.floor(self.breaking_time) >= 7:
                             self.breaking_time = 0
-                            self.break_tile(tile)
+                            self.break_tile(tile, fps)
                         else:
                             try:
                                 CALLED = False
                                 if self.inventory.hotbar_item is not None:  # not holding any item
                                     if self.inventory.hotbar_item.toolTier is not None:  # is holding item
                                         if self.inventory.hotbar_item.itemType == tile.requireTool and self.inventory.hotbar_item.toolTier >= tile.requireToolTier:  # correct tool and tier
-                                            if (1 + self.inventory.hotbar_item.mining_speed) / (tile.breaking_time * FPS * 1.5) >= 1 / (FPS/20):
+                                            if (1 + self.inventory.hotbar_item.mining_speed) / (tile.breaking_time * fps * 1.5) >= 1 / (fps/20):
                                                 self.breaking_time += 7
                                                 self.isInstantMining = True
                                             else:
-                                                self.breaking_time += ((7 / FPS) / (tile.breaking_time * 1.5)) * (1 + self.inventory.hotbar_item.mining_speed)
+                                                self.breaking_time += ((7 / fps) / (tile.breaking_time * 1.5)) * (1 + self.inventory.hotbar_item.mining_speed)
                                                 self.isInstantMining = False
                                             CALLED = True
                                         elif self.inventory.hotbar_item.itemType == tile.requireTool and self.inventory.hotbar_item.toolTier < tile.requireToolTier:  # correct tool but incorrect tier
-                                            self.breaking_time += ((7 / FPS) / (tile.breaking_time * 5)) * (1 + self.inventory.hotbar_item.mining_speed)
+                                            self.breaking_time += ((7 / fps) / (tile.breaking_time * 5)) * (1 + self.inventory.hotbar_item.mining_speed)
                                             CALLED = True
                                             self.isInstantMining = False
                                 if not CALLED:  # code above didn't run
                                     if tile.requireToolTier == 0:  # no requirement
-                                        self.breaking_time += (7 / FPS) / (tile.breaking_time * 1.5)
+                                        self.breaking_time += (7 / fps) / (tile.breaking_time * 1.5)
                                         self.isInstantMining = False
                                     else:  # incorrect tool and tier
-                                        self.breaking_time += (7 / FPS) / (tile.breaking_time * 5)
+                                        self.breaking_time += (7 / fps) / (tile.breaking_time * 5)
                                         self.isInstantMining = False
                             except ZeroDivisionError:
                                 self.breaking_time += 7
@@ -1174,30 +1167,30 @@ class Player:
                     if tile.breaking_time is not None:  # Can break tile, targeting correct tile
                         if math.floor(self.breaking_time) >= 7:
                             self.breaking_time = 0
-                            self.break_tile(tile)
+                            self.break_tile(tile, fps)
                         else:
                             try:
                                 CALLED = False
                                 if self.inventory.hotbar_item is not None:  # not holding any item
                                     if self.inventory.hotbar_item.toolTier is not None:  # is holding item
                                         if self.inventory.hotbar_item.itemType == tile.requireTool and self.inventory.hotbar_item.toolTier >= tile.requireToolTier:  # correct tool and tier
-                                            if (1 + self.inventory.hotbar_item.mining_speed) / (tile.breaking_time * FPS * 1.5) >= 1 / (FPS/20):
+                                            if (1 + self.inventory.hotbar_item.mining_speed) / (tile.breaking_time * fps * 1.5) >= 1 / (fps/20):
                                                 self.breaking_time += 7
                                                 self.isInstantMining = True
                                             else:
-                                                self.breaking_time += ((7 / FPS) / (tile.breaking_time * 1.5)) * (1 + self.inventory.hotbar_item.mining_speed)
+                                                self.breaking_time += ((7 / fps) / (tile.breaking_time * 1.5)) * (1 + self.inventory.hotbar_item.mining_speed)
                                                 self.isInstantMining = False
                                             CALLED = True
                                         elif self.inventory.hotbar_item.itemType == tile.requireTool and self.inventory.hotbar_item.toolTier < tile.requireToolTier:  # correct tool but incorrect tier
-                                            self.breaking_time += ((7 / FPS) / (tile.breaking_time * 5)) * (1 + self.inventory.hotbar_item.mining_speed)
+                                            self.breaking_time += ((7 / fps) / (tile.breaking_time * 5)) * (1 + self.inventory.hotbar_item.mining_speed)
                                             CALLED = True
                                             self.isInstantMining = False
                                 if not CALLED:  # code above didn't run
                                     if tile.requireToolTier == 0:  # no requirement
-                                        self.breaking_time += (7 / FPS) / (tile.breaking_time * 1.5)
+                                        self.breaking_time += (7 / fps) / (tile.breaking_time * 1.5)
                                         self.isInstantMining = False
                                     else:  # incorrect tool and tier
-                                        self.breaking_time += (7 / FPS) / (tile.breaking_time * 5)
+                                        self.breaking_time += (7 / fps) / (tile.breaking_time * 5)
                                         self.isInstantMining = False
                             except ZeroDivisionError:
                                 self.breaking_time += 7
@@ -1206,37 +1199,37 @@ class Player:
                     if tile.breaking_time is not None:  # Can break tile, targeting correct tile
                         if math.floor(self.breaking_time) >= 7:
                             self.breaking_time = 0
-                            self.break_tile(tile)
+                            self.break_tile(tile, fps)
                         else:
                             try:
                                 CALLED = False
                                 if self.inventory.hotbar_item is not None:  # not holding any item
                                     if self.inventory.hotbar_item.toolTier is not None:  # is holding item
                                         if self.inventory.hotbar_item.itemType == tile.requireTool and self.inventory.hotbar_item.toolTier >= tile.requireToolTier:  # correct tool and tier
-                                            if (1 + self.inventory.hotbar_item.mining_speed) / (tile.breaking_time * FPS * 1.5) >= 1 / (FPS/20):
+                                            if (1 + self.inventory.hotbar_item.mining_speed) / (tile.breaking_time * fps * 1.5) >= 1 / (fps/20):
                                                 self.breaking_time += 7
                                                 self.isInstantMining = True
                                             else:
-                                                self.breaking_time += ((7 / FPS) / (tile.breaking_time * 1.5)) * (1 + self.inventory.hotbar_item.mining_speed)
+                                                self.breaking_time += ((7 / fps) / (tile.breaking_time * 1.5)) * (1 + self.inventory.hotbar_item.mining_speed)
                                                 self.isInstantMining = False
                                             CALLED = True
                                         elif self.inventory.hotbar_item.itemType == tile.requireTool and self.inventory.hotbar_item.toolTier < tile.requireToolTier:  # correct tool but incorrect tier
-                                            self.breaking_time += ((7 / FPS) / (tile.breaking_time * 5)) * (1 + self.inventory.hotbar_item.mining_speed)
+                                            self.breaking_time += ((7 / fps) / (tile.breaking_time * 5)) * (1 + self.inventory.hotbar_item.mining_speed)
                                             CALLED = True
                                             self.isInstantMining = False
                                 if not CALLED:  # code above didn't run
                                     if tile.requireToolTier == 0:  # no requirement
-                                        self.breaking_time += (7 / FPS) / (tile.breaking_time * 1.5)
+                                        self.breaking_time += (7 / fps) / (tile.breaking_time * 1.5)
                                         self.isInstantMining = False
                                     else:  # incorrect tool and tier
-                                        self.breaking_time += (7 / FPS) / (tile.breaking_time * 5)
+                                        self.breaking_time += (7 / fps) / (tile.breaking_time * 5)
                                         self.isInstantMining = False
                             except ZeroDivisionError:
                                 self.breaking_time += 7
 
-    def break_add_item(self, value):
+    def break_add_item(self, value, fps: float):
         if not self.isInstantMining:
-            self.breaking_delay = FPS * 3/10
+            self.breaking_delay = fps * 3/10
         if self.dimension == "Overworld":
             if value.tile != "Leaf":
                 if value.tile == "Tree":
@@ -1298,7 +1291,7 @@ class Player:
                 else:
                     self.inventory.hotbar_item.durability -= 1
 
-    def break_tile(self, value):
+    def break_tile(self, value, fps: float):
         if self.isShifting:
             if self.dimension == "Overworld":
                 if self.inventory.hotbar_item is not None:
@@ -1307,14 +1300,14 @@ class Player:
                             if self.inventory.hotbar_item.name == value.tile:
                                 self.inventory.hotbar_item.number += 1
                             else:
-                                self.break_add_item(value)
+                                self.break_add_item(value, fps)
                     elif value.requireToolTier == 0:
                         if self.inventory.hotbar_item.name == value.tile:
                             self.inventory.hotbar_item.number += 1
                         else:
-                            self.break_add_item(value)
+                            self.break_add_item(value, fps)
                 elif value.requireToolTier == 0:
-                    self.break_add_item(value)
+                    self.break_add_item(value, fps)
                 World.UnderTiles[(value.x, value.y)] = Tile("Air", self.target[0], self.target[1])
             elif self.dimension == "Underground":
                 if self.inventory.hotbar_item is not None:
@@ -1323,14 +1316,14 @@ class Player:
                             if self.inventory.hotbar_item.name == value.tile:
                                 self.inventory.hotbar_item.number += 1
                             else:
-                                self.break_add_item(value)
+                                self.break_add_item(value, fps)
                     elif value.requireToolTier == 0:
                         if self.inventory.hotbar_item.name == value.tile:
                             self.inventory.hotbar_item.number += 1
                         else:
-                            self.break_add_item(value)
+                            self.break_add_item(value, fps)
                 elif value.requireToolTier == 0:
-                    self.break_add_item(value)
+                    self.break_add_item(value, fps)
                 World.UndergroundUnderTiles[(value.x, value.y)] = Tile("Air", self.target[0], self.target[1])
         else:
             if self.dimension == "Overworld":
@@ -1340,14 +1333,14 @@ class Player:
                             if self.inventory.hotbar_item.name == value.tile:
                                 self.inventory.hotbar_item.number += 1
                             else:
-                                self.break_add_item(value)
+                                self.break_add_item(value, fps)
                     elif value.requireToolTier == 0:
                         if self.inventory.hotbar_item.name == value.tile:
                             self.inventory.hotbar_item.number += 1
                         else:
-                            self.break_add_item(value)
+                            self.break_add_item(value, fps)
                 elif value.requireToolTier == 0:
-                    self.break_add_item(value)
+                    self.break_add_item(value, fps)
                 World.Tiles[(value.x, value.y)] = Tile("Air", self.target[0], self.target[1])
             elif self.dimension == "Underground":
                 if self.inventory.hotbar_item is not None:
@@ -1356,14 +1349,14 @@ class Player:
                             if self.inventory.hotbar_item.name == value.tile:
                                 self.inventory.hotbar_item.number += 1
                             else:
-                                self.break_add_item(value)
+                                self.break_add_item(value, fps)
                     elif value.requireToolTier == 0:
                         if self.inventory.hotbar_item.name == value.tile:
                             self.inventory.hotbar_item.number += 1
                         else:
-                            self.break_add_item(value)
+                            self.break_add_item(value, fps)
                 elif value.requireToolTier == 0:
-                    self.break_add_item(value)
+                    self.break_add_item(value, fps)
                 World.UndergroundTiles[(value.x, value.y)] = Tile("Air", self.target[0], self.target[1])
 
     def pick_up_liquid(self): #Picking up liquids with a bucket
@@ -1446,8 +1439,7 @@ class Player:
                     player.inventory.add(Item("Bucket", 1, None, None))
                     World.UndergroundTiles[(self.target[0], self.target[1])] = Tile("Lava", self.target[0], self.target[1])
 
-    def render(self, context: Context, display: pygame.Surface, screen_width: int, screen_height: int):
-        global FPS 
+    def render(self, context: Context, display: pygame.Surface, screen_width: int, screen_height: int, fps: float):
 
         if self.breaking_delay > 0:
             self.breaking_delay -= 1
@@ -1492,8 +1484,8 @@ class Player:
             display.blit(display_size, (0, 75))
             SEEDs = font9.render(f"Seed: {World.seed}", True, (0, 0, 0), (255, 255, 255))
             display.blit(SEEDs, (0, 100))
-            FPS = font9.render(f"FPS: {FPS}", True, (0, 0, 0), (255, 255, 255))
-            display.blit(FPS, (0, 125))
+            fps_font = font9.render(f"FPS: {fps:.2f}", True, (0, 0, 0), (255, 255, 255))
+            display.blit(fps_font, (0, 125))
             Direction = font9.render(f"Facing: {self.direction}", True, (0, 0, 0), (255, 255, 255))
             display.blit(Direction, (0, 150))
             Target = font9.render(f"Target Tile: {self.target[0]}, {self.target[1]}", True, (0, 0, 0), (255, 255, 255))
@@ -1536,7 +1528,7 @@ def death_screen():
 
 def PygameInitialise() -> tuple[Context, RandomNumberGenerator]:
     global hasGeneratedOverworld, display, clock
-    global netherGenerated, background, numList, call, difference, FPS, individual_frame, second_time, start, load, frame
+    global netherGenerated, background, call, second_time, start, load 
     global hotbar_imgs, pygame_enchant_imgs, hotbar_order
 
     # Play Minecraft Music (Sweden)
@@ -1719,41 +1711,34 @@ def PygameInitialise() -> tuple[Context, RandomNumberGenerator]:
         INFOBAR_IMAGES = INFOBAR_IMAGES
     )
 
-    global player, World, screen, TimerRunning, world
+    global player, World, screen, world
     world = pygame.Surface((750, 750))  # Create Map Surface
     world.fill((0, 0, 0))  # Fill Map Surface Black
     rng = RandomNumberGenerator(seed := GetSeed())
     World = TilecraftWorld(rng, seed)  # Create World
     player = Player(context, rng)  # Create Player
     screen = Screen(rng)  # Create Text Screen
-    TimerRunning = True
     hasGeneratedOverworld = True
 
     # return context to be passed around
     return context, rng
 
 def create_world():
-    global hasGeneratedOverworld, hasGeneratedUnderground
+    global hasGeneratedOverworld, hasGeneratedUnderground, world, netherGenerated, background, call, load, loading 
     hasGeneratedOverworld = False
     hasGeneratedUnderground = 'Not Loaded'
-    global display, clock, world, netherGenerated, background, numList, call, difference, FPS, individual_frame, start, load, frame, loading, previous_frame
     pygame.init()  # Initialise Pygame Module
     display = pygame.display.set_mode((750, 750))  # Set display
     pygame.display.set_caption("Tilecraft Beta 1.0 Pre-Release 3")  # Set title
     clock = pygame.time.Clock()
+    clock.get_time()
     netherGenerated = False
     background = (255, 255, 255)
-    numList = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ' ']
     call = False
     load = optionData()
     Quit()
-    start = time.time()
-    individual_frame = 0
-    previous_frame = 0
-    difference = 0
-    frame = 0
     loading = pygame.image.load(str(ASSETS_DIR / "loading.png")).convert()
-    signal = Main()  #Start Game by Calling the Main Loop
+    signal = Main(display, clock)  #Start Game by Calling the Main Loop
     if signal == 'title screen':
         title_screen()
     elif signal == 'death screen':
@@ -1763,7 +1748,7 @@ def create_world():
 
 #UP TO HERE
 def commands(number, val, rng: RandomNumberGenerator, screen: Screen, timer: SpeedrunTimer):
-    global player, cobblestone_index, obsidian_index, item_name_list, FPS, experience, inventory_list, hotbar_order, hotbar_index, mode, hotbar_item, item_val_list, background, enchantable_list, flint_val, gravel_val, blacksmith_book, bool_blacksmith_iron, bool_blacksmith_diamond, bool_blacksmith_bread, blacksmith_iron, blacksmith_diamond, blacksmith_bread, endTime, bound_overworld_portal, overworld_portal, diaval, call, actualX, actualY, dimension
+    global player, cobblestone_index, obsidian_index, item_name_list, experience, inventory_list, hotbar_order, hotbar_index, mode, hotbar_item, item_val_list, background, enchantable_list, flint_val, gravel_val, blacksmith_book, bool_blacksmith_iron, bool_blacksmith_diamond, bool_blacksmith_bread, blacksmith_iron, blacksmith_diamond, blacksmith_bread, endTime, bound_overworld_portal, overworld_portal, diaval, call, actualX, actualY, dimension
     for o in range(number):
         if val == "/lootvillagehay":  # Loot Village Hay
             if player.dimension == 'Overworld':
