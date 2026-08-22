@@ -5,7 +5,7 @@ import pygame
 import math 
 import sys 
 
-from tilecraft import ASSETS_DIR 
+from tilecraft import ASSETS_DIR , VERSION
 from .cheats import print_cheats, give, enchant, teleport, experience
 from .constants import ITEM_TYPES, Item, TILE_IMAGE_MAPPING, RandomNumberGenerator, Context, create_context
 from .generation import Tile, OverworldGeneratedList, OverworldGenerate, SpawnOverworldGenerate, SpawnOverworldBoundGenerate, UndergroundGeneratedList, SpawnUndergroundGenerate, UndergroundGenerate, UndergroundGeneratePortal, OverworldGeneratePortal, NetherGeneratedList, SpawnNetherGenerate, SpawnNetherBoundGenerate, NetherGenerate
@@ -351,31 +351,31 @@ class TilecraftWorld:
                         display.blit(tile_image(value.tile), (value.x * 32 - player.left, value.y * 32 - player.top)) #Draw Image
                     else:
                         display.blit(context.TILE_IMAGES["bedrock_tile"], (value.x * 32 - player.left, value.y * 32 - player.top))
-                    pygame.draw.rect(world, (100, 100, 100), (value.x * 32 - player.left, value.y * 32 - player.top, 32, 32), 1) #Draw Border Outline
+                    pygame.draw.rect(display, (100, 100, 100), (value.x * 32 - player.left, value.y * 32 - player.top, 32, 32), 1) #Draw Border Outline
             for key, value in self.Tiles.items(): #surface tiles (with collisions)
                 if -32 <= (key[0] * 32 - player.left) <= 1032 and -32 <= (key[1] * 32 - player.top) <= 1032:
                     if value.tile != "Air":
                         display.blit(tile_image(value.tile), (value.x * 32 - player.left, value.y * 32 - player.top)) #Draw Image
-                        pygame.draw.rect(world, (100, 100, 100), (value.x * 32 - player.left, value.y * 32 - player.top, 32, 32), 1) #Draw Border Outline
+                        pygame.draw.rect(display, (100, 100, 100), (value.x * 32 - player.left, value.y * 32 - player.top, 32, 32), 1) #Draw Border Outline
             # DRAWING OVERWORLD STRUCTURES
             for k in range(len(self.village)):
                 if -32 <= (self.village[k][0] * 32 - player.left) <= 1032 and -32 <= (self.village[k][1] * 32 - player.top) <= 1032:
-                    pygame.draw.circle(world, (255, 165, 0), (self.village[k][0] * 32 - player.left, self.village[k][1] * 32 - player.top), 10, 10)
+                    pygame.draw.circle(display, (255, 165, 0), (self.village[k][0] * 32 - player.left, self.village[k][1] * 32 - player.top), 10, 10)
             for k in range(len(self.ruined_portal)):
                 if -32 <= (self.ruined_portal[k][0] * 32 - player.left) <= 1032 and -32 <= (self.ruined_portal[k][1] * 32 - player.top) <= 1032:
-                    pygame.draw.circle(world, (56, 0, 89), (self.ruined_portal[k][0] * 32 - player.left, self.ruined_portal[k][1] * 32 - player.top), 10, 10)
+                    pygame.draw.circle(display, (56, 0, 89), (self.ruined_portal[k][0] * 32 - player.left, self.ruined_portal[k][1] * 32 - player.top), 10, 10)
 
             # DRAWING OVERWORLD EMPTY STRUCTURES
             for k in range(len(self.empty_vil_total)):
                 if -32 <= (self.empty_vil_total[k][0] * 32 - player.left) <= 1032 and -32 <= (self.empty_vil_total[k][1] * 32 - player.top) <= 1032:
-                    pygame.draw.circle(world, (153, 102, 0), (self.empty_vil_total[k][0] * 32 - player.left, self.empty_vil_total[k][1] * 32 - player.top), 10, 10)
+                    pygame.draw.circle(display, (153, 102, 0), (self.empty_vil_total[k][0] * 32 - player.left, self.empty_vil_total[k][1] * 32 - player.top), 10, 10)
             for k in range(len(self.empty_ruined_portal_total)):
                 if -32 <= (self.empty_ruined_portal_total[k][0] * 32 - player.left) <= 1032 and -32 <= (self.empty_ruined_portal_total[k][1] * 32 - player.top) <= 1032:
-                    pygame.draw.circle(world, (255, 255, 255), (self.empty_ruined_portal_total[k][0] * 32 - player.left, self.empty_ruined_portal_total[k][1] * 32 - player.top), 12, 12)
+                    pygame.draw.circle(display, (255, 255, 255), (self.empty_ruined_portal_total[k][0] * 32 - player.left, self.empty_ruined_portal_total[k][1] * 32 - player.top), 12, 12)
             # DRAWING OVERWORLD NETHER PORTALS
             for k in range(len(self.overworld_portal)):
                 if -32 <= (self.overworld_portal[k][0] * 32 - player.left) <= 1032 and -32 <= (self.overworld_portal[k][1] * 32 - player.top) <= 1032:
-                    pygame.draw.circle(world, (128, 0, 128), (self.overworld_portal[k][0] * 32 - player.left, self.overworld_portal[k][1] * 32 - player.top), 10, 10)
+                    pygame.draw.circle(display, (128, 0, 128), (self.overworld_portal[k][0] * 32 - player.left, self.overworld_portal[k][1] * 32 - player.top), 10, 10)
 
         #DRAW UNDERGROUND DIMENSION
         elif player.dimension == "Underground" and hasGeneratedUnderground == "Generated":
@@ -385,12 +385,12 @@ class TilecraftWorld:
                         display.blit(tile_image(value.tile), (value.x * 32 - player.left, value.y * 32 - player.top)) #Draw Image
                     else:
                         display.blit(context.ITEM_IMAGES["bedrock_tile"], (value.x * 32 - player.left, value.y * 32 - player.top))
-                    pygame.draw.rect(world, (100, 100, 100), (value.x * 32 - player.left, value.y * 32 - player.top, 32, 32), 1) #Draw Border Outline
+                    pygame.draw.rect(display, (100, 100, 100), (value.x * 32 - player.left, value.y * 32 - player.top, 32, 32), 1) #Draw Border Outline
             for key, value in self.UndergroundTiles.items(): #surface tiles (with collisions)
                 if -32 <= (key[0] * 32 - player.left) <= 1032 and -32 <= (key[1] * 32 - player.top) <= 1032:
                     if value.tile != "Air":
                         display.blit(tile_image(value.tile), (value.x * 32 - player.left, value.y * 32 - player.top)) #Draw Image
-                        pygame.draw.rect(world, (100, 100, 100), (value.x * 32 - player.left, value.y * 32 - player.top, 32, 32), 1) #Draw Border Outline
+                        pygame.draw.rect(display, (100, 100, 100), (value.x * 32 - player.left, value.y * 32 - player.top, 32, 32), 1) #Draw Border Outline
 
         # DRAW NETHER DIMENSION
         elif player.dimension == "Nether":
@@ -401,31 +401,33 @@ class TilecraftWorld:
             # DRAWING NETHER NETHER PORTALS
             for k in range(len(self.nether_portal)):
                 if -32 <= (self.nether_portal[k][0] * 32 - player.left) <= 1032 and -32 <= (self.nether_portal[k][1] * 32 - player.top) <= 1032:
-                    pygame.draw.circle(world, (128, 0, 128), (self.nether_portal[k][0] * 32 - player.left, self.nether_portal[k][1] * 32 - player.top), 10, 10)
+                    pygame.draw.circle(display, (128, 0, 128), (self.nether_portal[k][0] * 32 - player.left, self.nether_portal[k][1] * 32 - player.top), 10, 10)
             # DRAWING NETHER STRUCTURES
             for k in range(len(self.fortress)):
                 if -32 <= (self.fortress[k][0] * 32 - player.left) <= 1032 and -32 <= (self.fortress[k][1] * 32 - player.top) <= 1032:
-                    pygame.draw.circle(world, (134, 71, 71), (self.fortress[k][0] * 32 - player.left, self.fortress[k][1] * 32 - player.top), 10, 10)
+                    pygame.draw.circle(display, (134, 71, 71), (self.fortress[k][0] * 32 - player.left, self.fortress[k][1] * 32 - player.top), 10, 10)
             for k in range(len(self.bastion)):
                 if -32 <= (self.bastion[k][0] * 32 - player.left) <= 1032 and -32 <= (self.bastion[k][1] * 32 - player.top) <= 1032:
-                    pygame.draw.circle(world, (218, 165, 32), (self.bastion[k][0] * 32 - player.left, self.bastion[k][1] * 32 - player.top), 10, 10)
+                    pygame.draw.circle(display, (218, 165, 32), (self.bastion[k][0] * 32 - player.left, self.bastion[k][1] * 32 - player.top), 10, 10)
             # DRAWING NETHER EMPTY STRUCTURES
             for k in range(len(self.empty_bastion)):
                 if -32 <= (self.empty_bastion[k][0] * 32 - player.left) <= 1032 and -32 <= (self.empty_bastion[k][1] * 32 - player.top) <= 1032:
-                    pygame.draw.circle(world, (0, 0, 0), (self.empty_bastion[k][0] * 32 - player.left, self.empty_bastion[k][1] * 32 - player.top), 10, 10)
+                    pygame.draw.circle(display, (0, 0, 0), (self.empty_bastion[k][0] * 32 - player.left, self.empty_bastion[k][1] * 32 - player.top), 10, 10)
 
         # DRAW BREAKING ANIMATION
         if 1 <= math.floor(player.breaking_time) <= 6:
             display.blit(context.BREAKING_LIST[math.floor(player.breaking_time) - 1], (player.target[0] * 32 - player.left, player.target[1] * 32 - player.top))
-        pygame.draw.rect(world, (50, 50, 50), (player.target[0] * 32 - player.left, player.target[1] * 32 - player.top, 32, 32), 1)  # Draw target block outline
+        pygame.draw.rect(display, (50, 50, 50), (player.target[0] * 32 - player.left, player.target[1] * 32 - player.top, 32, 32), 1)  # Draw target block outline
 
 
 # Game Loop
-def Main(display: pygame.Surface, clock: pygame.time.Clock, context: Context):
-    global screen, World, player, mode, val, comma, number, called, world, play_time, endTime, \
+def main(display: pygame.Surface, clock: pygame.time.Clock, context: Context):
+    global screen, World, player, mode, val, comma, number, called, play_time, endTime, \
            minute, seconds, true_play_time, play_time_seconds, hasGeneratedOverworld, loading, hasGeneratedUnderground 
 
-    rng: RandomNumberGenerator = None
+    world = pygame.Surface((750, 750))  # Create Map Surface
+    world.fill((0, 0, 0))  # Fill Map Surface Black
+    rng = RandomNumberGenerator(seed := GetSeed())
     timer: SpeedrunTimer = SpeedrunTimer(load)
     frame_count = 0
 
@@ -709,8 +711,7 @@ def Main(display: pygame.Surface, clock: pygame.time.Clock, context: Context):
             font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 37)
             display.blit(font.render("Generating Overworld", False, (255, 255, 255)), (180, 225))
             pygame.display.flip()
-            rng = generate_world(context)
-            print("PYGAME INITIALISED")
+            generate_world(context, rng, seed)
 
         if hasGeneratedUnderground == "Generating":
             display.fill((255, 255, 255))
@@ -1470,7 +1471,7 @@ class Player:
         if player.debug_menu:
             font9 = pygame.font.Font(
                 str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 25)
-            version = font9.render("Tilecraft vBeta 1.0 Pre-Release 3", True, (0, 0, 0), (255, 255, 255))
+            version = font9.render(VERSION, True, (0, 0, 0), (255, 255, 255))
             display.blit(version, (0, 0))
             python_version = font9.render(f"Python {sys.version[0:6]}", True, (0, 0, 0), (255, 255, 255))
             display.blit(python_version, (0, 25))
@@ -1522,38 +1523,29 @@ def death_screen():
     death_window.mainloop()
 
 
-def generate_world(context: Context) -> RandomNumberGenerator:
-    global hasGeneratedOverworld, display, clock
-    global netherGenerated, background, call, second_time, start, load 
-    global hotbar_imgs, pygame_enchant_imgs, hotbar_order
+def generate_world(context: Context, rng: RandomNumberGenerator, seed: int) -> RandomNumberGenerator:
+    global hasGeneratedOverworld,  player, World, screen, world
 
     # Play Minecraft Music (Sweden)
     pygame.mixer.init()
     pygame.mixer.music.load(str(ASSETS_DIR / "music/song") + str(random.choice([3, 5, 7, 11, 12, 13, 14, 18])) + ".mp3")
     pygame.mixer.music.play()
 
-    global player, World, screen, world
-    world = pygame.Surface((750, 750))  # Create Map Surface
-    world.fill((0, 0, 0))  # Fill Map Surface Black
-    rng = RandomNumberGenerator(seed := GetSeed())
     World = TilecraftWorld(rng, seed)  # Create World
     player = Player(context, rng)  # Create Player
     screen = Screen(rng)  # Create Text Screen
     hasGeneratedOverworld = True
 
-    # return context to be passed around
-    return rng
-
 
 def create_world():
 
-    global hasGeneratedOverworld, hasGeneratedUnderground, world, netherGenerated, background, call, load, loading 
+    global hasGeneratedOverworld, hasGeneratedUnderground, netherGenerated, background, call, load, loading 
     hasGeneratedOverworld = False
     hasGeneratedUnderground = 'Not Loaded'
 
     pygame.init()  # Initialise Pygame Module
     display = pygame.display.set_mode((750, 750))  # Set display
-    pygame.display.set_caption("Tilecraft Beta 1.0 Pre-Release 3")  # Set title
+    pygame.display.set_caption(VERSION)  # Set title
     clock = pygame.time.Clock()
     clock.get_time()
     context = create_context()
@@ -1565,7 +1557,7 @@ def create_world():
     Quit()
     loading = pygame.image.load(str(ASSETS_DIR / "loading.png")).convert()
 
-    signal = Main(display, clock, context)  #Start Game by Calling the Main Loop
+    signal = main(display, clock, context)  #Start Game by Calling the Main Loop
 
     if signal == 'title screen':
         title_screen()
@@ -2014,7 +2006,7 @@ def patchnotes():
     global window1
     Quit()
     window1 = tkinter.Tk()
-    window1.title('Tilecraft Beta 1.0 Pre-Release 3')
+    window1.title(VERSION)
     window1.geometry('750x750')
     bold_font = tkinter.font.Font(family='Minecraft Ten', size=60)
     font = tkinter.font.Font(family='Minecraft', size=36)
@@ -2046,7 +2038,7 @@ def howtoplay():
     global window2
     Quit()
     window2 = tkinter.Tk()
-    window2.title('Tilecraft Beta 1.0 Pre-Release 3')
+    window2.title(VERSION)
     window2.geometry('750x750')
     bold_font = tkinter.font.Font(family='Minecraft Ten', size=60)
     font = tkinter.font.Font(family='Minecraft', size=36)
@@ -2078,7 +2070,7 @@ def game_credits():
     global window3
     Quit()
     window3 = tkinter.Tk()
-    window3.title('Tilecraft Beta 1.0 Pre-Release 3')
+    window3.title(VERSION)
     window3.geometry('750x750')
     bold_font = tkinter.font.Font(family='Minecraft Ten', size=60)
     font = tkinter.font.Font(family='Minecraft', size=36)
@@ -2112,7 +2104,7 @@ def title_screen():
 
     # Create tkinter window
     window = tkinter.Tk()
-    window.title('Tilecraft Beta 1.0 Pre-Release 3')
+    window.title(VERSION)
     window.geometry('750x750')
 
     global screen_width, screen_height
@@ -2133,7 +2125,7 @@ def title_screen():
     canvas1 = tkinter.Canvas(window, width=750, height=750)
     canvas1.create_image(0, 0, image=bg, anchor="nw")
     canvas1.create_text(375, 40, fill="black", font=bold_font, text="Tilecraft")
-    canvas1.create_text(375, 75, fill="black", font=regular_font, text="Beta 1.0 Pre-Release 3")
+    canvas1.create_text(375, 75, fill="black", font=regular_font, text="Beta 1.0 Pre-Release 4")
     canvas1.create_text(375, 110, fill="red", font=warning_font, text="Warning! This is a pre-release version and contains many bugs.")
     canvas1.place(x=0, y=0)
 
