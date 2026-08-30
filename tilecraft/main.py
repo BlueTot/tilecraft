@@ -4,6 +4,7 @@ import random
 import pygame  
 import math 
 import sys 
+from typing import Optional
 
 from tilecraft import ASSETS_DIR , VERSION
 from .cheats import print_cheats, give, enchant, teleport, experience
@@ -53,7 +54,7 @@ class SpeedrunTimer:
 
 
 class Screen:
-    def __init__(self, rng: RandomNumberGenerator):
+    def __init__(self, rng: RandomNumberGenerator, player, world):
         self.x = 0
         self.y = 570
         self.input_line = 0
@@ -64,6 +65,8 @@ class Screen:
         self.foretext = ''
         self.timer = 0
         self.rng = rng
+        self.player = player
+        self.world = world
 
     def scroll_up(self):
         if self.position < len(self.print_list) - 15:
@@ -119,12 +122,12 @@ class Screen:
                     try:
                         number = int(number)
                         # Prevent crashes by limiting number size
-                        NumberLimit(number, self.typingText, self.rng, self, timer)
+                        NumberLimit(number, self.typingText, self.rng, self, timer, self.player, self.world)
                     except ValueError:
                         self.print("Invalid integer")
                 else:
                     number = 1  # Set number to 1 when number is not specified
-                    NumberLimit(number, self.typingText, self.rng, self, timer)
+                    NumberLimit(number, self.typingText, self.rng, self, timer, self.player, self.world)
             # Regular text message
             else:
                 self.print(f"<Player> {self.typingText}")
@@ -280,9 +283,9 @@ class TilecraftWorld:
         self.overworld_generated_list = OverworldGeneratedList()
 
     #Generate Chunks Per Frame
-    def generate_chunks(self):
+    def generate_chunks(self, player_dimension: str):
         global hasGeneratedUnderground
-        if player.dimension == 'Overworld':
+        if player_dimension == 'Overworld':
             for i in self.render_list:
                 if i not in self.overworld_generated_list:
                     self.village, self.ruined_portal, self.obsidian_counts, self.overworld_generated_list, \
@@ -291,14 +294,14 @@ class TilecraftWorld:
                                                       self.obsidian_counts, self.overworld_generated_list, self.bound_village,
                                                       self.bound_village2, self.bound_village3, self.bound_village4,
                                                       self.bound_ruined_portal, self.bound_ruined_portal2, self.seed, self.UnderTiles, self.Tiles)
-        elif player.dimension == "Underground":
+        elif player_dimension == "Underground":
             if not self.undergroundGenerated:
                 hasGeneratedUnderground = 'Generating'
             if hasGeneratedUnderground == "Generated":
                 for i in self.render_list:
                     if i not in self.UndergroundGeneratedList:
                         self.UndergroundUnderTiles, self.UndergroundTiles = UndergroundGenerate(self.rng, self.seed, i[0], i[1], self.UndergroundUnderTiles, self.UndergroundTiles, self.UndergroundGeneratedList)
-        elif player.dimension == 'Nether':
+        elif player_dimension == 'Nether':
             for i in self.render_list:
                 if i not in self.nether_generated_list:
                     self.bastion, self.fortress, self.nether_generated_list, self.bound_bastion = NetherGenerate(self.rng, i[0], i[1], self.bastion, self.fortress, self.nether_generated_list, self.bound_bastion, self.seed)
@@ -325,8 +328,8 @@ class TilecraftWorld:
         self.UndergroundGeneratedList = UndergroundGeneratedList()
 
     # Generate nether for the first time
-    def generateNether(self):
-        global netherGenerated, player
+    def generateNether(self, player_x: float, player_y: float):
+        global netherGenerated 
         if not netherGenerated:
             netherGenerated = True
 
@@ -334,9 +337,9 @@ class TilecraftWorld:
             self.bound_nether_portal = []
             self.bastion, self.fortress = SpawnNetherGenerate(self.rng, self.seed)
             self.bound_bastion, self.bound_fortress = SpawnNetherBoundGenerate(self.bastion, self.fortress)
-            self.nether_generated_list = NetherGeneratedList(player.x, player.y)
+            self.nether_generated_list = NetherGeneratedList(player_x, player_y)
 
-    def render(self, display, context: Context):
+    def render(self, display, context: Context, player_dimension: str, player_left: int, player_top: int, player_rect: pygame.Rect, player_breaking_time: float, player_target: tuple[int, int]):
         global netherrack_tile, hotbar_imgs, slot, number_list, experience, pygame_enchant_imgs, enchant_name_list, player, hasGeneratedUnderground, bedrock_tile
         # player.health_hunger_update()
 
@@ -344,85 +347,267 @@ class TilecraftWorld:
             return context.TILE_IMAGES[TILE_IMAGE_MAPPING[tile_name].alpha_image_name]
 
         # DRAW OVERWORLD DIMENSION
-        if player.dimension == "Overworld":
+        if player_dimension == "Overworld":
             for key, value in self.UnderTiles.items(): #background tiles (no collisions)
-                if -32 <= (key[0] * 32 - player.left) <= 1032 and -32 <= (key[1] * 32 - player.top) <= 1032:
+                if -32 <= (key[0] * 32 - player_left) <= 1032 and -32 <= (key[1] * 32 - player_top) <= 1032:
                     if value.tile != "Air":
-                        display.blit(tile_image(value.tile), (value.x * 32 - player.left, value.y * 32 - player.top)) #Draw Image
+                        display.blit(tile_image(value.tile), (value.x * 32 - player_left, value.y * 32 - player_top)) #Draw Image
                     else:
-                        display.blit(context.TILE_IMAGES["bedrock_tile"], (value.x * 32 - player.left, value.y * 32 - player.top))
-                    pygame.draw.rect(display, (100, 100, 100), (value.x * 32 - player.left, value.y * 32 - player.top, 32, 32), 1) #Draw Border Outline
+                        display.blit(context.TILE_IMAGES["bedrock_tile"], (value.x * 32 - player_left, value.y * 32 - player_top))
+                    pygame.draw.rect(display, (100, 100, 100), (value.x * 32 - player_left, value.y * 32 - player_top, 32, 32), 1) #Draw Border Outline
             for key, value in self.Tiles.items(): #surface tiles (with collisions)
-                if -32 <= (key[0] * 32 - player.left) <= 1032 and -32 <= (key[1] * 32 - player.top) <= 1032:
+                if -32 <= (key[0] * 32 - player_left) <= 1032 and -32 <= (key[1] * 32 - player_top) <= 1032:
                     if value.tile != "Air":
-                        display.blit(tile_image(value.tile), (value.x * 32 - player.left, value.y * 32 - player.top)) #Draw Image
-                        pygame.draw.rect(display, (100, 100, 100), (value.x * 32 - player.left, value.y * 32 - player.top, 32, 32), 1) #Draw Border Outline
+                        display.blit(tile_image(value.tile), (value.x * 32 - player_left, value.y * 32 - player_top)) #Draw Image
+                        pygame.draw.rect(display, (100, 100, 100), (value.x * 32 - player_left, value.y * 32 - player_top, 32, 32), 1) #Draw Border Outline
             # DRAWING OVERWORLD STRUCTURES
             for k in range(len(self.village)):
-                if -32 <= (self.village[k][0] * 32 - player.left) <= 1032 and -32 <= (self.village[k][1] * 32 - player.top) <= 1032:
-                    pygame.draw.circle(display, (255, 165, 0), (self.village[k][0] * 32 - player.left, self.village[k][1] * 32 - player.top), 10, 10)
+                if -32 <= (self.village[k][0] * 32 - player_left) <= 1032 and -32 <= (self.village[k][1] * 32 - player_top) <= 1032:
+                    pygame.draw.circle(display, (255, 165, 0), (self.village[k][0] * 32 - player_left, self.village[k][1] * 32 - player_top), 10, 10)
             for k in range(len(self.ruined_portal)):
-                if -32 <= (self.ruined_portal[k][0] * 32 - player.left) <= 1032 and -32 <= (self.ruined_portal[k][1] * 32 - player.top) <= 1032:
-                    pygame.draw.circle(display, (56, 0, 89), (self.ruined_portal[k][0] * 32 - player.left, self.ruined_portal[k][1] * 32 - player.top), 10, 10)
+                if -32 <= (self.ruined_portal[k][0] * 32 - player_left) <= 1032 and -32 <= (self.ruined_portal[k][1] * 32 - player_top) <= 1032:
+                    pygame.draw.circle(display, (56, 0, 89), (self.ruined_portal[k][0] * 32 - player_left, self.ruined_portal[k][1] * 32 - player_top), 10, 10)
 
             # DRAWING OVERWORLD EMPTY STRUCTURES
             for k in range(len(self.empty_vil_total)):
-                if -32 <= (self.empty_vil_total[k][0] * 32 - player.left) <= 1032 and -32 <= (self.empty_vil_total[k][1] * 32 - player.top) <= 1032:
-                    pygame.draw.circle(display, (153, 102, 0), (self.empty_vil_total[k][0] * 32 - player.left, self.empty_vil_total[k][1] * 32 - player.top), 10, 10)
+                if -32 <= (self.empty_vil_total[k][0] * 32 - player_left) <= 1032 and -32 <= (self.empty_vil_total[k][1] * 32 - player_top) <= 1032:
+                    pygame.draw.circle(display, (153, 102, 0), (self.empty_vil_total[k][0] * 32 - player_left, self.empty_vil_total[k][1] * 32 - player_top), 10, 10)
             for k in range(len(self.empty_ruined_portal_total)):
-                if -32 <= (self.empty_ruined_portal_total[k][0] * 32 - player.left) <= 1032 and -32 <= (self.empty_ruined_portal_total[k][1] * 32 - player.top) <= 1032:
-                    pygame.draw.circle(display, (255, 255, 255), (self.empty_ruined_portal_total[k][0] * 32 - player.left, self.empty_ruined_portal_total[k][1] * 32 - player.top), 12, 12)
+                if -32 <= (self.empty_ruined_portal_total[k][0] * 32 - player_left) <= 1032 and -32 <= (self.empty_ruined_portal_total[k][1] * 32 - player_top) <= 1032:
+                    pygame.draw.circle(display, (255, 255, 255), (self.empty_ruined_portal_total[k][0] * 32 - player_left, self.empty_ruined_portal_total[k][1] * 32 - player_top), 12, 12)
             # DRAWING OVERWORLD NETHER PORTALS
             for k in range(len(self.overworld_portal)):
-                if -32 <= (self.overworld_portal[k][0] * 32 - player.left) <= 1032 and -32 <= (self.overworld_portal[k][1] * 32 - player.top) <= 1032:
-                    pygame.draw.circle(display, (128, 0, 128), (self.overworld_portal[k][0] * 32 - player.left, self.overworld_portal[k][1] * 32 - player.top), 10, 10)
+                if -32 <= (self.overworld_portal[k][0] * 32 - player_left) <= 1032 and -32 <= (self.overworld_portal[k][1] * 32 - player_top) <= 1032:
+                    pygame.draw.circle(display, (128, 0, 128), (self.overworld_portal[k][0] * 32 - player_left, self.overworld_portal[k][1] * 32 - player_top), 10, 10)
 
         #DRAW UNDERGROUND DIMENSION
-        elif player.dimension == "Underground" and hasGeneratedUnderground == "Generated":
+        elif player_dimension == "Underground" and hasGeneratedUnderground == "Generated":
             for key, value in self.UndergroundUnderTiles.items(): #background tiles (no collisions)
-                if -32 <= (key[0] * 32 - player.left) <= 1032 and -32 <= (key[1] * 32 - player.top) <= 1032:
+                if -32 <= (key[0] * 32 - player_left) <= 1032 and -32 <= (key[1] * 32 - player_top) <= 1032:
                     if value.tile != "Air":
-                        display.blit(tile_image(value.tile), (value.x * 32 - player.left, value.y * 32 - player.top)) #Draw Image
+                        display.blit(tile_image(value.tile), (value.x * 32 - player_left, value.y * 32 - player_top)) #Draw Image
                     else:
-                        display.blit(context.ITEM_IMAGES["bedrock_tile"], (value.x * 32 - player.left, value.y * 32 - player.top))
-                    pygame.draw.rect(display, (100, 100, 100), (value.x * 32 - player.left, value.y * 32 - player.top, 32, 32), 1) #Draw Border Outline
+                        display.blit(context.ITEM_IMAGES["bedrock_tile"], (value.x * 32 - player_left, value.y * 32 - player_top))
+                    pygame.draw.rect(display, (100, 100, 100), (value.x * 32 - player_left, value.y * 32 - player_top, 32, 32), 1) #Draw Border Outline
             for key, value in self.UndergroundTiles.items(): #surface tiles (with collisions)
-                if -32 <= (key[0] * 32 - player.left) <= 1032 and -32 <= (key[1] * 32 - player.top) <= 1032:
+                if -32 <= (key[0] * 32 - player_left) <= 1032 and -32 <= (key[1] * 32 - player_top) <= 1032:
                     if value.tile != "Air":
-                        display.blit(tile_image(value.tile), (value.x * 32 - player.left, value.y * 32 - player.top)) #Draw Image
-                        pygame.draw.rect(display, (100, 100, 100), (value.x * 32 - player.left, value.y * 32 - player.top, 32, 32), 1) #Draw Border Outline
+                        display.blit(tile_image(value.tile), (value.x * 32 - player_left, value.y * 32 - player_top)) #Draw Image
+                        pygame.draw.rect(display, (100, 100, 100), (value.x * 32 - player_left, value.y * 32 - player_top, 32, 32), 1) #Draw Border Outline
 
         # DRAW NETHER DIMENSION
-        elif player.dimension == "Nether":
+        elif player_dimension == "Nether":
             # DRAWING NETHERRACK TEXTURES
-            for k in range(player.rect.x - 384, player.rect.x + 384, 24):
-                for j in range(player.rect.y - 384, player.rect.y + 384, 24):
+            for k in range(player_rect.x - 384, player_rect.x + 384, 24):
+                for j in range(player_rect.y - 384, player_rect.y + 384, 24):
                     display.blit(context.ITEM_IMAGES["netherrack_tile"], (k, j))
             # DRAWING NETHER NETHER PORTALS
             for k in range(len(self.nether_portal)):
-                if -32 <= (self.nether_portal[k][0] * 32 - player.left) <= 1032 and -32 <= (self.nether_portal[k][1] * 32 - player.top) <= 1032:
-                    pygame.draw.circle(display, (128, 0, 128), (self.nether_portal[k][0] * 32 - player.left, self.nether_portal[k][1] * 32 - player.top), 10, 10)
+                if -32 <= (self.nether_portal[k][0] * 32 - player_left) <= 1032 and -32 <= (self.nether_portal[k][1] * 32 - player_top) <= 1032:
+                    pygame.draw.circle(display, (128, 0, 128), (self.nether_portal[k][0] * 32 - player_left, self.nether_portal[k][1] * 32 - player_top), 10, 10)
             # DRAWING NETHER STRUCTURES
             for k in range(len(self.fortress)):
-                if -32 <= (self.fortress[k][0] * 32 - player.left) <= 1032 and -32 <= (self.fortress[k][1] * 32 - player.top) <= 1032:
-                    pygame.draw.circle(display, (134, 71, 71), (self.fortress[k][0] * 32 - player.left, self.fortress[k][1] * 32 - player.top), 10, 10)
+                if -32 <= (self.fortress[k][0] * 32 - player_left) <= 1032 and -32 <= (self.fortress[k][1] * 32 - player_top) <= 1032:
+                    pygame.draw.circle(display, (134, 71, 71), (self.fortress[k][0] * 32 - player_left, self.fortress[k][1] * 32 - player_top), 10, 10)
             for k in range(len(self.bastion)):
-                if -32 <= (self.bastion[k][0] * 32 - player.left) <= 1032 and -32 <= (self.bastion[k][1] * 32 - player.top) <= 1032:
-                    pygame.draw.circle(display, (218, 165, 32), (self.bastion[k][0] * 32 - player.left, self.bastion[k][1] * 32 - player.top), 10, 10)
+                if -32 <= (self.bastion[k][0] * 32 - player_left) <= 1032 and -32 <= (self.bastion[k][1] * 32 - player_top) <= 1032:
+                    pygame.draw.circle(display, (218, 165, 32), (self.bastion[k][0] * 32 - player_left, self.bastion[k][1] * 32 - player_top), 10, 10)
             # DRAWING NETHER EMPTY STRUCTURES
             for k in range(len(self.empty_bastion)):
-                if -32 <= (self.empty_bastion[k][0] * 32 - player.left) <= 1032 and -32 <= (self.empty_bastion[k][1] * 32 - player.top) <= 1032:
-                    pygame.draw.circle(display, (0, 0, 0), (self.empty_bastion[k][0] * 32 - player.left, self.empty_bastion[k][1] * 32 - player.top), 10, 10)
+                if -32 <= (self.empty_bastion[k][0] * 32 - player_left) <= 1032 and -32 <= (self.empty_bastion[k][1] * 32 - player_top) <= 1032:
+                    pygame.draw.circle(display, (0, 0, 0), (self.empty_bastion[k][0] * 32 - player_left, self.empty_bastion[k][1] * 32 - player_top), 10, 10)
 
         # DRAW BREAKING ANIMATION
-        if 1 <= math.floor(player.breaking_time) <= 6:
-            display.blit(context.BREAKING_LIST[math.floor(player.breaking_time) - 1], (player.target[0] * 32 - player.left, player.target[1] * 32 - player.top))
-        pygame.draw.rect(display, (50, 50, 50), (player.target[0] * 32 - player.left, player.target[1] * 32 - player.top, 32, 32), 1)  # Draw target block outline
+        if 1 <= math.floor(player_breaking_time) <= 6:
+            display.blit(context.BREAKING_LIST[math.floor(player_breaking_time) - 1], (player_target[0] * 32 - player_left, player_target[1] * 32 - player_top))
+        pygame.draw.rect(display, (50, 50, 50), (player_target[0] * 32 - player_left, player_target[1] * 32 - player_top, 32, 32), 1)  # Draw target block outline
+
+
+# common screen interface
+class Interface:
+    def __init__(self, display: pygame.Surface, context: Context, screen: Screen, player, world: TilecraftWorld, timer: SpeedrunTimer) -> None:
+        self.display = display
+        self.context = context
+        self.screen = screen
+        self.player = player
+        self.world = world
+        self.timer = timer
+        self.next_screen: Optional[Interface] = None
+
+    def handle_event(self, event: pygame.event.Event) -> None:
+        pass
+
+    def render(self) -> None:
+        pass
+
+
+class GameScreen(Interface):
+
+    def handle_event(self, event: pygame.event.Event) -> Optional[str]:
+        if not self.screen.isTyping:
+            # QUIT Key
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                return 'title screen'
+            # Specify key types (key down)
+            elif event.type == pygame.KEYDOWN:
+                # Escape key (QUIT)
+                if event.key == pygame.K_ESCAPE:
+                    pygame.quit()
+                    return 'title screen'
+                # Inventory key
+                if event.key == pygame.K_e:
+                    self.player.mode = 'inventory'
+                # Advancements Key
+                if event.key == pygame.K_f:
+                    if not self.player.advancements:
+                        self.screen.print("YOU HAVE NOT EARNED ANY ADVANCEMENTS")
+                    else:
+                        self.screen.print("Advancements: ")
+                        for i in self.player.advancements:
+                            self.screen.print(f"- {i}")
+                # Input and chat key
+                if event.key == pygame.K_t:
+                    self.screen.start_typing('')
+                # Eat key
+                if event.key == pygame.K_q:
+                    if self.player.inventory.hotbar_item is not None:
+                        if self.player.inventory.hotbar_item.itemType == "Food":
+                            if self.player.hunger < 20:
+                                if self.player.inventory.hotbar_item.name == 'Bread':
+                                    index = self.player.inventory.items.index(self.player.inventory.hotbar_item)
+                                    self.player.inventory.items[index].number -= 1
+                                    self.player.hunger += 5
+                                # GOLDEN CARROT
+                                elif self.player.inventory.hotbar_item.name == 'Golden Carrot':
+                                    index = self.player.inventory.items.index(self.player.inventory.hotbar_item)
+                                    self.player.inventory.items[index].number -= 1
+                                    self.player.hunger += 6
+                                # GOLDEN APPLE
+                                elif self.player.inventory.hotbar_item.name == 'Golden Apple':
+                                    index = self.player.inventory.items.index(self.player.inventory.hotbar_item)
+                                    self.player.inventory.items[index].number -= 1
+                                    self.player.hunger += 5
+                                    self.player.regenerate_start_time = 0
+                                    self.player.regenerate_val = True
+                                else:
+                                    self.screen.print("You are not holding a food item!")
+                                # self.player.health_hunger_update()  # UPDATE HEALTH / HUNGER
+                        else:
+                            self.screen.print("You are not holding a food item!")
+                    else:
+                        self.screen.print("You are not holding a food item!")
+                if event.key == pygame.K_1:
+                    self.player.set_hotbar(0)
+                if event.key == pygame.K_2:
+                    self.player.set_hotbar(1)
+                if event.key == pygame.K_3:
+                    self.player.set_hotbar(2)
+                if event.key == pygame.K_4:
+                    self.player.set_hotbar(3)
+                if event.key == pygame.K_5:
+                    self.player.set_hotbar(4)
+                if event.key == pygame.K_6:
+                    self.player.set_hotbar(5)
+                if event.key == pygame.K_7:
+                    self.player.set_hotbar(6)
+                if event.key == pygame.K_8:
+                    self.player.set_hotbar(7)
+                if event.key == pygame.K_9:
+                    self.player.set_hotbar(8)
+                if event.key == pygame.K_0:
+                    self.player.debug_menu = not self.player.debug_menu
+                if event.key == pygame.K_a:  # Turn Left
+                    pos = self.player.direction_list.index(self.player.direction)
+                    self.player.direction = self.player.direction_list[pos - 1]
+                if event.key == pygame.K_d:  # Turn Right
+                    pos = self.player.direction_list.index(self.player.direction)
+                    if pos == 3:
+                        self.player.direction = self.player.direction_list[0]
+                    else:
+                        self.player.direction = self.player.direction_list[pos + 1]
+            elif event.type == pygame.MOUSEBUTTONDOWN:  # Mouse Button Down Clicking Event
+                if pygame.mouse.get_pressed(3)[2]:  # Right Click
+                    self.player.mouse_button = 2
+                    if self.player.inventory.hotbar_item is not None:
+                        if self.player.inventory.hotbar_item.name == 'Crafting Table': #Crafting Key
+                            self.player.mode = 'crafting'
+                        elif self.player.inventory.hotbar_item.name == 'Furnace': #Smelting Key
+                            self.player.mode = 'smelting'
+                        elif self.player.inventory.hotbar_item.name == 'Enchanting Table': #Enchanting Key
+                            self.player.mode = 'enchanting'
+                        elif self.player.inventory.hotbar_item.name == 'Compressor': #Compressing Key
+                            self.player.mode = 'compressing'
+                        elif self.player.inventory.hotbar_item.name == "Grindstone": #Repairing and Disenchanting Key
+                            self.player.mode = 'repairing and disenchanting'
+                        elif self.player.inventory.hotbar_item.name == "Bucket": #Picking up liquids
+                            self.player.pick_up_liquid()
+                        elif self.player.inventory.hotbar_item.name == "Water Bucket" or \
+                                self.player.inventory.hotbar_item.name == "Lava Bucket":  #Placing liquids
+                            self.player.place_liquid()
+                        else:
+                            self.player.place_tile()
+                elif pygame.mouse.get_pressed(3)[0]:
+                    self.player.mouse_button = 1
+                    self.player.isBreaking = True
+            if event.type == pygame.MOUSEBUTTONUP:
+                if self.player.mouse_button == 1:
+                    self.player.breaking_time = 0
+                    self.player.isBreaking = False
+
+        else:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE: #Type Space
+                    self.screen.type(' ')
+                elif event.key == pygame.K_RETURN: #Enter Key
+                    self.screen.stop_typing(self.timer, self.player)
+                elif event.key == pygame.K_BACKSPACE: #Delete
+                    self.screen.delete()
+                else:
+                    char = str(pygame.key.name(event.key)) #Get Key name
+                    if len(char) == 1: #Check to prevent non-alphabetical and non-number keys
+                        self.screen.type(char)
+
+
+    def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> Optional[str]:
+        global true_play_time
+
+        if not self.screen.isTyping:
+            # Kill self.player
+            if self.player.dead:
+                minute = int(play_time_seconds // 60)
+                seconds = int(round(play_time_seconds % 60))
+                true_play_time = "Time Played:   " + str(minute) + "m " + str(seconds) + "s"
+                pygame.quit()
+                return 'death screen'
+            if self.player.isBreaking:
+                self.player.breaking(fps)
+            self.player.move()  # Move self.player
+
+        else:
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_UP]: #Scroll Up
+                self.screen.scroll_up()
+            elif keys[pygame.K_DOWN]: #Scroll Down
+                self.screen.scroll_down()
+
+        self.display.fill((0, 0, 0))  # Fill world_map border black
+        world_map.fill(background)  # Fill world_map background colour
+        self.player.health_update(frame_count)  # Update self.player Health
+        self.world.render_chunks(self.player.left, self.player.right, self.player.top, self.player.bottom)  # Generate list of all chunks that are loaded
+        self.world.generate_chunks(self.player.dimension)  # Generate Chunks that are loaded but have not been generated before
+        self.world.render(world_map, self.context, self.player.dimension, self.player.left, self.player.top, self.player.rect, self.player.breaking_time, self.player.target)  # Render all world_map blocks to world_map
+        RemoveItem(self.player) #Remove Items if their number is 0
+        self.player.render(self.context, world_map, screen_width, screen_height, fps)  # Render self.player and self.player accessories to world_map
+        self.timer.render(world_map, play_time_seconds)
+        advancements_update(self.screen, self.timer, self.player.advancements, self.player.inventory.items, self.player.armour.items, self.player.dimension)  # Update Advancements
+        self.screen.render(world_map) #Render Text self.screen
+
 
 
 # Game Loop
 def main(display: pygame.Surface, clock: pygame.time.Clock, context: Context):
-    global screen, World, player, mode, val, comma, number, called, play_time, endTime, \
+    global mode, val, comma, number, called, play_time, endTime, \
            minute, seconds, true_play_time, play_time_seconds, hasGeneratedOverworld, loading, hasGeneratedUnderground 
 
     world = pygame.Surface((750, 750))  # Create Map Surface
@@ -430,6 +615,11 @@ def main(display: pygame.Surface, clock: pygame.time.Clock, context: Context):
     rng = RandomNumberGenerator(seed := GetSeed())
     timer: SpeedrunTimer = SpeedrunTimer(load)
     frame_count = 0
+    World: Optional[TilecraftWorld] = None
+    screen: Optional[Screen] = None
+    player: Optional[Player] = None
+
+    game_screen: Interface = GameScreen(display, context, screen, player, World, timer)
 
     while True:
 
@@ -440,159 +630,16 @@ def main(display: pygame.Surface, clock: pygame.time.Clock, context: Context):
 
         events = pygame.event.get()
         if hasGeneratedOverworld and (hasGeneratedUnderground == "Not Loaded" or hasGeneratedUnderground == "Generated"):
-            if player.mode == "game":
-                if not screen.isTyping:
-                    # Kill Player
-                    if player.dead:
-                        minute = int(play_time_seconds // 60)
-                        seconds = int(round(play_time_seconds % 60))
-                        true_play_time = "Time Played:   " + str(minute) + "m " + str(seconds) + "s"
-                        pygame.quit()
-                        return 'death screen'
-                    # Single-key binds
-                    for event in events:
-                        # QUIT Key
-                        if event.type == pygame.QUIT:
-                            pygame.quit()
-                            return 'title screen'
-                        # Specify key types (key down)
-                        elif event.type == pygame.KEYDOWN:
-                            # Escape key (QUIT)
-                            if event.key == pygame.K_ESCAPE:
-                                pygame.quit()
-                                return 'title screen'
-                            # Inventory key
-                            if event.key == pygame.K_e:
-                                player.mode = 'inventory'
-                            # Advancements Key
-                            if event.key == pygame.K_f:
-                                if not player.advancements:
-                                    screen.print("YOU HAVE NOT EARNED ANY ADVANCEMENTS")
-                                else:
-                                    screen.print("Advancements: ")
-                                    for i in player.advancements:
-                                        screen.print(f"- {i}")
-                            # Input and chat key
-                            if event.key == pygame.K_t:
-                                screen.start_typing('')
-                            # Eat key
-                            if event.key == pygame.K_q:
-                                if player.inventory.hotbar_item is not None:
-                                    if player.inventory.hotbar_item.itemType == "Food":
-                                        if player.hunger < 20:
-                                            if player.inventory.hotbar_item.name == 'Bread':
-                                                index = player.inventory.items.index(player.inventory.hotbar_item)
-                                                player.inventory.items[index].number -= 1
-                                                player.hunger += 5
-                                            # GOLDEN CARROT
-                                            elif player.inventory.hotbar_item.name == 'Golden Carrot':
-                                                index = player.inventory.items.index(player.inventory.hotbar_item)
-                                                player.inventory.items[index].number -= 1
-                                                player.hunger += 6
-                                            # GOLDEN APPLE
-                                            elif player.inventory.hotbar_item.name == 'Golden Apple':
-                                                index = player.inventory.items.index(player.inventory.hotbar_item)
-                                                player.inventory.items[index].number -= 1
-                                                player.hunger += 5
-                                                player.regenerate_start_time = 0
-                                                player.regenerate_val = True
-                                            else:
-                                                screen.print("You are not holding a food item!")
-                                            # player.health_hunger_update()  # UPDATE HEALTH / HUNGER
-                                    else:
-                                        screen.print("You are not holding a food item!")
-                                else:
-                                    screen.print("You are not holding a food item!")
-                            if event.key == pygame.K_1:
-                                player.set_hotbar(0)
-                            if event.key == pygame.K_2:
-                                player.set_hotbar(1)
-                            if event.key == pygame.K_3:
-                                player.set_hotbar(2)
-                            if event.key == pygame.K_4:
-                                player.set_hotbar(3)
-                            if event.key == pygame.K_5:
-                                player.set_hotbar(4)
-                            if event.key == pygame.K_6:
-                                player.set_hotbar(5)
-                            if event.key == pygame.K_7:
-                                player.set_hotbar(6)
-                            if event.key == pygame.K_8:
-                                player.set_hotbar(7)
-                            if event.key == pygame.K_9:
-                                player.set_hotbar(8)
-                            if event.key == pygame.K_0:
-                                player.debug_menu = not player.debug_menu
-                            if event.key == pygame.K_a:  # Turn Left
-                                pos = player.direction_list.index(player.direction)
-                                player.direction = player.direction_list[pos - 1]
-                            if event.key == pygame.K_d:  # Turn Right
-                                pos = player.direction_list.index(player.direction)
-                                if pos == 3:
-                                    player.direction = player.direction_list[0]
-                                else:
-                                    player.direction = player.direction_list[pos + 1]
-                        elif event.type == pygame.MOUSEBUTTONDOWN:  # Mouse Button Down Clicking Event
-                            if pygame.mouse.get_pressed(3)[2]:  # Right Click
-                                player.mouse_button = 2
-                                if player.inventory.hotbar_item is not None:
-                                    if player.inventory.hotbar_item.name == 'Crafting Table': #Crafting Key
-                                        player.mode = 'crafting'
-                                    elif player.inventory.hotbar_item.name == 'Furnace': #Smelting Key
-                                        player.mode = 'smelting'
-                                    elif player.inventory.hotbar_item.name == 'Enchanting Table': #Enchanting Key
-                                        player.mode = 'enchanting'
-                                    elif player.inventory.hotbar_item.name == 'Compressor': #Compressing Key
-                                        player.mode = 'compressing'
-                                    elif player.inventory.hotbar_item.name == "Grindstone": #Repairing and Disenchanting Key
-                                        player.mode = 'repairing and disenchanting'
-                                    elif player.inventory.hotbar_item.name == "Bucket": #Picking up liquids
-                                        player.pick_up_liquid()
-                                    elif player.inventory.hotbar_item.name == "Water Bucket" or \
-                                            player.inventory.hotbar_item.name == "Lava Bucket":  #Placing liquids
-                                        player.place_liquid()
-                                    else:
-                                        player.place_tile()
-                            elif pygame.mouse.get_pressed(3)[0]:
-                                player.mouse_button = 1
-                                player.isBreaking = True
-                        if event.type == pygame.MOUSEBUTTONUP:
-                            if player.mouse_button == 1:
-                                player.breaking_time = 0
-                                player.isBreaking = False
-                    if player.isBreaking:
-                        player.breaking(fps)
-                    player.move()  # Move Player
-                else:
-                    keys = pygame.key.get_pressed()
-                    if keys[pygame.K_UP]: #Scroll Up
-                        screen.scroll_up()
-                    elif keys[pygame.K_DOWN]: #Scroll Down
-                        screen.scroll_down()
-                    for event in events:
-                        if event.type == pygame.KEYDOWN:
-                            if event.key == pygame.K_SPACE: #Type Space
-                                screen.type(' ')
-                            elif event.key == pygame.K_RETURN: #Enter Key
-                                screen.stop_typing(timer, player)
-                            elif event.key == pygame.K_BACKSPACE: #Delete
-                                screen.delete()
-                            else:
-                                char = str(pygame.key.name(event.key)) #Get Key name
-                                if len(char) == 1: #Check to prevent non-alphabetical and non-number keys
-                                    screen.type(char)
 
-                display.fill((0, 0, 0))  # Fill world border black
-                world.fill(background)  # Fill world background colour
-                player.health_update(frame_count)  # Update Player Health
-                World.render_chunks(player.left, player.right, player.top, player.bottom)  # Generate list of all chunks that are loaded
-                World.generate_chunks()  # Generate Chunks that are loaded but have not been generated before
-                World.render(world, context)  # Render all world blocks to world
-                RemoveItem() #Remove Items if their number is 0
-                player.render(context, world, screen_width, screen_height, fps)  # Render player and player accessories to world
-                timer.render(world, play_time_seconds)
-                advancements_update(screen, timer, player.advancements, player.inventory.items, player.armour.items, player.dimension)  # Update Advancements
-                screen.render(world) #Render Text Screen
+            if player.mode == "game":
+                for event in events:
+                    ret = game_screen.handle_event(event)
+                    if ret is not None:
+                        return ret
+
+                ret = game_screen.render(world, fps, frame_count)
+                if ret is not None:
+                    return ret
 
             elif player.mode in ("inventory", "crafting", "smelting", "enchanting", "compressing", "repairing and disenchanting"):
 
@@ -697,7 +744,7 @@ def main(display: pygame.Surface, clock: pygame.time.Clock, context: Context):
                     player.grindstone.render(world, context, mouse, is_holding) #Render Grindstone Interface
                     player.grindstone.repair_and_disenchant() #Update repaired/disenchanted item
 
-                RemoveItem() #Remove all items with number of 0 or durability of 0
+                RemoveItem(player) #Remove all items with number of 0 or durability of 0
                 player.holding_item.render(world, context) #Render the item the user is holding
 
             display.blit(world, (0, 0))  # Render map to display
@@ -711,7 +758,10 @@ def main(display: pygame.Surface, clock: pygame.time.Clock, context: Context):
             font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 37)
             display.blit(font.render("Generating Overworld", False, (255, 255, 255)), (180, 225))
             pygame.display.flip()
-            generate_world(context, rng, seed)
+            World, screen, player = generate_world(context, rng, seed)
+            game_screen.screen = screen # set screen
+            game_screen.world = World # set world
+            game_screen.player = player # set player
 
         if hasGeneratedUnderground == "Generating":
             display.fill((255, 255, 255))
@@ -733,19 +783,20 @@ def main(display: pygame.Surface, clock: pygame.time.Clock, context: Context):
 
 
 #Limit number of times a player can repeat a command
-def NumberLimit(number, val, rng: RandomNumberGenerator, screen: Screen, timer: SpeedrunTimer):
+def NumberLimit(number, val, rng: RandomNumberGenerator, screen: Screen, timer: SpeedrunTimer, player, World: TilecraftWorld):
     if number > 16:
         screen.print("ERROR: Invalid Integer")
     elif number < 1:
         screen.print("ERROR: Invalid Integer")
     else:
-        commands(number, val, rng, screen, timer)
+        commands(number, val, rng, screen, timer, player, World)
 
 
 #Player Class and Methods
 class Player:
-    def __init__(self, context: Context, rng: RandomNumberGenerator):
-        global World
+    def __init__(self, context: Context, rng: RandomNumberGenerator, world: TilecraftWorld):
+        self.world = world
+
         self.advancements = []
         self.image = pygame.Surface((32, 32))  # Create Player Image
         self.image.fill((255, 0, 0))  # Fill Player Red
@@ -773,7 +824,7 @@ class Player:
 
         #TO PREVENT PLAYERS FROM SPAWNING INSIDE A TREE OR BOULDER
         while True: #Infinite loop
-            if World.Tiles[(self.x, self.y)].tile != "Air": #If tile that player spawns in is not air
+            if world.Tiles[(self.x, self.y)].tile != "Air": #If tile that player spawns in is not air
                 self.x += 1 #increase x by 1
             else:
                 break #tile is air so the loop ends
@@ -843,7 +894,7 @@ class Player:
         try:
             if self.dimension == "Overworld": #Overworld dimension
                 call = False
-                for key, value in World.Tiles.items():
+                for key, value in self.world.Tiles.items():
                     if -32 <= (key[0] * 32 - self.left) <= 1032 and -32 <= (key[1] * 32 - self.top) <= 1032: #in render distance
                         if pygame.Rect((self.x * 32, self.y * 32, 32, 32)).colliderect(pygame.Rect((key[0] * 32, key[1] * 32, 32, 32))): #collision
                             if not (value.tile == "Air" or value.tile == "Mine Entrance"): #collision with tile
@@ -855,11 +906,11 @@ class Player:
                                 self.y = value.y
                                 if hasGeneratedUnderground == "Generated":
                                     try:
-                                        if World.UndergroundTiles[(round(player.x), round(player.y))].tile != "Mine Entrance":
-                                            World.UndergroundTiles = UndergroundGeneratePortal(round(player.x), round(player.y), World.UndergroundTiles)
+                                        if self.world.UndergroundTiles[(round(self.x), round(self.y))].tile != "Mine Entrance":
+                                            self.world.UndergroundTiles = UndergroundGeneratePortal(round(self.x), round(self.y), self.world.UndergroundTiles)
                                     except KeyError:
-                                        World.generate_chunks()
-                                        World.UndergroundTiles = UndergroundGeneratePortal(round(player.x), round(player.y), World.UndergroundTiles)
+                                        self.world.generate_chunks(self.dimension)
+                                        self.world.UndergroundTiles = UndergroundGeneratePortal(round(self.x), round(self.y), self.world.UndergroundTiles)
                             if value.tile == "Mine Entrance": #is colliding with portal
                                 call = True
                                 break
@@ -867,7 +918,7 @@ class Player:
                     self.canEnterPortal = True
             elif self.dimension == "Underground" and hasGeneratedUnderground == "Generated": #Underground dimension
                 call = False
-                for key, value in World.UndergroundTiles.items():
+                for key, value in self.world.UndergroundTiles.items():
                     if -32 <= (key[0] * 32 - self.left) <= 1032 and -32 <= (key[1] * 32 - self.top) <= 1032: #in render distance
                         if pygame.Rect((self.x * 32, self.y * 32, 32, 32)).colliderect(pygame.Rect((key[0] * 32, key[1] * 32, 32, 32))): #collision
                             if not (value.tile == "Air" or value.tile == "Mine Entrance"): #collision with tile
@@ -878,18 +929,18 @@ class Player:
                                 self.x = value.x
                                 self.y = value.y
                                 try:
-                                    if World.Tiles[(round(player.x), round(player.y))].tile != "Mine Entrance":
-                                        World.Tiles = OverworldGeneratePortal(round(player.x), round(player.y), World.Tiles)
+                                    if self.world.Tiles[(round(self.x), round(self.y))].tile != "Mine Entrance":
+                                        self.world.Tiles = OverworldGeneratePortal(round(self.x), round(self.y), self.world.Tiles)
                                 except KeyError:
-                                    World.generate_chunks()
-                                    World.Tiles = OverworldGeneratePortal(round(player.x), round(player.y), World.Tiles)
+                                    self.world.generate_chunks(self.dimension)
+                                    self.world.Tiles = OverworldGeneratePortal(round(self.x), round(self.y), self.world.Tiles)
                             if value.tile == "Mine Entrance": #is colliding with portal
                                 call = True
                                 break
                 if not call: #can re-enter portal
                     self.canEnterPortal = True
         except KeyError:
-            World.generate_chunks()
+            self.world.generate_chunks(self.dimension)
         return self.canMove
 
     #Player Move Keybinds
@@ -940,10 +991,10 @@ class Player:
                         self.y = self.pastY
                     else:
                         self.distance += 1
-                        player.hunger_mechanism()
+                        self.hunger_mechanism()
                 else:
                     self.distance += 1
-                    player.hunger_mechanism()
+                    self.hunger_mechanism()
             else: #Not Sprinting
                 if self.direction == 'North':
                     self.y -= 3 / 16
@@ -969,10 +1020,10 @@ class Player:
                         self.y = self.pastY
                     else:
                         self.distance += 1
-                        player.hunger_mechanism()
+                        self.hunger_mechanism()
                 else:
                     self.distance += 1
-                    player.hunger_mechanism()
+                    self.hunger_mechanism()
         elif key[pygame.K_s]: #Backwards
             if key[pygame.K_r]: #Sprinting
                 if self.direction == 'North':
@@ -999,10 +1050,10 @@ class Player:
                         self.y = self.pastY
                     else:
                         self.distance += 1
-                        player.hunger_mechanism()
+                        self.hunger_mechanism()
                 else:
                     self.distance += 1
-                    player.hunger_mechanism()
+                    self.hunger_mechanism()
             else: #Not Sprinting
                 if self.direction == 'North':
                     self.y += 3 / 16
@@ -1028,10 +1079,10 @@ class Player:
                         self.y = self.pastY
                     else:
                         self.distance += 1
-                        player.hunger_mechanism()
+                        self.hunger_mechanism()
                 else:
                     self.distance += 1
-                    player.hunger_mechanism()
+                    self.hunger_mechanism()
         if self.direction == 'North':
             self.target = [math.floor(self.x + 0.5), math.floor(self.y) - 1] #Target tile in north direction
         elif self.direction == 'East':
@@ -1042,51 +1093,51 @@ class Player:
             self.target = [math.floor(self.x) - 1, math.floor(self.y + 0.5)] #Target tile in west direction
         try:
             if self.dimension == "Overworld":
-                if World.Tiles[(math.floor(self.x), math.floor(self.y))].tile != "Air" and World.Tiles[(math.floor(self.x), math.floor(self.y))].tile != "Mine Entrance":
-                    World.Tiles[(math.floor(self.x), math.floor(self.y))] = Tile("Air", math.floor(self.x), math.floor(self.y))
+                if self.world.Tiles[(math.floor(self.x), math.floor(self.y))].tile != "Air" and self.world.Tiles[(math.floor(self.x), math.floor(self.y))].tile != "Mine Entrance":
+                    self.world.Tiles[(math.floor(self.x), math.floor(self.y))] = Tile("Air", math.floor(self.x), math.floor(self.y))
             elif self.dimension == "Underground" and hasGeneratedUnderground == "Generated":
-                if World.UndergroundTiles[(math.floor(self.x), math.floor(self.y))].tile != "Air" and World.UndergroundTiles[(math.floor(self.x), math.floor(self.y))].tile != "Mine Entrance":
-                    World.UndergroundTiles[(math.floor(self.x), math.floor(self.y))] = Tile("Air", math.floor(self.x), math.floor(self.y))
+                if self.world.UndergroundTiles[(math.floor(self.x), math.floor(self.y))].tile != "Air" and self.world.UndergroundTiles[(math.floor(self.x), math.floor(self.y))].tile != "Mine Entrance":
+                    self.world.UndergroundTiles[(math.floor(self.x), math.floor(self.y))] = Tile("Air", math.floor(self.x), math.floor(self.y))
         except KeyError:
-            World.generate_chunks()
+            self.world.generate_chunks(self.dimension)
 
 
     def place_tile(self): #Place tiles
         if self.isShifting: #is shifting = can edit background tiles
             if self.dimension == "Overworld": #Overworld background tiles
                 if self.inventory.hotbar_item.hasTile:
-                    if World.UnderTiles[(self.target[0], self.target[1])].tile == "Air" or \
-                            World.UnderTiles[(self.target[0], self.target[1])].tile == "Water" or \
-                            World.UnderTiles[(self.target[0], self.target[1])].tile == "Lava": #Open space to place tile
-                        World.UnderTiles[(self.target[0], self.target[1])] = Tile(self.inventory.hotbar_item.targetTile, self.target[0], self.target[1]) #Place tile
+                    if self.world.UnderTiles[(self.target[0], self.target[1])].tile == "Air" or \
+                            self.world.UnderTiles[(self.target[0], self.target[1])].tile == "Water" or \
+                            self.world.UnderTiles[(self.target[0], self.target[1])].tile == "Lava": #Open space to place tile
+                        self.world.UnderTiles[(self.target[0], self.target[1])] = Tile(self.inventory.hotbar_item.targetTile, self.target[0], self.target[1]) #Place tile
                         self.inventory.hotbar_item.number -= 1 #Subtract 1 from item in hand
                         if self.inventory.hotbar_item.number == 0:
                             self.inventory.hotbar_item = None #Remove from inventory
             elif self.dimension == "Underground": #Underground background tiles
                 if self.inventory.hotbar_item.hasTile:
-                    if World.UndergroundUnderTiles[(self.target[0], self.target[1])].tile == "Air" or \
-                            World.UndergroundUnderTiles[(self.target[0], self.target[1])].tile == "Water" or \
-                            World.UndergroundUnderTiles[(self.target[0], self.target[1])].tile == "Lava":  # Open space to place tile
-                        World.UndergroundUnderTiles[(self.target[0], self.target[1])] = Tile(self.inventory.hotbar_item.targetTile, self.target[0], self.target[1])  # Place tile
+                    if self.world.UndergroundUnderTiles[(self.target[0], self.target[1])].tile == "Air" or \
+                            self.world.UndergroundUnderTiles[(self.target[0], self.target[1])].tile == "Water" or \
+                            self.world.UndergroundUnderTiles[(self.target[0], self.target[1])].tile == "Lava":  # Open space to place tile
+                        self.world.UndergroundUnderTiles[(self.target[0], self.target[1])] = Tile(self.inventory.hotbar_item.targetTile, self.target[0], self.target[1])  # Place tile
                         self.inventory.hotbar_item.number -= 1  # Subtract 1 from item in hand
                         if self.inventory.hotbar_item.number == 0:
                             self.inventory.hotbar_item = None  # Remove from inventory
         else:
             if self.dimension == "Overworld": #Overworld Collision tiles
                 if self.inventory.hotbar_item.hasTile:
-                    if World.Tiles[(self.target[0], self.target[1])].tile == "Air" or \
-                            World.Tiles[(self.target[0], self.target[1])].tile == "Water" or \
-                            World.Tiles[(self.target[0], self.target[1])].tile == "Lava":  # Open space to place tile
-                        World.Tiles[(self.target[0], self.target[1])] = Tile(self.inventory.hotbar_item.targetTile, self.target[0], self.target[1])  # Place tile
+                    if self.world.Tiles[(self.target[0], self.target[1])].tile == "Air" or \
+                            self.world.Tiles[(self.target[0], self.target[1])].tile == "Water" or \
+                            self.world.Tiles[(self.target[0], self.target[1])].tile == "Lava":  # Open space to place tile
+                        self.world.Tiles[(self.target[0], self.target[1])] = Tile(self.inventory.hotbar_item.targetTile, self.target[0], self.target[1])  # Place tile
                         self.inventory.hotbar_item.number -= 1  # Subtract 1 from item in hand
                         if self.inventory.hotbar_item.number == 0:
                             self.inventory.hotbar_item = None  # Remove from inventory
             elif self.dimension == "Underground": #Underground Collision Tiles
                 if self.inventory.hotbar_item.hasTile:
-                    if World.UndergroundTiles[(self.target[0], self.target[1])].tile == "Air" or \
-                            World.UndergroundTiles[(self.target[0], self.target[1])].tile == "Water" or \
-                            World.UndergroundTiles[(self.target[0], self.target[1])].tile == "Lava":  # Open space to place tile
-                        World.UndergroundTiles[(self.target[0], self.target[1])] = Tile(self.inventory.hotbar_item.targetTile, self.target[0], self.target[1])  # Place tile
+                    if self.world.UndergroundTiles[(self.target[0], self.target[1])].tile == "Air" or \
+                            self.world.UndergroundTiles[(self.target[0], self.target[1])].tile == "Water" or \
+                            self.world.UndergroundTiles[(self.target[0], self.target[1])].tile == "Lava":  # Open space to place tile
+                        self.world.UndergroundTiles[(self.target[0], self.target[1])] = Tile(self.inventory.hotbar_item.targetTile, self.target[0], self.target[1])  # Place tile
                         self.inventory.hotbar_item.number -= 1  # Subtract 1 from item in hand
                         if self.inventory.hotbar_item.number == 0:
                             self.inventory.hotbar_item = None  # Remove from inventory
@@ -1095,7 +1146,7 @@ class Player:
         if self.breaking_delay == 0:
             if self.isShifting: #can edit background tiles
                 if self.dimension == "Overworld": #Overworld background tiles
-                    tile = World.UnderTiles[(self.target[0], self.target[1])]
+                    tile = self.world.UnderTiles[(self.target[0], self.target[1])]
                     if tile.breaking_time is not None: #Can break tile, targeting correct tile
                         if math.floor(self.breaking_time) >= 7:
                             self.breaking_time = 0
@@ -1127,7 +1178,7 @@ class Player:
                             except ZeroDivisionError:
                                 self.breaking_time += 7
                 elif self.dimension == "Underground": #Underground background tiles
-                    tile = World.UndergroundUnderTiles[(self.target[0], self.target[1])]
+                    tile = self.world.UndergroundUnderTiles[(self.target[0], self.target[1])]
                     if tile.breaking_time is not None:  # Can break tile, targeting correct tile
                         if math.floor(self.breaking_time) >= 7:
                             self.breaking_time = 0
@@ -1160,7 +1211,7 @@ class Player:
                                 self.breaking_time += 7
             else:
                 if self.dimension == "Overworld": #Overworld collision tiles
-                    tile = World.Tiles[(self.target[0], self.target[1])]
+                    tile = self.world.Tiles[(self.target[0], self.target[1])]
                     if tile.breaking_time is not None:  # Can break tile, targeting correct tile
                         if math.floor(self.breaking_time) >= 7:
                             self.breaking_time = 0
@@ -1192,7 +1243,7 @@ class Player:
                             except ZeroDivisionError:
                                 self.breaking_time += 7
                 elif self.dimension == "Underground": #Underground collision tiles
-                    tile = World.UndergroundTiles[(self.target[0], self.target[1])]
+                    tile = self.world.UndergroundTiles[(self.target[0], self.target[1])]
                     if tile.breaking_time is not None:  # Can break tile, targeting correct tile
                         if math.floor(self.breaking_time) >= 7:
                             self.breaking_time = 0
@@ -1230,51 +1281,51 @@ class Player:
         if self.dimension == "Overworld":
             if value.tile != "Leaf":
                 if value.tile == "Tree":
-                    player.inventory.add(Item("Oak Log", self.rng.next_random(1, 5), None, None))
+                    self.inventory.add(Item("Oak Log", self.rng.next_random(1, 5), None, None))
                 elif value.tile == "Stone":
-                    player.inventory.add(Item("Cobblestone", 1, None, None))
+                    self.inventory.add(Item("Cobblestone", 1, None, None))
                 elif value.tile == "Coal Ore":
-                    player.inventory.add(Item("Coal", 1, None, None))
+                    self.inventory.add(Item("Coal", 1, None, None))
                     self.experience.add_points(12)
                 elif value.tile == "Lapis Ore":
-                    player.inventory.add(Item("Lapis Lazuli", 1, None, None))
+                    self.inventory.add(Item("Lapis Lazuli", 1, None, None))
                     self.experience.add_points(12)
                 elif value.tile == "Diamond Ore":
-                    player.inventory.add(Item("Diamond", 1, None, None))
+                    self.inventory.add(Item("Diamond", 1, None, None))
                     self.experience.add_points(12)
                 elif value.tile == "Grass":
-                    player.inventory.add(Item("Dirt", 1, None, None))
+                    self.inventory.add(Item("Dirt", 1, None, None))
                 elif value.tile == "Gravel":
                     if self.rng.next_random(1, 10) == 1:
-                        player.inventory.add(Item("Flint", 1, None, None))
+                        self.inventory.add(Item("Flint", 1, None, None))
                     else:
-                        player.inventory.add(Item("Gravel", 1, None, None))
+                        self.inventory.add(Item("Gravel", 1, None, None))
                 else:
-                    player.inventory.add(Item(value.tile, 1, None, None))
+                    self.inventory.add(Item(value.tile, 1, None, None))
         elif self.dimension == "Underground":
             if value.tile != "Leaf":
                 if value.tile == "Tree":
-                    player.inventory.add(Item("Oak Log", self.rng.next_random(1, 5), None, None))
+                    self.inventory.add(Item("Oak Log", self.rng.next_random(1, 5), None, None))
                 elif value.tile == "Stone":
-                    player.inventory.add(Item("Cobblestone", 1, None, None))
+                    self.inventory.add(Item("Cobblestone", 1, None, None))
                 elif value.tile == "Coal Ore":
-                    player.inventory.add(Item("Coal", 1, None, None))
+                    self.inventory.add(Item("Coal", 1, None, None))
                     self.experience.add_points(12)
                 elif value.tile == "Lapis Ore":
-                    player.inventory.add(Item("Lapis Lazuli", 1, None, None))
+                    self.inventory.add(Item("Lapis Lazuli", 1, None, None))
                     self.experience.add_points(12)
                 elif value.tile == "Diamond Ore":
-                    player.inventory.add(Item("Diamond", 1, None, None))
+                    self.inventory.add(Item("Diamond", 1, None, None))
                     self.experience.add_points(12)
                 elif value.tile == "Grass":
-                    player.inventory.add(Item("Dirt", 1, None, None))
+                    self.inventory.add(Item("Dirt", 1, None, None))
                 elif value.tile == "Gravel":
                     if self.rng.next_random(1, 10) == 1:
-                        player.inventory.add(Item("Flint", 1, None, None))
+                        self.inventory.add(Item("Flint", 1, None, None))
                     else:
-                        player.inventory.add(Item("Gravel", 1, None, None))
+                        self.inventory.add(Item("Gravel", 1, None, None))
                 else:
-                    player.inventory.add(Item(value.tile, 1, None, None))
+                    self.inventory.add(Item(value.tile, 1, None, None))
         if self.inventory.hotbar_item is not None:
             if self.inventory.hotbar_item.durability is not None:
                 if self.inventory.hotbar_item.enchantments is not None:
@@ -1305,7 +1356,7 @@ class Player:
                             self.break_add_item(value, fps)
                 elif value.requireToolTier == 0:
                     self.break_add_item(value, fps)
-                World.UnderTiles[(value.x, value.y)] = Tile("Air", self.target[0], self.target[1])
+                self.world.UnderTiles[(value.x, value.y)] = Tile("Air", self.target[0], self.target[1])
             elif self.dimension == "Underground":
                 if self.inventory.hotbar_item is not None:
                     if self.inventory.hotbar_item.itemType == value.requireTool:
@@ -1321,7 +1372,7 @@ class Player:
                             self.break_add_item(value, fps)
                 elif value.requireToolTier == 0:
                     self.break_add_item(value, fps)
-                World.UndergroundUnderTiles[(value.x, value.y)] = Tile("Air", self.target[0], self.target[1])
+                self.world.UndergroundUnderTiles[(value.x, value.y)] = Tile("Air", self.target[0], self.target[1])
         else:
             if self.dimension == "Overworld":
                 if self.inventory.hotbar_item is not None:
@@ -1338,7 +1389,7 @@ class Player:
                             self.break_add_item(value, fps)
                 elif value.requireToolTier == 0:
                     self.break_add_item(value, fps)
-                World.Tiles[(value.x, value.y)] = Tile("Air", self.target[0], self.target[1])
+                self.world.Tiles[(value.x, value.y)] = Tile("Air", self.target[0], self.target[1])
             elif self.dimension == "Underground":
                 if self.inventory.hotbar_item is not None:
                     if self.inventory.hotbar_item.itemType == value.requireTool:
@@ -1354,87 +1405,87 @@ class Player:
                             self.break_add_item(value, fps)
                 elif value.requireToolTier == 0:
                     self.break_add_item(value, fps)
-                World.UndergroundTiles[(value.x, value.y)] = Tile("Air", self.target[0], self.target[1])
+                self.world.UndergroundTiles[(value.x, value.y)] = Tile("Air", self.target[0], self.target[1])
 
     def pick_up_liquid(self): #Picking up liquids with a bucket
         if self.dimension == "Overworld": #Overworld
             if self.isShifting: #Background tiles
-                if World.UnderTiles[(self.target[0], self.target[1])].tile == "Water": #Wate
+                if self.world.UnderTiles[(self.target[0], self.target[1])].tile == "Water": #Wate
                     self.inventory.hotbar_item.number -= 1
-                    player.inventory.add(Item("Water Bucket", 1, None, None))
-                    World.UnderTiles[(self.target[0], self.target[1])] = Tile("Air", self.target[0], self.target[1])
-                elif World.UnderTiles[(self.target[0], self.target[1])].tile == "Lava": #Lava
+                    self.inventory.add(Item("Water Bucket", 1, None, None))
+                    self.world.UnderTiles[(self.target[0], self.target[1])] = Tile("Air", self.target[0], self.target[1])
+                elif self.world.UnderTiles[(self.target[0], self.target[1])].tile == "Lava": #Lava
                     self.inventory.hotbar_item.number -= 1
-                    player.inventory.add(Item("Lava Bucket", 1, None, None))
-                    World.UnderTiles[(self.target[0], self.target[1])] = Tile("Air", self.target[0], self.target[1])
+                    self.inventory.add(Item("Lava Bucket", 1, None, None))
+                    self.world.UnderTiles[(self.target[0], self.target[1])] = Tile("Air", self.target[0], self.target[1])
             else: #Collision tiles
-                if World.Tiles[(self.target[0], self.target[1])].tile == "Water": #Water
+                if self.world.Tiles[(self.target[0], self.target[1])].tile == "Water": #Water
                     self.inventory.hotbar_item.number -= 1
-                    player.inventory.add(Item("Water Bucket", 1, None, None))
-                    World.Tiles[(self.target[0], self.target[1])] = Tile("Air", self.target[0], self.target[1],)
-                elif World.Tiles[(self.target[0], self.target[1])].tile == "Lava": #Lava
+                    self.inventory.add(Item("Water Bucket", 1, None, None))
+                    self.world.Tiles[(self.target[0], self.target[1])] = Tile("Air", self.target[0], self.target[1],)
+                elif self.world.Tiles[(self.target[0], self.target[1])].tile == "Lava": #Lava
                     self.inventory.hotbar_item.number -= 1
-                    player.inventory.add(Item("Lava Bucket", 1, None, None))
-                    World.Tiles[(self.target[0], self.target[1])] = Tile("Air", self.target[0], self.target[1])
+                    self.inventory.add(Item("Lava Bucket", 1, None, None))
+                    self.world.Tiles[(self.target[0], self.target[1])] = Tile("Air", self.target[0], self.target[1])
         elif self.dimension == "Underground": #Underground
             if self.isShifting: #Background Tiles
-                if World.UndergroundUnderTiles[(self.target[0], self.target[1])].tile == "Water": #Water
+                if self.world.UndergroundUnderTiles[(self.target[0], self.target[1])].tile == "Water": #Water
                     self.inventory.hotbar_item.number -= 1
-                    player.inventory.add(Item("Water Bucket", 1, None, None))
-                    World.UndergroundUnderTiles[(self.target[0], self.target[1])] = Tile("Air", self.target[0], self.target[1])
-                elif World.UndergroundUnderTiles[(self.target[0], self.target[1])].tile == "Lava": #Lava
+                    self.inventory.add(Item("Water Bucket", 1, None, None))
+                    self.world.UndergroundUnderTiles[(self.target[0], self.target[1])] = Tile("Air", self.target[0], self.target[1])
+                elif self.world.UndergroundUnderTiles[(self.target[0], self.target[1])].tile == "Lava": #Lava
                     self.inventory.hotbar_item.number -= 1
-                    player.inventory.add(Item("Lava Bucket", 1, None, None))
-                    World.UndergroundUnderTiles[(self.target[0], self.target[1])] = Tile("Air", self.target[0], self.target[1])
+                    self.inventory.add(Item("Lava Bucket", 1, None, None))
+                    self.world.UndergroundUnderTiles[(self.target[0], self.target[1])] = Tile("Air", self.target[0], self.target[1])
             else: #Collision Tiles
-                if World.UndergroundTiles[(self.target[0], self.target[1])].tile == "Water": #Water
+                if self.world.UndergroundTiles[(self.target[0], self.target[1])].tile == "Water": #Water
                     self.inventory.hotbar_item.number -= 1
-                    player.inventory.add(Item("Water Bucket", 1, None, None))
-                    World.UndergroundTiles[(self.target[0], self.target[1])] = Tile("Air", self.target[0], self.target[1])
-                elif World.UndergroundTiles[(self.target[0], self.target[1])].tile == "Lava": #Lava
+                    self.inventory.add(Item("Water Bucket", 1, None, None))
+                    self.world.UndergroundTiles[(self.target[0], self.target[1])] = Tile("Air", self.target[0], self.target[1])
+                elif self.world.UndergroundTiles[(self.target[0], self.target[1])].tile == "Lava": #Lava
                     self.inventory.hotbar_item.number -= 1
-                    player.inventory.add(Item("Lava Bucket", 1, None, None))
-                    World.UndergroundTiles[(self.target[0], self.target[1])] = Tile("Air", self.target[0], self.target[1])
+                    self.inventory.add(Item("Lava Bucket", 1, None, None))
+                    self.world.UndergroundTiles[(self.target[0], self.target[1])] = Tile("Air", self.target[0], self.target[1])
 
     def place_liquid(self):
         if self.dimension == "Overworld":
             if self.isShifting:
                 if self.inventory.hotbar_item.name == "Water Bucket":
                     self.inventory.hotbar_item.number -= 1
-                    player.inventory.add(Item("Bucket", 1, None, None))
-                    World.UnderTiles[(self.target[0], self.target[1])] = Tile("Water", self.target[0], self.target[1])
+                    self.inventory.add(Item("Bucket", 1, None, None))
+                    self.world.UnderTiles[(self.target[0], self.target[1])] = Tile("Water", self.target[0], self.target[1])
                 elif self.inventory.hotbar_item.name == "Lava Bucket":
                     self.inventory.hotbar_item.number -= 1
-                    player.inventory.add(Item("Bucket", 1, None, None))
-                    World.UnderTiles[(self.target[0], self.target[1])] = Tile("Lava", self.target[0], self.target[1])
+                    self.inventory.add(Item("Bucket", 1, None, None))
+                    self.world.UnderTiles[(self.target[0], self.target[1])] = Tile("Lava", self.target[0], self.target[1])
             else:
                 if self.inventory.hotbar_item.name == "Water Bucket":
                     self.inventory.hotbar_item.number -= 1
-                    player.inventory.add(Item("Bucket", 1, None, None))
-                    World.Tiles[(self.target[0], self.target[1])] = Tile("Water", self.target[0], self.target[1])
+                    self.inventory.add(Item("Bucket", 1, None, None))
+                    self.world.Tiles[(self.target[0], self.target[1])] = Tile("Water", self.target[0], self.target[1])
                 elif self.inventory.hotbar_item.name == "Lava Bucket":
                     self.inventory.hotbar_item.number -= 1
-                    player.inventory.add(Item("Bucket", 1, None, None))
-                    World.Tiles[(self.target[0], self.target[1])] = Tile("Lava", self.target[0], self.target[1])
+                    self.inventory.add(Item("Bucket", 1, None, None))
+                    self.world.Tiles[(self.target[0], self.target[1])] = Tile("Lava", self.target[0], self.target[1])
         elif self.dimension == "Underground":
             if self.isShifting:
                 if self.inventory.hotbar_item.name == "Water Bucket":
                     self.inventory.hotbar_item.number -= 1
-                    player.inventory.add(Item("Bucket", 1, None, None))
-                    World.UndergroundUnderTiles[(self.target[0], self.target[1])] = Tile("Water", self.target[0], self.target[1])
+                    self.inventory.add(Item("Bucket", 1, None, None))
+                    self.world.UndergroundUnderTiles[(self.target[0], self.target[1])] = Tile("Water", self.target[0], self.target[1])
                 elif self.inventory.hotbar_item.name == "Lava Bucket":
                     self.inventory.hotbar_item.number -= 1
-                    player.inventory.add(Item("Bucket", 1, None, None))
-                    World.UndergroundUnderTiles[(self.target[0], self.target[1])] = Tile("Lava", self.target[0], self.target[1])
+                    self.inventory.add(Item("Bucket", 1, None, None))
+                    self.world.UndergroundUnderTiles[(self.target[0], self.target[1])] = Tile("Lava", self.target[0], self.target[1])
             else:
                 if self.inventory.hotbar_item.name == "Water Bucket":
                     self.inventory.hotbar_item.number -= 1
-                    player.inventory.add(Item("Bucket", 1, None, None))
-                    World.UndergroundTiles[(self.target[0], self.target[1])] = Tile("Water", self.target[0], self.target[1])
+                    self.inventory.add(Item("Bucket", 1, None, None))
+                    self.world.UndergroundTiles[(self.target[0], self.target[1])] = Tile("Water", self.target[0], self.target[1])
                 elif self.inventory.hotbar_item.name == "Lava Bucket":
                     self.inventory.hotbar_item.number -= 1
-                    player.inventory.add(Item("Bucket", 1, None, None))
-                    World.UndergroundTiles[(self.target[0], self.target[1])] = Tile("Lava", self.target[0], self.target[1])
+                    self.inventory.add(Item("Bucket", 1, None, None))
+                    self.world.UndergroundTiles[(self.target[0], self.target[1])] = Tile("Lava", self.target[0], self.target[1])
 
     def render(self, context: Context, display: pygame.Surface, screen_width: int, screen_height: int, fps: float):
 
@@ -1450,11 +1501,11 @@ class Player:
         display.blit(self.image, (self.rect.x, self.rect.y))
         if self.direction == 'North':
             pygame.draw.line(display, (0, 0, 0), (375, 375), (375, 359), width=4)
-        elif player.direction == 'East':
+        elif self.direction == 'East':
             pygame.draw.line(display, (0, 0, 0), (375, 375), (391, 375), width=4)
-        elif player.direction == 'South':
+        elif self.direction == 'South':
             pygame.draw.line(display, (0, 0, 0), (375, 375), (375, 391), width=4)
-        elif player.direction == 'West':
+        elif self.direction == 'West':
             pygame.draw.line(display, (0, 0, 0), (375, 375), (359, 375), width=4)
 
         # render health and hunger bars
@@ -1468,7 +1519,7 @@ class Player:
         self.hotbar.render(display, context, self.inventory.items[27:36], self.inventory.selected_hotbar)
 
         # RENDER DEBUG MENU
-        if player.debug_menu:
+        if self.debug_menu:
             font9 = pygame.font.Font(
                 str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 25)
             version = font9.render(VERSION, True, (0, 0, 0), (255, 255, 255))
@@ -1479,7 +1530,7 @@ class Player:
             display.blit(pygame_version, (0, 50))
             display_size = font9.render(f"Display Size: {screen_width}x{screen_height}", True, (0, 0, 0), (255, 255, 255))
             display.blit(display_size, (0, 75))
-            SEEDs = font9.render(f"Seed: {World.seed}", True, (0, 0, 0), (255, 255, 255))
+            SEEDs = font9.render(f"Seed: {self.world.seed}", True, (0, 0, 0), (255, 255, 255))
             display.blit(SEEDs, (0, 100))
             fps_font = font9.render(f"FPS: {fps:.2f}", True, (0, 0, 0), (255, 255, 255))
             display.blit(fps_font, (0, 125))
@@ -1487,7 +1538,7 @@ class Player:
             display.blit(Direction, (0, 150))
             Target = font9.render(f"Target Tile: {self.target[0]}, {self.target[1]}", True, (0, 0, 0), (255, 255, 255))
             display.blit(Target, (0, 175))
-            Coords = font9.render(f"X: {round(player.x, 3)}, Y: {round(player.y, 3)}", True, (0, 0, 0), (255, 255, 255))
+            Coords = font9.render(f"X: {round(self.x, 3)}, Y: {round(self.y, 3)}", True, (0, 0, 0), (255, 255, 255))
             display.blit(Coords, (0, 200))
 
 def exit_death_screen():
@@ -1524,7 +1575,7 @@ def death_screen():
 
 
 def generate_world(context: Context, rng: RandomNumberGenerator, seed: int) -> RandomNumberGenerator:
-    global hasGeneratedOverworld,  player, World, screen, world
+    global hasGeneratedOverworld
 
     # Play Minecraft Music (Sweden)
     pygame.mixer.init()
@@ -1532,9 +1583,11 @@ def generate_world(context: Context, rng: RandomNumberGenerator, seed: int) -> R
     pygame.mixer.music.play()
 
     World = TilecraftWorld(rng, seed)  # Create World
-    player = Player(context, rng)  # Create Player
-    screen = Screen(rng)  # Create Text Screen
+    player = Player(context, rng, World)  # Create Player
+    screen = Screen(rng, player, World)  # Create Text Screen
     hasGeneratedOverworld = True
+
+    return World, screen, player 
 
 
 def create_world():
@@ -1568,8 +1621,8 @@ def create_world():
 '''Function to handle all commands'''
 
 #UP TO HERE
-def commands(number, val, rng: RandomNumberGenerator, screen: Screen, timer: SpeedrunTimer):
-    global player, cobblestone_index, obsidian_index, item_name_list, experience, inventory_list, hotbar_order, hotbar_index, mode, hotbar_item, item_val_list, background, enchantable_list, flint_val, gravel_val, blacksmith_book, bool_blacksmith_iron, bool_blacksmith_diamond, bool_blacksmith_bread, blacksmith_iron, blacksmith_diamond, blacksmith_bread, endTime, bound_overworld_portal, overworld_portal, diaval, call, actualX, actualY, dimension
+def commands(number, val, rng: RandomNumberGenerator, screen: Screen, timer: SpeedrunTimer, player: Player, World: TilecraftWorld):
+    global cobblestone_index, obsidian_index, item_name_list, experience, inventory_list, hotbar_order, hotbar_index, mode, hotbar_item, item_val_list, background, enchantable_list, flint_val, gravel_val, blacksmith_book, bool_blacksmith_iron, bool_blacksmith_diamond, bool_blacksmith_bread, blacksmith_iron, blacksmith_diamond, blacksmith_bread, endTime, bound_overworld_portal, overworld_portal, diaval, call, actualX, actualY, dimension
     for o in range(number):
         if val == "/lootvillagehay":  # Loot Village Hay
             if player.dimension == 'Overworld':
@@ -1586,7 +1639,7 @@ def commands(number, val, rng: RandomNumberGenerator, screen: Screen, timer: Spe
                                 World.empty_vil1.append([actualX, actualY])
                                 World.bound_village.remove(World.bound_village[j])
                                 call = True
-                                empty_vil()
+                                empty_vil(World)
                                 break
                     else:
                         screen.print("Require Stone Hoe")
@@ -1611,7 +1664,7 @@ def commands(number, val, rng: RandomNumberGenerator, screen: Screen, timer: Spe
                         World.empty_vil2.append([actualX, actualY])
                         World.bound_village2.remove(World.bound_village2[j])
                         call = True
-                        empty_vil()
+                        empty_vil(World)
                         break
                 if call:
                     call = False
@@ -1676,7 +1729,7 @@ def commands(number, val, rng: RandomNumberGenerator, screen: Screen, timer: Spe
                         World.empty_vil3.append([actualX, actualY])
                         World.bound_village3.remove(World.bound_village3[j])
                         call = True
-                        empty_vil()
+                        empty_vil(World)
                         break
                 if call:
                     call = False
@@ -1699,7 +1752,7 @@ def commands(number, val, rng: RandomNumberGenerator, screen: Screen, timer: Spe
                         World.empty_vil4.append([actualX, actualY])
                         World.bound_village4.remove(World.bound_village4[j])
                         call = True
-                        empty_vil()
+                        empty_vil(World)
                         break
                 if call:
                     call = False
@@ -1822,7 +1875,7 @@ def commands(number, val, rng: RandomNumberGenerator, screen: Screen, timer: Spe
                         World.empty_ruined_portal1.append([actualX, actualY])
                         World.bound_ruined_portal.remove(World.bound_ruined_portal[j])
                         call = True
-                        empty_ruined_portals()
+                        empty_ruined_portals(World)
                         break
                 if call:
                     call = False
@@ -1869,7 +1922,7 @@ def commands(number, val, rng: RandomNumberGenerator, screen: Screen, timer: Spe
                             World.bound_overworld_portal.append([[actualX - 10 / 16, actualX, actualX + 10 / 16],
                                                            [actualY - 10 / 16, actualY, actualY + 10 / 16]])
                             call = True
-                            empty_ruined_portals()
+                            empty_ruined_portals(World)
                             break
                         elif obsidian_bool and not flint_and_steel_bool:
                             screen.print("Require Flint and Steel")
@@ -1920,7 +1973,7 @@ def commands(number, val, rng: RandomNumberGenerator, screen: Screen, timer: Spe
 '''Empty Structures'''
 
 # Displays empty village
-def empty_vil():
+def empty_vil(World: TilecraftWorld):
     global actualX, actualY, bool_empty_vil1, bool_empty_vil2, empty_vil_total, bool_empty_vil3, bool_empty_vil4
     bool_empty_vil1 = False
     bool_empty_vil2 = False
@@ -1942,7 +1995,7 @@ def empty_vil():
         World.empty_vil_total.append([actualX, actualY])
 
 # Displays empty ruined portal
-def empty_ruined_portals():
+def empty_ruined_portals(World: TilecraftWorld):
     global actualX, actualY, empty_ruined_portal_total
     bool_empty_ruined_portal1 = False
     bool_empty_ruined_portal2 = False
@@ -2175,8 +2228,7 @@ def title_screen():
     # Tkinter main loop
     window.mainloop()
 
-def RemoveItem():
-    global player
+def RemoveItem(player: Player):
     all_lists = [player.enchanting_table.items, player.inventory.items, player.craft_interface.items,
                  player.crafting_grid.items, player.furnace.items, player.compressor.items, player.grindstone.items]
     for i in all_lists:
