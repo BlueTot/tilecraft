@@ -1753,7 +1753,7 @@ class UndergroundGeneratingScreen(Interface):
 
 # Game Loop
 def main(display: pygame.Surface, clock: pygame.time.Clock, context: Context):
-    global play_time, endTime, minute, seconds, true_play_time, play_time_seconds, netherGenerated
+    global play_time_seconds, netherGenerated
 
     netherGenerated = False
 
