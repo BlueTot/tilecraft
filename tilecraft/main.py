@@ -598,7 +598,7 @@ class GameScreen(Interface):
         self.world.render_chunks(self.player.left, self.player.right, self.player.top, self.player.bottom)  # Generate list of all chunks that are loaded
         self.world.generate_chunks(self.player.dimension)  # Generate Chunks that are loaded but have not been generated before
         self.world.render(world_map, self.context, self.player.dimension, self.player.left, self.player.top, self.player.rect, self.player.breaking_time, self.player.target)  # Render all world_map blocks to world_map
-        RemoveItem(self.player) #Remove Items if their number is 0
+        self.player.remove_items() #Remove Items if their number is 0
         self.player.render(self.context, world_map, screen_width, screen_height, fps)  # Render self.player and self.player accessories to world_map
         self.timer.render(world_map, play_time_seconds)
         advancements_update(self.screen, self.timer, self.player.advancements, self.player.inventory.items, self.player.armour.items, self.player.dimension)  # Update Advancements
@@ -659,7 +659,7 @@ class InventoryScreen(Interface):
         self.player.craft_interface.render(world_map, self.context, mouse, is_holding) #Render Small Crafting Grid
         self.player.craft_interface.update() #Update Small 2x2 Crafting Grid
 
-        RemoveItem(self.player) #Remove all items with number of 0 or durability of 0
+        self.player.remove_items() #Remove all items with number of 0 or durability of 0
         self.player.holding_item.render(world_map, self.context) #Render the item the user is holding
 
         self.display.blit(world_map, (0, 0))  # Render map to self.display
@@ -712,7 +712,7 @@ class CraftingScreen(Interface):
         self.player.crafting_grid.render(world_map, self.context, mouse, is_holding) #Render 3x3 Crafting Grid
         self.player.crafting_grid.update()  #Update 3x3 Crafting Grid
 
-        RemoveItem(self.player) #Remove all items with number of 0 or durability of 0
+        self.player.remove_items() #Remove all items with number of 0 or durability of 0
         self.player.holding_item.render(world_map, self.context) #Render the item the user is holding
 
         self.display.blit(world_map, (0, 0))  # Render map to self.display
@@ -764,7 +764,7 @@ class SmeltingScreen(Interface):
         self.player.furnace.render(world_map, self.context, mouse, fps, is_holding) #Render Furnace Interface
         self.player.furnace.smelt(self.context, fps, self.player.experience) #Furnace Smelting
 
-        RemoveItem(self.player) #Remove all items with number of 0 or durability of 0
+        self.player.remove_items() #Remove all items with number of 0 or durability of 0
         self.player.holding_item.render(world_map, self.context) #Render the item the user is holding
 
         self.display.blit(world_map, (0, 0))  # Render map to self.display
@@ -816,7 +816,7 @@ class EnchantingScreen(Interface):
         self.player.inventory.render(self.context, world_map, mouse, is_holding) #Render Inventory Grid
         self.player.enchanting_table.render(world_map, self.context, mouse, is_holding) #Render Enchanting Table Interface
 
-        RemoveItem(self.player) #Remove all items with number of 0 or durability of 0
+        self.player.remove_items() #Remove all items with number of 0 or durability of 0
         self.player.holding_item.render(world_map, self.context) #Render the item the user is holding
 
         self.display.blit(world_map, (0, 0))  # Render map to self.display
@@ -869,7 +869,7 @@ class CompressingScreen(Interface):
         self.player.compressor.render(world_map, self.context, mouse, fps, is_holding) #Render Compressor Interface
         self.player.compressor.compress(fps) #Compressing Process
 
-        RemoveItem(self.player) #Remove all items with number of 0 or durability of 0
+        self.player.remove_items() #Remove all items with number of 0 or durability of 0
         self.player.holding_item.render(world_map, self.context) #Render the item the user is holding
 
         self.display.blit(world_map, (0, 0))  # Render map to self.display
@@ -923,7 +923,7 @@ class GrindstoneScreen(Interface):
         self.player.grindstone.render(world_map, self.context, mouse, is_holding) #Render Grindstone Interface
         self.player.grindstone.repair_and_disenchant() #Update repaired/disenchanted item
 
-        RemoveItem(self.player) #Remove all items with number of 0 or durability of 0
+        self.player.remove_items() #Remove all items with number of 0 or durability of 0
         self.player.holding_item.render(world_map, self.context) #Render the item the user is holding
 
         self.display.blit(world_map, (0, 0))  # Render map to self.display
@@ -1164,6 +1164,27 @@ class Player:
                 self.regenerate_start_time += 1
             else:
                 self.regenerate_val = False
+
+    # remove items that shouldn't be there
+    def remove_items(self):
+        all_lists = [self.enchanting_table.items, self.inventory.items, self.craft_interface.items,
+                    self.crafting_grid.items, self.furnace.items, self.compressor.items, self.grindstone.items]
+        for i in all_lists:
+            for j in range(len(i)):
+                if i[j] is not None:
+                    if i[j].number <= 0:
+                        i[j] = None
+                    elif i[j].durability is not None:
+                        if i[j].durability <= 0:
+                            i[j] = None
+        self.enchanting_table.items, self.inventory.items, self.craft_interface.items, \
+        self.crafting_grid.items, self.furnace.items, self.compressor.items, self.grindstone.items = all_lists
+        if self.holding_item.item is not None:
+            if self.holding_item.item.number <= 0:
+                self.holding_item.item = None
+            elif self.holding_item.item.durability is not None:
+                if self.holding_item.item.durability <= 0:
+                    self.holding_item.item = None
 
     def collide(self): #Collisions with tiles
         global hasGeneratedUnderground
@@ -2504,23 +2525,3 @@ def title_screen():
 
     # Tkinter main loop
     window.mainloop()
-
-def RemoveItem(player: Player):
-    all_lists = [player.enchanting_table.items, player.inventory.items, player.craft_interface.items,
-                 player.crafting_grid.items, player.furnace.items, player.compressor.items, player.grindstone.items]
-    for i in all_lists:
-        for j in range(len(i)):
-            if i[j] is not None:
-                if i[j].number <= 0:
-                    i[j] = None
-                elif i[j].durability is not None:
-                    if i[j].durability <= 0:
-                        i[j] = None
-    player.enchanting_table.items, player.inventory.items, player.craft_interface.items, \
-    player.crafting_grid.items, player.furnace.items, player.compressor.items, player.grindstone.items = all_lists
-    if player.holding_item.item is not None:
-        if player.holding_item.item.number <= 0:
-            player.holding_item.item = None
-        elif player.holding_item.item.durability is not None:
-            if player.holding_item.item.durability <= 0:
-                player.holding_item.item = None
