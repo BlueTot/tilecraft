@@ -876,6 +876,60 @@ class CompressingScreen(Interface):
         pygame.display.flip()  # Update self.display
 
 
+class GrindstoneScreen(Interface):
+
+    def handle_event(self, event: pygame.event.Event) -> None:
+        mouse = pygame.mouse.get_pos()
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_e: # Exit 
+                self.player.mode = "game"
+                return
+            elif event.key == pygame.K_1: #1
+                self.player.inventory.hotbar_swap(mouse, 1)
+            elif event.key == pygame.K_2: #2
+                self.player.inventory.hotbar_swap(mouse, 2)
+            elif event.key == pygame.K_3: #3
+                self.player.inventory.hotbar_swap(mouse, 3)
+            elif event.key == pygame.K_4: #4
+                self.player.inventory.hotbar_swap(mouse, 4)
+            elif event.key == pygame.K_5: #5
+                self.player.inventory.hotbar_swap(mouse, 5)
+            elif event.key == pygame.K_6: #6
+                self.player.inventory.hotbar_swap(mouse, 6)
+            elif event.key == pygame.K_7: #7
+                self.player.inventory.hotbar_swap(mouse, 7)
+            elif event.key == pygame.K_8: #8
+                self.player.inventory.hotbar_swap(mouse, 8)
+            elif event.key == pygame.K_9: #9
+                self.player.inventory.hotbar_swap(mouse, 9)
+
+        elif event.type == pygame.MOUSEBUTTONDOWN: #Mouse Button Down Clicking Event
+            
+            if pygame.mouse.get_pressed(3)[0]: #Left Click
+                self.player.inventory.handle_left_click(mouse, self.player.holding_item)
+                self.player.grindstone.handle_left_click(mouse, self.player.holding_item, self.player.inventory, self.player.experience)
+
+            elif pygame.mouse.get_pressed(3)[2]: #Right Click
+                self.player.inventory.handle_right_click(mouse, self.player.holding_item)
+                self.player.grindstone.handle_right_click(mouse, self.player.holding_item)
+
+    def render(self, world_map: pygame.Surface, fps: float) -> None:
+        mouse = pygame.mouse.get_pos()
+        self.display.fill((0, 0, 0))
+        world_map.fill((211, 211, 211))
+
+        is_holding = self.player.holding_item.item is not None
+        self.player.inventory.render(self.context, world_map, mouse, is_holding) #Render Inventory Grid
+        self.player.grindstone.render(world_map, self.context, mouse, is_holding) #Render Grindstone Interface
+        self.player.grindstone.repair_and_disenchant() #Update repaired/disenchanted item
+
+        RemoveItem(self.player) #Remove all items with number of 0 or durability of 0
+        self.player.holding_item.render(world_map, self.context) #Render the item the user is holding
+
+        self.display.blit(world_map, (0, 0))  # Render map to self.display
+        pygame.display.flip()  # Update self.display
+
+
 # Game Loop
 def main(display: pygame.Surface, clock: pygame.time.Clock, context: Context):
     global mode, val, comma, number, called, play_time, endTime, \
@@ -896,6 +950,7 @@ def main(display: pygame.Surface, clock: pygame.time.Clock, context: Context):
     smelting_screen: Interface = SmeltingScreen(display, context, screen, player, World, timer, rng)
     enchanting_screen: Interface = EnchantingScreen(display, context, screen, player, World, timer, rng)
     compressing_screen: Interface = CompressingScreen(display, context, screen, player, World, timer, rng)
+    grindstone_screen: Interface = GrindstoneScreen(display, context, screen, player, World, timer, rng)
 
     while True:
 
@@ -943,113 +998,9 @@ def main(display: pygame.Surface, clock: pygame.time.Clock, context: Context):
                 compressing_screen.render(world, fps)
 
             elif player.mode == "repairing and disenchanting":
-
-                mouse = pygame.mouse.get_pos()
-
                 for event in events:
-                    if event.type == pygame.KEYDOWN:
-                        if event.key == pygame.K_e: # Exit 
-                            player.mode = "game"
-                            break
-                        elif event.key == pygame.K_1: #1
-                            player.inventory.hotbar_swap(mouse, 1)
-                        elif event.key == pygame.K_2: #2
-                            player.inventory.hotbar_swap(mouse, 2)
-                        elif event.key == pygame.K_3: #3
-                            player.inventory.hotbar_swap(mouse, 3)
-                        elif event.key == pygame.K_4: #4
-                            player.inventory.hotbar_swap(mouse, 4)
-                        elif event.key == pygame.K_5: #5
-                            player.inventory.hotbar_swap(mouse, 5)
-                        elif event.key == pygame.K_6: #6
-                            player.inventory.hotbar_swap(mouse, 6)
-                        elif event.key == pygame.K_7: #7
-                            player.inventory.hotbar_swap(mouse, 7)
-                        elif event.key == pygame.K_8: #8
-                            player.inventory.hotbar_swap(mouse, 8)
-                        elif event.key == pygame.K_9: #9
-                            player.inventory.hotbar_swap(mouse, 9)
-
-                    elif event.type == pygame.MOUSEBUTTONDOWN: #Mouse Button Down Clicking Event
-                        
-                        if pygame.mouse.get_pressed(3)[0]: #Left Click
-                            player.inventory.handle_left_click(mouse, player.holding_item)
-
-                            if player.mode == "inventory":
-                                player.armour.handle_left_click(mouse, player.holding_item)
-                                player.craft_interface.handle_left_click(mouse, player.holding_item, player.inventory)
-
-                            elif player.mode == "crafting":
-                                player.crafting_grid.handle_left_click(mouse, player.holding_item, player.inventory) 
-
-                            elif player.mode == "smelting":
-                                player.furnace.handle_left_click(mouse, player.holding_item, player.inventory) 
-
-                            elif player.mode == "enchanting":
-                                player.enchanting_table.handle_left_click(mouse, player.holding_item, player.experience, rng)
-
-                            elif player.mode == "compressing":
-                                player.compressor.handle_left_click(mouse, player.holding_item, player.inventory)
-
-                            elif player.mode == "repairing and disenchanting":
-                                player.grindstone.handle_left_click(mouse, player.holding_item, player.inventory, player.experience)
-
-                        elif pygame.mouse.get_pressed(3)[2]: #Right Click
-                            player.inventory.handle_right_click(mouse, player.holding_item)
-
-                            if player.mode == "inventory":
-                                player.craft_interface.handle_right_click(mouse, player.holding_item)
-
-                            elif player.mode == "crafting":
-                                player.crafting_grid.handle_right_click(mouse, player.holding_item) 
-
-                            elif player.mode == "smelting":
-                                player.furnace.handle_right_click(mouse, player.holding_item) 
-
-                            elif player.mode == "enchanting":
-                                player.enchanting_table.handle_right_click(mouse, player.holding_item)
-
-                            elif player.mode == "compressing":
-                                player.compressor.handle_right_click(mouse, player.holding_item)
-
-                            elif player.mode == "repairing and disenchanting":
-                                player.grindstone.handle_right_click(mouse, player.holding_item)
-
-                display.fill((0, 0, 0))
-                world.fill((211, 211, 211))
-
-                is_holding = player.holding_item.item is not None
-                player.inventory.render(context, world, mouse, is_holding) #Render Inventory Grid
-
-                if player.mode == "inventory":
-                    player.armour.render(world, context, mouse, is_holding) #Render Armour Grid for Player
-                    player.craft_interface.render(world, context, mouse, is_holding) #Render Small Crafting Grid
-                    player.craft_interface.update() #Update Small 2x2 Crafting Grid
-                    
-                elif player.mode == "crafting":
-                    player.crafting_grid.render(world, context, mouse, is_holding) #Render 3x3 Crafting Grid
-                    player.crafting_grid.update()  #Update 3x3 Crafting Grid
-
-                elif player.mode == "smelting":
-                    player.furnace.render(world, context, mouse, fps, is_holding) #Render Furnace Interface
-                    player.furnace.smelt(context, fps, player.experience) #Furnace Smelting
-
-                elif player.mode == "enchanting":
-                    player.enchanting_table.render(world, context, mouse, is_holding) #Render Enchanting Table Interface
-
-                elif player.mode == "compressing":
-                    player.compressor.render(world, context, mouse, fps, is_holding) #Render Compressor Interface
-                    player.compressor.compress(fps) #Compressing Process
-
-                elif player.mode == "repairing and disenchanting":
-                    player.grindstone.render(world, context, mouse, is_holding) #Render Grindstone Interface
-                    player.grindstone.repair_and_disenchant() #Update repaired/disenchanted item
-
-                RemoveItem(player) #Remove all items with number of 0 or durability of 0
-                player.holding_item.render(world, context) #Render the item the user is holding
-
-                display.blit(world, (0, 0))  # Render map to display
-                pygame.display.flip()  # Update Display
+                    grindstone_screen.handle_event(event)
+                grindstone_screen.render(world, fps)
 
         elif not hasGeneratedOverworld and hasGeneratedUnderground == "Not Loaded":
             display.fill((255, 255, 255))
@@ -1084,6 +1035,10 @@ def main(display: pygame.Surface, clock: pygame.time.Clock, context: Context):
             compressing_screen.screen = screen
             compressing_screen.world = World
             compressing_screen.player = player
+
+            grindstone_screen.screen = screen
+            grindstone_screen.world = World
+            grindstone_screen.player = player
 
         if hasGeneratedUnderground == "Generating":
             display.fill((255, 255, 255))
