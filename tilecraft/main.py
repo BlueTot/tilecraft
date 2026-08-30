@@ -425,13 +425,14 @@ class TilecraftWorld:
 
 # common screen interface
 class Interface:
-    def __init__(self, display: pygame.Surface, context: Context, screen: Screen, player, world: TilecraftWorld, timer: SpeedrunTimer) -> None:
+    def __init__(self, display: pygame.Surface, context: Context, screen: Screen, player, world: TilecraftWorld, timer: SpeedrunTimer, rng: RandomNumberGenerator) -> None:
         self.display = display
         self.context = context
         self.screen = screen
         self.player = player
         self.world = world
         self.timer = timer
+        self.rng = rng
         self.next_screen: Optional[Interface] = None
 
     def handle_event(self, event: pygame.event.Event) -> None:
@@ -770,6 +771,57 @@ class SmeltingScreen(Interface):
         pygame.display.flip()  # Update self.display
 
 
+class EnchantingScreen(Interface):
+    def handle_event(self, event):
+        mouse = pygame.mouse.get_pos()
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_e: # Exit 
+                self.player.mode = "game"
+                return
+            elif event.key == pygame.K_1: #1
+                self.player.inventory.hotbar_swap(mouse, 1)
+            elif event.key == pygame.K_2: #2
+                self.player.inventory.hotbar_swap(mouse, 2)
+            elif event.key == pygame.K_3: #3
+                self.player.inventory.hotbar_swap(mouse, 3)
+            elif event.key == pygame.K_4: #4
+                self.player.inventory.hotbar_swap(mouse, 4)
+            elif event.key == pygame.K_5: #5
+                self.player.inventory.hotbar_swap(mouse, 5)
+            elif event.key == pygame.K_6: #6
+                self.player.inventory.hotbar_swap(mouse, 6)
+            elif event.key == pygame.K_7: #7
+                self.player.inventory.hotbar_swap(mouse, 7)
+            elif event.key == pygame.K_8: #8
+                self.player.inventory.hotbar_swap(mouse, 8)
+            elif event.key == pygame.K_9: #9
+                self.player.inventory.hotbar_swap(mouse, 9)
+
+        elif event.type == pygame.MOUSEBUTTONDOWN: #Mouse Button Down Clicking Event
+            if pygame.mouse.get_pressed(3)[0]: #Left Click
+                self.player.inventory.handle_left_click(mouse, self.player.holding_item)
+                self.player.enchanting_table.handle_left_click(mouse, self.player.holding_item, self.player.experience, self.rng)
+
+            elif pygame.mouse.get_pressed(3)[2]: #Right Click
+                self.player.inventory.handle_right_click(mouse, self.player.holding_item)
+                self.player.enchanting_table.handle_right_click(mouse, self.player.holding_item)
+
+    def render(self, world_map: pygame.Surface, fps: float):
+        mouse = pygame.mouse.get_pos()
+        self.display.fill((0, 0, 0))
+        world_map.fill((211, 211, 211))
+
+        is_holding = self.player.holding_item.item is not None
+        self.player.inventory.render(self.context, world_map, mouse, is_holding) #Render Inventory Grid
+        self.player.enchanting_table.render(world_map, self.context, mouse, is_holding) #Render Enchanting Table Interface
+
+        RemoveItem(self.player) #Remove all items with number of 0 or durability of 0
+        self.player.holding_item.render(world_map, self.context) #Render the item the user is holding
+
+        self.display.blit(world_map, (0, 0))  # Render map to self.display
+        pygame.display.flip()  # Update self.display
+
+
 # Game Loop
 def main(display: pygame.Surface, clock: pygame.time.Clock, context: Context):
     global mode, val, comma, number, called, play_time, endTime, \
@@ -784,10 +836,11 @@ def main(display: pygame.Surface, clock: pygame.time.Clock, context: Context):
     screen: Optional[Screen] = None
     player: Optional[Player] = None
 
-    game_screen: Interface = GameScreen(display, context, screen, player, World, timer)
-    inventory_screen: Interface = InventoryScreen(display, context, screen, player, World, timer)
-    crafting_screen: Interface = CraftingScreen(display, context, screen, player, World, timer)
-    smelting_screen: Interface = SmeltingScreen(display, context, screen, player, World, timer)
+    game_screen: Interface = GameScreen(display, context, screen, player, World, timer, rng)
+    inventory_screen: Interface = InventoryScreen(display, context, screen, player, World, timer, rng)
+    crafting_screen: Interface = CraftingScreen(display, context, screen, player, World, timer, rng)
+    smelting_screen: Interface = SmeltingScreen(display, context, screen, player, World, timer, rng)
+    enchanting_screen: Interface = EnchantingScreen(display, context, screen, player, World, timer, rng)
 
     while True:
 
@@ -824,7 +877,12 @@ def main(display: pygame.Surface, clock: pygame.time.Clock, context: Context):
                     smelting_screen.handle_event(event)
                 smelting_screen.render(world, fps)
 
-            elif player.mode in ("enchanting", "compressing", "repairing and disenchanting"):
+            elif player.mode == "enchanting":
+                for event in events:
+                    enchanting_screen.handle_event(event)
+                enchanting_screen.render(world, fps)
+
+            elif player.mode in ("compressing", "repairing and disenchanting"):
 
                 mouse = pygame.mouse.get_pos()
 
@@ -958,6 +1016,10 @@ def main(display: pygame.Surface, clock: pygame.time.Clock, context: Context):
             smelting_screen.screen = screen
             smelting_screen.world = World
             smelting_screen.player = player
+
+            enchanting_screen.screen = screen
+            enchanting_screen.world = World
+            enchanting_screen.player = player
 
         if hasGeneratedUnderground == "Generating":
             display.fill((255, 255, 255))
