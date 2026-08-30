@@ -932,8 +932,12 @@ class GrindstoneScreen(Interface):
 
 # Game Loop
 def main(display: pygame.Surface, clock: pygame.time.Clock, context: Context):
-    global mode, val, comma, number, called, play_time, endTime, \
-           minute, seconds, true_play_time, play_time_seconds, hasGeneratedOverworld, loading, hasGeneratedUnderground 
+    global mode, val, comma, number, called, play_time, endTime, minute, seconds, true_play_time, play_time_seconds, loading
+    global hasGeneratedOverworld, hasGeneratedUnderground, netherGenerated
+
+    hasGeneratedOverworld = False
+    hasGeneratedUnderground = 'Not Loaded'
+    netherGenerated = False
 
     world = pygame.Surface((750, 750))  # Create Map Surface
     world.fill((0, 0, 0))  # Fill Map Surface Black
@@ -1010,7 +1014,19 @@ def main(display: pygame.Surface, clock: pygame.time.Clock, context: Context):
             font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 37)
             display.blit(font.render("Generating Overworld", False, (255, 255, 255)), (180, 225))
             pygame.display.flip()
-            World, screen, player = generate_world(context, rng, seed)
+
+            # play music
+            pygame.mixer.init()
+            pygame.mixer.music.load(str(ASSETS_DIR / "music/song") + str(random.choice([3, 5, 7, 11, 12, 13, 14, 18])) + ".mp3")
+            pygame.mixer.music.play()
+
+            # generate world
+            World = TilecraftWorld(rng, seed)  # Create World
+            player = Player(context, rng, World)  # Create Player
+            screen = Screen(rng, player, World)  # Create Text Screen
+
+            # mark as generated
+            hasGeneratedOverworld = True
 
             game_screen.screen = screen # set screen
             game_screen.world = World # set world
@@ -1040,7 +1056,7 @@ def main(display: pygame.Surface, clock: pygame.time.Clock, context: Context):
             grindstone_screen.world = World
             grindstone_screen.player = player
 
-        if hasGeneratedUnderground == "Generating":
+        elif hasGeneratedUnderground == "Generating":
             display.fill((255, 255, 255))
             for i in range(0, 750, 32):
                 for j in range(0, 750, 32):
@@ -1872,27 +1888,8 @@ def death_screen():
     death_window.mainloop()
 
 
-def generate_world(context: Context, rng: RandomNumberGenerator, seed: int) -> RandomNumberGenerator:
-    global hasGeneratedOverworld
-
-    # Play Minecraft Music (Sweden)
-    pygame.mixer.init()
-    pygame.mixer.music.load(str(ASSETS_DIR / "music/song") + str(random.choice([3, 5, 7, 11, 12, 13, 14, 18])) + ".mp3")
-    pygame.mixer.music.play()
-
-    World = TilecraftWorld(rng, seed)  # Create World
-    player = Player(context, rng, World)  # Create Player
-    screen = Screen(rng, player, World)  # Create Text Screen
-    hasGeneratedOverworld = True
-
-    return World, screen, player 
-
-
 def create_world():
-
-    global hasGeneratedOverworld, hasGeneratedUnderground, netherGenerated, background, call, load, loading 
-    hasGeneratedOverworld = False
-    hasGeneratedUnderground = 'Not Loaded'
+    global background, call, load, loading 
 
     pygame.init()  # Initialise Pygame Module
     display = pygame.display.set_mode((750, 750))  # Set display
@@ -1901,7 +1898,6 @@ def create_world():
     clock.get_time()
     context = create_context()
 
-    netherGenerated = False
     background = (255, 255, 255)
     call = False
     load = optionData()
