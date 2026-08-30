@@ -665,6 +665,58 @@ class InventoryScreen(Interface):
         pygame.display.flip()  # Update self.display
 
 
+class CraftingScreen(Interface):
+
+    def handle_event(self, event):
+        mouse = pygame.mouse.get_pos()
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_e: # Exit 
+                self.player.mode = "game"
+                return
+            elif event.key == pygame.K_1: #1
+                self.player.inventory.hotbar_swap(mouse, 1)
+            elif event.key == pygame.K_2: #2
+                self.player.inventory.hotbar_swap(mouse, 2)
+            elif event.key == pygame.K_3: #3
+                self.player.inventory.hotbar_swap(mouse, 3)
+            elif event.key == pygame.K_4: #4
+                self.player.inventory.hotbar_swap(mouse, 4)
+            elif event.key == pygame.K_5: #5
+                self.player.inventory.hotbar_swap(mouse, 5)
+            elif event.key == pygame.K_6: #6
+                self.player.inventory.hotbar_swap(mouse, 6)
+            elif event.key == pygame.K_7: #7
+                self.player.inventory.hotbar_swap(mouse, 7)
+            elif event.key == pygame.K_8: #8
+                self.player.inventory.hotbar_swap(mouse, 8)
+            elif event.key == pygame.K_9: #9
+                self.player.inventory.hotbar_swap(mouse, 9)
+
+        elif event.type == pygame.MOUSEBUTTONDOWN: #Mouse Button Down Clicking Event
+            if pygame.mouse.get_pressed(3)[0]: #Left Click
+                self.player.inventory.handle_left_click(mouse, self.player.holding_item)
+                self.player.crafting_grid.handle_left_click(mouse, self.player.holding_item, self.player.inventory) 
+
+            elif pygame.mouse.get_pressed(3)[2]: #Right Click
+                self.player.inventory.handle_right_click(mouse, self.player.holding_item)
+                self.player.crafting_grid.handle_right_click(mouse, self.player.holding_item) 
+
+    def render(self, world_map: pygame.Surface, fps: float):
+        mouse = pygame.mouse.get_pos()
+        self.display.fill((0, 0, 0))
+        world_map.fill((211, 211, 211))
+
+        is_holding = self.player.holding_item.item is not None
+        self.player.inventory.render(self.context, world_map, mouse, is_holding) #Render Inventory Grid
+        self.player.crafting_grid.render(world_map, self.context, mouse, is_holding) #Render 3x3 Crafting Grid
+        self.player.crafting_grid.update()  #Update 3x3 Crafting Grid
+
+        RemoveItem(self.player) #Remove all items with number of 0 or durability of 0
+        self.player.holding_item.render(world_map, self.context) #Render the item the user is holding
+
+        self.display.blit(world_map, (0, 0))  # Render map to self.display
+        pygame.display.flip()  # Update self.display
+
 
 # Game Loop
 def main(display: pygame.Surface, clock: pygame.time.Clock, context: Context):
@@ -682,6 +734,7 @@ def main(display: pygame.Surface, clock: pygame.time.Clock, context: Context):
 
     game_screen: Interface = GameScreen(display, context, screen, player, World, timer)
     inventory_screen: Interface = InventoryScreen(display, context, screen, player, World, timer)
+    crafting_screen: Interface = CraftingScreen(display, context, screen, player, World, timer)
 
     while True:
 
@@ -708,7 +761,12 @@ def main(display: pygame.Surface, clock: pygame.time.Clock, context: Context):
                     inventory_screen.handle_event(event)
                 inventory_screen.render(world, fps)
 
-            elif player.mode in ("crafting", "smelting", "enchanting", "compressing", "repairing and disenchanting"):
+            elif player.mode == "crafting":
+                for event in events:
+                    crafting_screen.handle_event(event)
+                crafting_screen.render(world, fps)
+
+            elif player.mode in ("smelting", "enchanting", "compressing", "repairing and disenchanting"):
 
                 mouse = pygame.mouse.get_pos()
 
@@ -834,6 +892,10 @@ def main(display: pygame.Surface, clock: pygame.time.Clock, context: Context):
             inventory_screen.screen = screen
             inventory_screen.world = World
             inventory_screen.player = player
+
+            crafting_screen.screen = screen
+            crafting_screen.world = World
+            crafting_screen.player = player
 
         if hasGeneratedUnderground == "Generating":
             display.fill((255, 255, 255))
