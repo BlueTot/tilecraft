@@ -611,7 +611,7 @@ class GameScreen(Interface):
 
 class InventoryScreen(Interface):
 
-    def handle_event(self, event: pygame.event.Event):
+    def handle_event(self, event: pygame.event.Event) -> None:
         mouse = pygame.mouse.get_pos()
 
         if event.type == pygame.KEYDOWN:
@@ -648,7 +648,7 @@ class InventoryScreen(Interface):
                 self.player.inventory.handle_right_click(mouse, self.player.holding_item)
                 self.player.craft_interface.handle_right_click(mouse, self.player.holding_item)
 
-    def render(self, world_map: pygame.Surface, fps: float):
+    def render(self, world_map: pygame.Surface, fps: float) -> None:
         mouse = pygame.mouse.get_pos()
         self.display.fill((0, 0, 0))
         world_map.fill((211, 211, 211))
@@ -668,7 +668,7 @@ class InventoryScreen(Interface):
 
 class CraftingScreen(Interface):
 
-    def handle_event(self, event: pygame.event.Event):
+    def handle_event(self, event: pygame.event.Event) -> None:
         mouse = pygame.mouse.get_pos()
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_e: # Exit 
@@ -702,7 +702,7 @@ class CraftingScreen(Interface):
                 self.player.inventory.handle_right_click(mouse, self.player.holding_item)
                 self.player.crafting_grid.handle_right_click(mouse, self.player.holding_item) 
 
-    def render(self, world_map: pygame.Surface, fps: float):
+    def render(self, world_map: pygame.Surface, fps: float) -> None:
         mouse = pygame.mouse.get_pos()
         self.display.fill((0, 0, 0))
         world_map.fill((211, 211, 211))
@@ -720,7 +720,7 @@ class CraftingScreen(Interface):
 
 
 class SmeltingScreen(Interface):
-    def handle_event(self, event):
+    def handle_event(self, event: pygame.event.Event) -> None:
         mouse = pygame.mouse.get_pos()
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_e: # Exit 
@@ -754,7 +754,7 @@ class SmeltingScreen(Interface):
                 self.player.inventory.handle_right_click(mouse, self.player.holding_item)
                 self.player.furnace.handle_right_click(mouse, self.player.holding_item) 
 
-    def render(self, world_map: pygame.Surface, fps: float):
+    def render(self, world_map: pygame.Surface, fps: float) -> None:
         mouse = pygame.mouse.get_pos()
         self.display.fill((0, 0, 0))
         world_map.fill((211, 211, 211))
@@ -772,7 +772,8 @@ class SmeltingScreen(Interface):
 
 
 class EnchantingScreen(Interface):
-    def handle_event(self, event):
+
+    def handle_event(self, event: pygame.event.Event) -> None:
         mouse = pygame.mouse.get_pos()
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_e: # Exit 
@@ -806,7 +807,7 @@ class EnchantingScreen(Interface):
                 self.player.inventory.handle_right_click(mouse, self.player.holding_item)
                 self.player.enchanting_table.handle_right_click(mouse, self.player.holding_item)
 
-    def render(self, world_map: pygame.Surface, fps: float):
+    def render(self, world_map: pygame.Surface, fps: float) -> None:
         mouse = pygame.mouse.get_pos()
         self.display.fill((0, 0, 0))
         world_map.fill((211, 211, 211))
@@ -814,6 +815,59 @@ class EnchantingScreen(Interface):
         is_holding = self.player.holding_item.item is not None
         self.player.inventory.render(self.context, world_map, mouse, is_holding) #Render Inventory Grid
         self.player.enchanting_table.render(world_map, self.context, mouse, is_holding) #Render Enchanting Table Interface
+
+        RemoveItem(self.player) #Remove all items with number of 0 or durability of 0
+        self.player.holding_item.render(world_map, self.context) #Render the item the user is holding
+
+        self.display.blit(world_map, (0, 0))  # Render map to self.display
+        pygame.display.flip()  # Update self.display
+
+
+class CompressingScreen(Interface):
+    def handle_event(self, event: pygame.event.Event) -> None:
+        mouse = pygame.mouse.get_pos()
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_e: # Exit 
+                self.player.mode = "game"
+                return
+            elif event.key == pygame.K_1: #1
+                self.player.inventory.hotbar_swap(mouse, 1)
+            elif event.key == pygame.K_2: #2
+                self.player.inventory.hotbar_swap(mouse, 2)
+            elif event.key == pygame.K_3: #3
+                self.player.inventory.hotbar_swap(mouse, 3)
+            elif event.key == pygame.K_4: #4
+                self.player.inventory.hotbar_swap(mouse, 4)
+            elif event.key == pygame.K_5: #5
+                self.player.inventory.hotbar_swap(mouse, 5)
+            elif event.key == pygame.K_6: #6
+                self.player.inventory.hotbar_swap(mouse, 6)
+            elif event.key == pygame.K_7: #7
+                self.player.inventory.hotbar_swap(mouse, 7)
+            elif event.key == pygame.K_8: #8
+                self.player.inventory.hotbar_swap(mouse, 8)
+            elif event.key == pygame.K_9: #9
+                self.player.inventory.hotbar_swap(mouse, 9)
+
+        elif event.type == pygame.MOUSEBUTTONDOWN: #Mouse Button Down Clicking Event
+            
+            if pygame.mouse.get_pressed(3)[0]: #Left Click
+                self.player.inventory.handle_left_click(mouse, self.player.holding_item)
+                self.player.compressor.handle_left_click(mouse, self.player.holding_item, self.player.inventory)
+
+            elif pygame.mouse.get_pressed(3)[2]: #Right Click
+                self.player.inventory.handle_right_click(mouse, self.player.holding_item)
+                self.player.compressor.handle_right_click(mouse, self.player.holding_item)
+
+    def render(self, world_map: pygame.Surface, fps: float) -> None:
+        mouse = pygame.mouse.get_pos()
+        self.display.fill((0, 0, 0))
+        world_map.fill((211, 211, 211))
+
+        is_holding = self.player.holding_item.item is not None
+        self.player.inventory.render(self.context, world_map, mouse, is_holding) #Render Inventory Grid
+        self.player.compressor.render(world_map, self.context, mouse, fps, is_holding) #Render Compressor Interface
+        self.player.compressor.compress(fps) #Compressing Process
 
         RemoveItem(self.player) #Remove all items with number of 0 or durability of 0
         self.player.holding_item.render(world_map, self.context) #Render the item the user is holding
@@ -841,6 +895,7 @@ def main(display: pygame.Surface, clock: pygame.time.Clock, context: Context):
     crafting_screen: Interface = CraftingScreen(display, context, screen, player, World, timer, rng)
     smelting_screen: Interface = SmeltingScreen(display, context, screen, player, World, timer, rng)
     enchanting_screen: Interface = EnchantingScreen(display, context, screen, player, World, timer, rng)
+    compressing_screen: Interface = CompressingScreen(display, context, screen, player, World, timer, rng)
 
     while True:
 
@@ -882,7 +937,12 @@ def main(display: pygame.Surface, clock: pygame.time.Clock, context: Context):
                     enchanting_screen.handle_event(event)
                 enchanting_screen.render(world, fps)
 
-            elif player.mode in ("compressing", "repairing and disenchanting"):
+            elif player.mode == "compressing":
+                for event in events:
+                    compressing_screen.handle_event(event)
+                compressing_screen.render(world, fps)
+
+            elif player.mode == "repairing and disenchanting":
 
                 mouse = pygame.mouse.get_pos()
 
@@ -1020,6 +1080,10 @@ def main(display: pygame.Surface, clock: pygame.time.Clock, context: Context):
             enchanting_screen.screen = screen
             enchanting_screen.world = World
             enchanting_screen.player = player
+
+            compressing_screen.screen = screen
+            compressing_screen.world = World
+            compressing_screen.player = player
 
         if hasGeneratedUnderground == "Generating":
             display.fill((255, 255, 255))
