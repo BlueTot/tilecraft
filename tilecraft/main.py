@@ -270,7 +270,7 @@ class TilecraftWorld:
         self.empty_ruined_portal2 = []
         self.empty_ruined_portal_total = []
         self.seed = seed #World Seed
-        self.undergroundGenerated = False
+        self.is_underground_generated = False
         self.rng = rng
 
         self.village, self.ruined_portal, self.obsidian_counts, \
@@ -284,7 +284,6 @@ class TilecraftWorld:
 
     #Generate Chunks Per Frame
     def generate_chunks(self, player_dimension: str):
-        global hasGeneratedUnderground
         if player_dimension == 'Overworld':
             for i in self.render_list:
                 if i not in self.overworld_generated_list:
@@ -294,13 +293,10 @@ class TilecraftWorld:
                                                       self.obsidian_counts, self.overworld_generated_list, self.bound_village,
                                                       self.bound_village2, self.bound_village3, self.bound_village4,
                                                       self.bound_ruined_portal, self.bound_ruined_portal2, self.seed, self.UnderTiles, self.Tiles)
-        elif player_dimension == "Underground":
-            if not self.undergroundGenerated:
-                hasGeneratedUnderground = 'Generating'
-            if hasGeneratedUnderground == "Generated":
-                for i in self.render_list:
-                    if i not in self.UndergroundGeneratedList:
-                        self.UndergroundUnderTiles, self.UndergroundTiles = UndergroundGenerate(self.rng, self.seed, i[0], i[1], self.UndergroundUnderTiles, self.UndergroundTiles, self.UndergroundGeneratedList)
+        elif player_dimension == "Underground" and self.is_underground_generated:
+            for i in self.render_list:
+                if i not in self.UndergroundGeneratedList:
+                    self.UndergroundUnderTiles, self.UndergroundTiles = UndergroundGenerate(self.rng, self.seed, i[0], i[1], self.UndergroundUnderTiles, self.UndergroundTiles, self.UndergroundGeneratedList)
         elif player_dimension == 'Nether':
             for i in self.render_list:
                 if i not in self.nether_generated_list:
@@ -340,7 +336,7 @@ class TilecraftWorld:
             self.nether_generated_list = NetherGeneratedList(player_x, player_y)
 
     def render(self, display, context: Context, player_dimension: str, player_left: int, player_top: int, player_rect: pygame.Rect, player_breaking_time: float, player_target: tuple[int, int]):
-        global netherrack_tile, hotbar_imgs, slot, number_list, experience, pygame_enchant_imgs, enchant_name_list, player, hasGeneratedUnderground, bedrock_tile
+        global netherrack_tile, hotbar_imgs, slot, number_list, experience, pygame_enchant_imgs, enchant_name_list, player, bedrock_tile
         # player.health_hunger_update()
 
         def tile_image(tile_name: str) -> pygame.Surface:
@@ -381,7 +377,7 @@ class TilecraftWorld:
                     pygame.draw.circle(display, (128, 0, 128), (self.overworld_portal[k][0] * 32 - player_left, self.overworld_portal[k][1] * 32 - player_top), 10, 10)
 
         #DRAW UNDERGROUND DIMENSION
-        elif player_dimension == "Underground" and hasGeneratedUnderground == "Generated":
+        elif player_dimension == "Underground" and self.is_underground_generated:
             for key, value in self.UndergroundUnderTiles.items(): #background tiles (no collisions)
                 if -32 <= (key[0] * 32 - player_left) <= 1032 and -32 <= (key[1] * 32 - player_top) <= 1032:
                     if value.tile != "Air":
@@ -539,7 +535,6 @@ class Player:
                     self.holding_item.item = None
 
     def collide(self): #Collisions with tiles
-        global hasGeneratedUnderground
         self.canMove = True
         try:
             if self.dimension == "Overworld": #Overworld dimension
@@ -554,7 +549,7 @@ class Player:
                                 self.dimension = "Underground"
                                 self.x = value.x
                                 self.y = value.y
-                                if hasGeneratedUnderground == "Generated":
+                                if self.world.is_underground_generated:
                                     try:
                                         if self.world.UndergroundTiles[(round(self.x), round(self.y))].tile != "Mine Entrance":
                                             self.world.UndergroundTiles = UndergroundGeneratePortal(round(self.x), round(self.y), self.world.UndergroundTiles)
@@ -566,7 +561,7 @@ class Player:
                                 break
                 if not call: #can re-enter portal
                     self.canEnterPortal = True
-            elif self.dimension == "Underground" and hasGeneratedUnderground == "Generated": #Underground dimension
+            elif self.dimension == "Underground" and self.world.is_underground_generated: #Underground dimension
                 call = False
                 for key, value in self.world.UndergroundTiles.items():
                     if -32 <= (key[0] * 32 - self.left) <= 1032 and -32 <= (key[1] * 32 - self.top) <= 1032: #in render distance
@@ -595,7 +590,6 @@ class Player:
 
     #Player Move Keybinds
     def move(self):
-        global hasGeneratedUnderground
         # Position calculation
         self.left = self.x * 32 - 359
         self.right = self.x * 32 + 391
@@ -745,7 +739,7 @@ class Player:
             if self.dimension == "Overworld":
                 if self.world.Tiles[(math.floor(self.x), math.floor(self.y))].tile != "Air" and self.world.Tiles[(math.floor(self.x), math.floor(self.y))].tile != "Mine Entrance":
                     self.world.Tiles[(math.floor(self.x), math.floor(self.y))] = Tile("Air", math.floor(self.x), math.floor(self.y))
-            elif self.dimension == "Underground" and hasGeneratedUnderground == "Generated":
+            elif self.dimension == "Underground" and self.world.is_underground_generated:
                 if self.world.UndergroundTiles[(math.floor(self.x), math.floor(self.y))].tile != "Air" and self.world.UndergroundTiles[(math.floor(self.x), math.floor(self.y))].tile != "Mine Entrance":
                     self.world.UndergroundTiles[(math.floor(self.x), math.floor(self.y))] = Tile("Air", math.floor(self.x), math.floor(self.y))
         except KeyError:
@@ -1194,7 +1188,7 @@ class Player:
 
 # common screen interface
 class Interface:
-    def __init__(self, display: pygame.Surface, context: Context, screen: Screen, player: Player, world: TilecraftWorld, timer: SpeedrunTimer, rng: RandomNumberGenerator) -> None:
+    def __init__(self, display: pygame.Surface, context: Context, screen: Screen, player: Player, world: TilecraftWorld, timer: SpeedrunTimer, rng: RandomNumberGenerator, seed: int) -> None:
         self.display = display
         self.context = context
         self.screen = screen
@@ -1202,6 +1196,7 @@ class Interface:
         self.world = world
         self.timer = timer
         self.rng = rng
+        self.seed = seed
         self.next_screen: Optional[Interface] = self
 
     def handle_event(self, event: pygame.event.Event) -> Optional[str]:
@@ -1227,7 +1222,7 @@ class GameScreen(Interface):
                     return 'title screen'
                 # Inventory key
                 if event.key == pygame.K_e:
-                    self.next_screen = InventoryScreen(self.display, self.context, self.screen, self.player, self.world, self.timer, self.rng)
+                    self.next_screen = InventoryScreen(self.display, self.context, self.screen, self.player, self.world, self.timer, self.rng, self.seed)
                 # Advancements Key
                 if event.key == pygame.K_f:
                     if not self.player.advancements:
@@ -1301,15 +1296,15 @@ class GameScreen(Interface):
                     self.player.mouse_button = 2
                     if self.player.inventory.hotbar_item is not None:
                         if self.player.inventory.hotbar_item.name == 'Crafting Table': #Crafting Key
-                            self.next_screen = CraftingScreen(self.display, self.context, self.screen, self.player, self.world, self.timer, self.rng)
+                            self.next_screen = CraftingScreen(self.display, self.context, self.screen, self.player, self.world, self.timer, self.rng, self.seed)
                         elif self.player.inventory.hotbar_item.name == 'Furnace': #Smelting Key
-                            self.next_screen = SmeltingScreen(self.display, self.context, self.screen, self.player, self.world, self.timer, self.rng)
+                            self.next_screen = SmeltingScreen(self.display, self.context, self.screen, self.player, self.world, self.timer, self.rng, self.seed)
                         elif self.player.inventory.hotbar_item.name == 'Enchanting Table': #Enchanting Key
-                            self.next_screen = EnchantingScreen(self.display, self.context, self.screen, self.player, self.world, self.timer, self.rng)
+                            self.next_screen = EnchantingScreen(self.display, self.context, self.screen, self.player, self.world, self.timer, self.rng, self.seed)
                         elif self.player.inventory.hotbar_item.name == 'Compressor': #Compressing Key
-                            self.next_screen = CompressingScreen(self.display, self.context, self.screen, self.player, self.world, self.timer, self.rng)
+                            self.next_screen = CompressingScreen(self.display, self.context, self.screen, self.player, self.world, self.timer, self.rng, self.seed)
                         elif self.player.inventory.hotbar_item.name == "Grindstone": #Repairing and Disenchanting Key
-                            self.next_screen = GrindstoneScreen(self.display, self.context, self.screen, self.player, self.world, self.timer, self.rng)
+                            self.next_screen = GrindstoneScreen(self.display, self.context, self.screen, self.player, self.world, self.timer, self.rng, self.seed)
                         elif self.player.inventory.hotbar_item.name == "Bucket": #Picking up liquids
                             self.player.pick_up_liquid()
                         elif self.player.inventory.hotbar_item.name == "Water Bucket" or \
@@ -1341,6 +1336,10 @@ class GameScreen(Interface):
 
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> Optional[str]:
         global true_play_time
+
+        if self.player.dimension == "Underground" and not self.world.is_underground_generated:
+            self.next_screen = UndergroundGeneratingScreen(self.display, self.context, self.screen, self.player, self.world, self.timer, self.rng, self.seed)
+            return
 
         if not self.screen.isTyping:
             # Kill self.player
@@ -1385,7 +1384,7 @@ class InventoryScreen(Interface):
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_e: # Exit 
-                self.next_screen = GameScreen(self.display, self.context, self.screen, self.player, self.world, self.timer, self.rng)
+                self.next_screen = GameScreen(self.display, self.context, self.screen, self.player, self.world, self.timer, self.rng, self.seed)
             elif event.key == pygame.K_1: #1
                 self.player.inventory.hotbar_swap(mouse, 1)
             elif event.key == pygame.K_2: #2
@@ -1440,7 +1439,7 @@ class CraftingScreen(Interface):
         mouse = pygame.mouse.get_pos()
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_e: # Exit 
-                self.next_screen = GameScreen(self.display, self.context, self.screen, self.player, self.world, self.timer, self.rng)
+                self.next_screen = GameScreen(self.display, self.context, self.screen, self.player, self.world, self.timer, self.rng, self.seed)
             elif event.key == pygame.K_1: #1
                 self.player.inventory.hotbar_swap(mouse, 1)
             elif event.key == pygame.K_2: #2
@@ -1491,7 +1490,7 @@ class SmeltingScreen(Interface):
         mouse = pygame.mouse.get_pos()
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_e: # Exit 
-                self.next_screen = GameScreen(self.display, self.context, self.screen, self.player, self.world, self.timer, self.rng)
+                self.next_screen = GameScreen(self.display, self.context, self.screen, self.player, self.world, self.timer, self.rng, self.seed)
             elif event.key == pygame.K_1: #1
                 self.player.inventory.hotbar_swap(mouse, 1)
             elif event.key == pygame.K_2: #2
@@ -1543,7 +1542,7 @@ class EnchantingScreen(Interface):
         mouse = pygame.mouse.get_pos()
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_e: # Exit 
-                self.next_screen = GameScreen(self.display, self.context, self.screen, self.player, self.world, self.timer, self.rng)
+                self.next_screen = GameScreen(self.display, self.context, self.screen, self.player, self.world, self.timer, self.rng, self.seed)
             elif event.key == pygame.K_1: #1
                 self.player.inventory.hotbar_swap(mouse, 1)
             elif event.key == pygame.K_2: #2
@@ -1593,7 +1592,7 @@ class CompressingScreen(Interface):
         mouse = pygame.mouse.get_pos()
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_e: # Exit 
-                self.next_screen = GameScreen(self.display, self.context, self.screen, self.player, self.world, self.timer, self.rng)
+                self.next_screen = GameScreen(self.display, self.context, self.screen, self.player, self.world, self.timer, self.rng, self.seed)
             elif event.key == pygame.K_1: #1
                 self.player.inventory.hotbar_swap(mouse, 1)
             elif event.key == pygame.K_2: #2
@@ -1646,7 +1645,7 @@ class GrindstoneScreen(Interface):
         mouse = pygame.mouse.get_pos()
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_e: # Exit 
-                self.next_screen = GameScreen(self.display, self.context, self.screen, self.player, self.world, self.timer, self.rng)
+                self.next_screen = GameScreen(self.display, self.context, self.screen, self.player, self.world, self.timer, self.rng, self.seed)
             elif event.key == pygame.K_1: #1
                 self.player.inventory.hotbar_swap(mouse, 1)
             elif event.key == pygame.K_2: #2
@@ -1693,13 +1692,69 @@ class GrindstoneScreen(Interface):
         pygame.display.flip()  # Update self.display
 
 
+class OverworldGeneratingScreen(Interface):
+    """
+        Screen shown when the overworld is first generated upon world startup
+    """
+    def handle_event(self, event: pygame.event.Event) -> Optional[str]:
+        return super().handle_event(event)
+
+    def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> Optional[str]:
+
+        self.display.fill((255, 255, 255))
+        for i in range(0, 750, 32):
+            for j in range(0, 750, 32):
+                self.display.blit(loading, (i, j))
+        font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 37)
+        self.display.blit(font.render("Generating Overworld", False, (255, 255, 255)), (180, 225))
+        pygame.display.flip()
+
+        # play music
+        pygame.mixer.init()
+        pygame.mixer.music.load(str(ASSETS_DIR / "music/song") + str(random.choice([3, 5, 7, 11, 12, 13, 14, 18])) + ".mp3")
+        pygame.mixer.music.play()
+
+        # generate world
+        self.world = TilecraftWorld(self.rng, self.seed)  # Create World
+        self.player = Player(self.context, self.rng, self.world)  # Create Player
+        self.screen = Screen(self.rng, self.player, self.world)  # Create Text Screen
+
+        # go to game screen
+        self.next_screen = GameScreen(self.display, self.context, self.screen, self.player, self.world, self.timer, self.rng, self.seed)
+
+
+class UndergroundGeneratingScreen(Interface):
+    """
+        Screen shown when user first enters the underground dimension
+    """
+    def handle_event(self, event: pygame.event.Event) -> Optional[str]:
+        return super().handle_event(event)
+
+    def render(self, world_map: pygame.Surface, fps: float, frame_count: int):
+
+        self.display.fill((255, 255, 255))
+        for i in range(0, 750, 32):
+            for j in range(0, 750, 32):
+                self.display.blit(loading, (i, j))
+        font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 37)
+        self.display.blit(font.render("Generating Underground", False, (255, 255, 255)), (180, 225))
+
+        pygame.display.flip()
+
+        self.world.generateUnderground()
+        self.world.UndergroundTiles = UndergroundGeneratePortal(round(self.player.x), round(self.player.y), self.world.UndergroundTiles)
+
+        # mark underground as generated
+        self.world.is_underground_generated = True
+
+        # go to game screen
+        self.next_screen = GameScreen(self.display, self.context, self.screen, self.player, self.world, self.timer, self.rng, self.seed)
+
+
 # Game Loop
 def main(display: pygame.Surface, clock: pygame.time.Clock, context: Context):
-    global mode, val, comma, number, called, play_time, endTime, minute, seconds, true_play_time, play_time_seconds, loading
-    global hasGeneratedOverworld, hasGeneratedUnderground, netherGenerated
+    global play_time, endTime, minute, seconds, true_play_time, play_time_seconds, netherGenerated
 
-    hasGeneratedOverworld = False
-    hasGeneratedUnderground = 'Not Loaded'
     netherGenerated = False
 
     world = pygame.Surface((750, 750))  # Create Map Surface
@@ -1707,11 +1762,18 @@ def main(display: pygame.Surface, clock: pygame.time.Clock, context: Context):
     rng = RandomNumberGenerator(seed := GetSeed())
     timer: SpeedrunTimer = SpeedrunTimer(load)
     frame_count = 0
-    World: Optional[TilecraftWorld] = None
-    screen: Optional[Screen] = None
-    player: Optional[Player] = None
 
-    current_screen: Interface = GameScreen(display, context, screen, player, World, timer, rng)
+    # start by generating the overworld
+    current_screen: Interface = OverworldGeneratingScreen(
+        display = display,
+        context = context,
+        screen = None,
+        player = None,
+        world = None,
+        timer = timer,
+        rng = rng,
+        seed=seed
+    )
 
     while True:
 
@@ -1720,66 +1782,24 @@ def main(display: pygame.Surface, clock: pygame.time.Clock, context: Context):
         fps = clock.get_fps()
         play_time_seconds = pygame.time.get_ticks() / 1000.0 # in seconds 
 
-        events = pygame.event.get()
-        if hasGeneratedOverworld and (hasGeneratedUnderground == "Not Loaded" or hasGeneratedUnderground == "Generated"):
+        # TODO:
+        # furnace and compressor now do not update when user is not on the screen
+        # separate update logic to rendering logic and make update a player method
 
-            # TODO:
-            # furnace and compressor now do not update when user is not on the screen
-            # separate update logic to rendering logic and make update a player method
-
-            # event loop
-            for event in events:
-                ret = current_screen.handle_event(event)
-                if ret is not None:
-                    return ret
-
-            # render screen
-            ret = current_screen.render(world, fps, frame_count)
+        # event loop
+        for event in pygame.event.get():
+            ret = current_screen.handle_event(event)
             if ret is not None:
                 return ret
 
-            # screen transition
-            if current_screen.next_screen is not current_screen:
-                current_screen = current_screen.next_screen
+        # render screen
+        ret = current_screen.render(world, fps, frame_count)
+        if ret is not None:
+            return ret
 
-        elif not hasGeneratedOverworld and hasGeneratedUnderground == "Not Loaded":
-            display.fill((255, 255, 255))
-            for i in range(0, 750, 32):
-                for j in range(0, 750, 32):
-                    display.blit(loading, (i, j))
-            font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 37)
-            display.blit(font.render("Generating Overworld", False, (255, 255, 255)), (180, 225))
-            pygame.display.flip()
-
-            # play music
-            pygame.mixer.init()
-            pygame.mixer.music.load(str(ASSETS_DIR / "music/song") + str(random.choice([3, 5, 7, 11, 12, 13, 14, 18])) + ".mp3")
-            pygame.mixer.music.play()
-
-            # generate world
-            World = TilecraftWorld(rng, seed)  # Create World
-            player = Player(context, rng, World)  # Create Player
-            screen = Screen(rng, player, World)  # Create Text Screen
-
-            # mark as generated
-            hasGeneratedOverworld = True
-
-            current_screen.screen = screen # set scren
-            current_screen.world = World # set world
-            current_screen.player = player # set player
-
-        elif hasGeneratedUnderground == "Generating":
-            display.fill((255, 255, 255))
-            for i in range(0, 750, 32):
-                for j in range(0, 750, 32):
-                    display.blit(loading, (i, j))
-            font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 37)
-            display.blit(font.render("Generating Underground", False, (255, 255, 255)), (180, 225))
-            pygame.display.flip()
-            World.undergroundGenerated = True
-            World.generateUnderground()
-            World.UndergroundTiles = UndergroundGeneratePortal(round(player.x), round(player.y), World.UndergroundTiles)
-            hasGeneratedUnderground = "Generated"
+        # screen transition
+        if current_screen.next_screen is not current_screen:
+            current_screen = current_screen.next_screen
 
         if not pygame.mixer.music.get_busy():
             if rng.next_random(1, 500) == 1:
