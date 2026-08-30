@@ -489,6 +489,7 @@ class Context:
     TILE_IMAGES: dict[str, pygame.Surface] 
     BREAKING_LIST: list[pygame.Surface]
     INFOBAR_IMAGES: dict[str, pygame.Surface]
+    LOADING_IMAGE: pygame.Surface
 
 def create_context() -> Context:
 
@@ -659,12 +660,16 @@ def create_context() -> Context:
         "experience_bar": pygame.image.load(str(ASSETS_DIR / "item_imgs/experience.png")).convert(),
     }
 
+    # [EXPORT]
+    loading = pygame.image.load(str(ASSETS_DIR / "loading.png")).convert()
+
     context = Context(
         ITEM_IMAGES = ITEM_IMAGES,
         TC_GLINTS = TC_GLINTS,
         TILE_IMAGES = TILE_IMAGES,
         BREAKING_LIST = BREAKING_LIST,
-        INFOBAR_IMAGES = INFOBAR_IMAGES
+        INFOBAR_IMAGES = INFOBAR_IMAGES,
+        LOADING_IMAGE = loading
     )
 
     # return context to be passed around

@@ -1704,7 +1704,7 @@ class OverworldGeneratingScreen(Interface):
         self.display.fill((255, 255, 255))
         for i in range(0, 750, 32):
             for j in range(0, 750, 32):
-                self.display.blit(loading, (i, j))
+                self.display.blit(self.context.LOADING_IMAGE, (i, j))
         font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 37)
         self.display.blit(font.render("Generating Overworld", False, (255, 255, 255)), (180, 225))
         pygame.display.flip()
@@ -1735,7 +1735,7 @@ class UndergroundGeneratingScreen(Interface):
         self.display.fill((255, 255, 255))
         for i in range(0, 750, 32):
             for j in range(0, 750, 32):
-                self.display.blit(loading, (i, j))
+                self.display.blit(self.context.LOADING_IMAGE, (i, j))
         font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 37)
         self.display.blit(font.render("Generating Underground", False, (255, 255, 255)), (180, 225))
 
@@ -1808,7 +1808,7 @@ def main(display: pygame.Surface, clock: pygame.time.Clock, context: Context):
 
 
 def create_world():
-    global background, call, load, loading 
+    global background, call, load 
 
     pygame.init()  # Initialise Pygame Module
     display = pygame.display.set_mode((750, 750))  # Set display
@@ -1821,7 +1821,6 @@ def create_world():
     call = False
     load = optionData()
     Quit()
-    loading = pygame.image.load(str(ASSETS_DIR / "loading.png")).convert()
 
     signal = main(display, clock, context)  #Start Game by Calling the Main Loop
 
