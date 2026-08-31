@@ -936,71 +936,71 @@ def create_world():
 
 
 #Limit number of times a player can repeat a command
-def NumberLimit(number, val, game_state: GameState):
+def NumberLimit(number: int, val: str, game_state: GameState):
     if number > 16:
         game_state.screen.print("ERROR: Invalid Integer")
     elif number < 1:
         game_state.screen.print("ERROR: Invalid Integer")
     else:
-        commands(number, val, game_state.rng, game_state.screen, game_state.timer, game_state.player, game_state.world)
+        commands(number, val, game_state)
 
 
-def commands(number, val, rng: RandomNumberGenerator, screen: Screen, timer: SpeedrunTimer, player: Player, World: TilecraftWorld):
+def commands(number: int, val: str, game_state: GameState):
     global background, call, actualX, actualY 
 
     for _ in range(number):
         if val == "/lootvillagehay":  # Loot Village Hay
-            if player.dimension == 'Overworld':
-                if player.inventory.hotbar_item is not None:
-                    if player.inventory.hotbar_item.name == "Stone Hoe":
-                        for j in range(len(World.bound_village)):
-                            if (World.bound_village[j][0][0] < player.x < World.bound_village[j][0][2]) and (
-                                    World.bound_village[j][1][0] < player.y < World.bound_village[j][1][2]):
-                                hay = rng.next_random(25, 45)
-                                player.inventory.add(Item("Hay Bale", hay, None, None))
-                                screen.print("+" + str(hay) + " Hay Bale")
-                                actualX = World.bound_village[j][0][1]
-                                actualY = World.bound_village[j][1][1]
-                                World.empty_vil1.append([actualX, actualY])
-                                World.bound_village.remove(World.bound_village[j])
+            if game_state.player.dimension == 'Overworld':
+                if game_state.player.inventory.hotbar_item is not None:
+                    if game_state.player.inventory.hotbar_item.name == "Stone Hoe":
+                        for j in range(len(game_state.world.bound_village)):
+                            if (game_state.world.bound_village[j][0][0] < game_state.player.x < game_state.world.bound_village[j][0][2]) and (
+                                    game_state.world.bound_village[j][1][0] < game_state.player.y < game_state.world.bound_village[j][1][2]):
+                                hay = game_state.rng.next_random(25, 45)
+                                game_state.player.inventory.add(Item("Hay Bale", hay, None, None))
+                                game_state.screen.print("+" + str(hay) + " Hay Bale")
+                                actualX = game_state.world.bound_village[j][0][1]
+                                actualY = game_state.world.bound_village[j][1][1]
+                                game_state.world.empty_vil1.append([actualX, actualY])
+                                game_state.world.bound_village.remove(game_state.world.bound_village[j])
                                 call = True
-                                empty_vil(World)
+                                empty_vil(game_state.world)
                                 break
                     else:
-                        screen.print("Require Stone Hoe")
+                        game_state.screen.print("Require Stone Hoe")
                     if call:
                         call = False
                     else:
-                        screen.print("You are not at a village")
+                        game_state.screen.print("You are not at a village")
                 else:
-                    screen.print("Require Stone Hoe")
+                    game_state.screen.print("Require Stone Hoe")
             else:
-                screen.print("You are not in the overworld")
+                game_state.screen.print("You are not in the overworld")
         elif val == "/lootvillagebeds":  # Loot Village Beds
-            if player.dimension == 'Overworld':
-                for j in range(len(World.bound_village2)):
-                    if (World.bound_village2[j][0][0] < player.x < World.bound_village2[j][0][2]) and (
-                            World.bound_village2[j][1][0] < player.y < World.bound_village2[j][1][2]):
-                        beds = rng.next_random(2, 7)
-                        player.inventory.add(Item("Bed", beds, None, None))
-                        screen.print("+" + str(beds) + " Beds")
-                        actualX = World.bound_village2[j][0][1]
-                        actualY = World.bound_village2[j][1][1]
-                        World.empty_vil2.append([actualX, actualY])
-                        World.bound_village2.remove(World.bound_village2[j])
+            if game_state.player.dimension == 'Overworld':
+                for j in range(len(game_state.world.bound_village2)):
+                    if (game_state.world.bound_village2[j][0][0] < game_state.player.x < game_state.world.bound_village2[j][0][2]) and (
+                            game_state.world.bound_village2[j][1][0] < game_state.player.y < game_state.world.bound_village2[j][1][2]):
+                        beds = game_state.rng.next_random(2, 7)
+                        game_state.player.inventory.add(Item("Bed", beds, None, None))
+                        game_state.screen.print("+" + str(beds) + " Beds")
+                        actualX = game_state.world.bound_village2[j][0][1]
+                        actualY = game_state.world.bound_village2[j][1][1]
+                        game_state.world.empty_vil2.append([actualX, actualY])
+                        game_state.world.bound_village2.remove(game_state.world.bound_village2[j])
                         call = True
-                        empty_vil(World)
+                        empty_vil(game_state.world)
                         break
                 if call:
                     call = False
                 else:
-                    screen.print("You are not at a village")
+                    game_state.screen.print("You are not at a village")
             else:
-                screen.print("You are not in the overworld")
+                game_state.screen.print("You are not in the overworld")
         elif val == "/lootvillageblacksmith":  # Loot Village Blacksmith
-            if player.dimension == 'Overworld':
-                for j in range(len(World.bound_village3)):
-                    if (World.bound_village3[j][0][0] < player.x < World.bound_village3[j][0][2]) and (World.bound_village3[j][1][0] < player.y < World.bound_village3[j][1][2]):
+            if game_state.player.dimension == 'Overworld':
+                for j in range(len(game_state.world.bound_village3)):
+                    if (game_state.world.bound_village3[j][0][0] < game_state.player.x < game_state.world.bound_village3[j][0][2]) and (game_state.world.bound_village3[j][1][0] < game_state.player.y < game_state.world.bound_village3[j][1][2]):
 
                         # GENERATE IRON VALUES
                         for k in range(5):
@@ -1010,7 +1010,7 @@ def commands(number, val, rng: RandomNumberGenerator, screen: Screen, timer: Spe
                             else:
                                 bool_blacksmith_iron = False
                         if bool_blacksmith_iron:
-                            blacksmith_iron = rng.next_random(1, 7)
+                            blacksmith_iron = game_state.rng.next_random(1, 7)
                         else:
                             blacksmith_iron = 0
 
@@ -1022,7 +1022,7 @@ def commands(number, val, rng: RandomNumberGenerator, screen: Screen, timer: Spe
                             else:
                                 bool_blacksmith_diamond = False
                         if bool_blacksmith_diamond:
-                            blacksmith_diamond = rng.next_random(1, 5)
+                            blacksmith_diamond = game_state.rng.next_random(1, 5)
                         else:
                             blacksmith_diamond = 0
 
@@ -1034,131 +1034,131 @@ def commands(number, val, rng: RandomNumberGenerator, screen: Screen, timer: Spe
                             else:
                                 bool_blacksmith_bread = False
                         if bool_blacksmith_bread:
-                            blacksmith_bread = rng.next_random(1, 14)
+                            blacksmith_bread = game_state.rng.next_random(1, 14)
                         else:
                             blacksmith_bread = 0
 
                         # UPDATE AND PRINT INVENTORY VALUES
                         if blacksmith_iron > 0:
-                            screen.print(f"+{blacksmith_iron} Iron Ingot")
-                            player.inventory.add(Item("Iron Ingot", blacksmith_iron, None, None))
+                            game_state.screen.print(f"+{blacksmith_iron} Iron Ingot")
+                            game_state.player.inventory.add(Item("Iron Ingot", blacksmith_iron, None, None))
                         if blacksmith_diamond > 0:
-                            screen.print(f"+{blacksmith_diamond} Diamond")
-                            player.inventory.add(Item("Diamond", blacksmith_diamond, None, None))
+                            game_state.screen.print(f"+{blacksmith_diamond} Diamond")
+                            game_state.player.inventory.add(Item("Diamond", blacksmith_diamond, None, None))
                         if blacksmith_bread > 0:
-                            screen.print(f"+{blacksmith_bread} Bread")
-                            player.inventory.add(Item("Bread", blacksmith_bread, None, None))
+                            game_state.screen.print(f"+{blacksmith_bread} Bread")
+                            game_state.player.inventory.add(Item("Bread", blacksmith_bread, None, None))
 
-                        actualX = World.bound_village3[j][0][1]
-                        actualY = World.bound_village3[j][1][1]
-                        World.empty_vil3.append([actualX, actualY])
-                        World.bound_village3.remove(World.bound_village3[j])
+                        actualX = game_state.world.bound_village3[j][0][1]
+                        actualY = game_state.world.bound_village3[j][1][1]
+                        game_state.world.empty_vil3.append([actualX, actualY])
+                        game_state.world.bound_village3.remove(game_state.world.bound_village3[j])
                         call = True
-                        empty_vil(World)
+                        empty_vil(game_state.world)
                         break
                 if call:
                     call = False
                 else:
-                    screen.print("You are not at a village")
+                    game_state.screen.print("You are not at a village")
             else:
-                screen.print("You are not in the overworld")
+                game_state.screen.print("You are not in the overworld")
         elif val == '/lootvillagelibrary':
-            if player.dimension == 'Overworld':
-                for j in range(len(World.bound_village4)):
-                    if (World.bound_village4[j][0][0] < player.x < World.bound_village4[j][0][2]) and (World.bound_village4[j][1][0] < player.y < World.bound_village4[j][1][2]):
-                        library_bookshelf = rng.next_random(1, 3)
-                        library_books = rng.next_random(7, 14)
-                        screen.print(f"+{library_bookshelf} Bookshelf")
-                        screen.print(f"+{library_books} Books")
-                        player.inventory.add(Item("Bookshelf", library_bookshelf, None, None))
-                        player.inventory.add(Item("Book", library_books, None, None))
-                        actualX = World.bound_village4[j][0][1]
-                        actualY = World.bound_village4[j][1][1]
-                        World.empty_vil4.append([actualX, actualY])
-                        World.bound_village4.remove(World.bound_village4[j])
+            if game_state.player.dimension == 'Overworld':
+                for j in range(len(game_state.world.bound_village4)):
+                    if (game_state.world.bound_village4[j][0][0] < game_state.player.x < game_state.world.bound_village4[j][0][2]) and (game_state.world.bound_village4[j][1][0] < game_state.player.y < game_state.world.bound_village4[j][1][2]):
+                        library_bookshelf = game_state.rng.next_random(1, 3)
+                        library_books = game_state.rng.next_random(7, 14)
+                        game_state.screen.print(f"+{library_bookshelf} Bookshelf")
+                        game_state.screen.print(f"+{library_books} Books")
+                        game_state.player.inventory.add(Item("Bookshelf", library_bookshelf, None, None))
+                        game_state.player.inventory.add(Item("Book", library_books, None, None))
+                        actualX = game_state.world.bound_village4[j][0][1]
+                        actualY = game_state.world.bound_village4[j][1][1]
+                        game_state.world.empty_vil4.append([actualX, actualY])
+                        game_state.world.bound_village4.remove(game_state.world.bound_village4[j])
                         call = True
-                        empty_vil(World)
+                        empty_vil(game_state.world)
                         break
                 if call:
                     call = False
                 else:
-                    screen.print("You are not at a village")
+                    game_state.screen.print("You are not at a village")
             else:
-                screen.print("You are not in the overworld")
+                game_state.screen.print("You are not in the overworld")
         elif val == "/dimensionnether":  # Enter Nether dimension
-            for j in range(len(World.bound_overworld_portal)):
-                if (World.bound_overworld_portal[j][0][0] < player.x < World.bound_overworld_portal[j][0][2]) and (
-                        World.bound_overworld_portal[j][1][0] < player.y < World.bound_overworld_portal[j][1][2]) and player.dimension == 'Overworld':
-                    player.dimension = 'Nether'
-                    screen.print("Entering Nether Dimension...")
-                    actualX = World.bound_overworld_portal[j][0][1]
-                    actualY = World.bound_overworld_portal[j][1][1]
+            for j in range(len(game_state.world.bound_overworld_portal)):
+                if (game_state.world.bound_overworld_portal[j][0][0] < game_state.player.x < game_state.world.bound_overworld_portal[j][0][2]) and (
+                        game_state.world.bound_overworld_portal[j][1][0] < game_state.player.y < game_state.world.bound_overworld_portal[j][1][2]) and game_state.player.dimension == 'Overworld':
+                    game_state.player.dimension = 'Nether'
+                    game_state.screen.print("Entering Nether Dimension...")
+                    actualX = game_state.world.bound_overworld_portal[j][0][1]
+                    actualY = game_state.world.bound_overworld_portal[j][1][1]
                     background = (255, 153, 153)
-                    player.x /= 8
-                    player.y /= 8
+                    game_state.player.x /= 8
+                    game_state.player.y /= 8
                     call = True
-                    World.generateNether()
-                    if actualX / 8 not in World.nether_portal or actualY / 8 not in World.nether_portal:
+                    game_state.world.generateNether()
+                    if actualX / 8 not in game_state.world.nether_portal or actualY / 8 not in game_state.world.nether_portal:
                         # Generating Nether Portal coordinates (IN NETHER) and bounding box
-                        World.nether_portal.append([actualX / 8, actualY / 8])
-                        World.bound_nether_portal.append([[actualX / 8 - 10 / 16, actualX / 8, actualX / 8 + 10 / 16],
+                        game_state.world.nether_portal.append([actualX / 8, actualY / 8])
+                        game_state.world.bound_nether_portal.append([[actualX / 8 - 10 / 16, actualX / 8, actualX / 8 + 10 / 16],
                                                     [actualY / 8 - 10 / 16, actualY / 8, actualY / 8 + 10 / 16]])
                     break
             if call:
                 call = False
             else:
-                screen.print("You are not at a nether portal")
+                game_state.screen.print("You are not at a nether portal")
         elif val == "/dimensionoverworld":  # Enter overworld dimension
-            if player.dimension == 'Nether':
-                for j in range(len(World.bound_nether_portal)):
-                    if (World.bound_nether_portal[j][0][0] < player.x < World.bound_nether_portal[j][0][2]) and (
-                            World.bound_nether_portal[j][1][0] < player.y < World.bound_nether_portal[j][1][2]):
-                        player.dimension = 'Overworld'
-                        screen.print("Entering Overworld Dimension...")
-                        actualX = World.bound_nether_portal[j][0][1]
-                        actualY = World.bound_nether_portal[j][1][1]
+            if game_state.player.dimension == 'Nether':
+                for j in range(len(game_state.world.bound_nether_portal)):
+                    if (game_state.world.bound_nether_portal[j][0][0] < game_state.player.x < game_state.world.bound_nether_portal[j][0][2]) and (
+                            game_state.world.bound_nether_portal[j][1][0] < game_state.player.y < game_state.world.bound_nether_portal[j][1][2]):
+                        game_state.player.dimension = 'Overworld'
+                        game_state.screen.print("Entering Overworld Dimension...")
+                        actualX = game_state.world.bound_nether_portal[j][0][1]
+                        actualY = game_state.world.bound_nether_portal[j][1][1]
                         background = (255, 255, 255)
-                        player.x *= 8
-                        player.y *= 8
+                        game_state.player.x *= 8
+                        game_state.player.y *= 8
                         call = True
                         break
                 if call:
                     call = False
                 else:
-                    screen.print("You are not at a nether portal")
+                    game_state.screen.print("You are not at a nether portal")
             else:
-                screen.print("You are already in the overworld")
+                game_state.screen.print("You are already in the overworld")
         elif val == "/lootbastion":
-            if player.dimension == 'Nether':
-                for j in range(len(World.bound_bastion)):
-                    if (World.bound_bastion[j][0][0] < player.x < World.bound_bastion[j][0][2]) and (
-                            World.bound_bastion[j][1][0] < player.y < World.bound_bastion[j][1][2]):
-                        player.inventory.add(Item("Pigstep Disc", 1, None, None))
-                        screen.print("+1 Pigstep Disc")
-                        actualX = World.bound_bastion[j][0][1]
-                        actualY = World.bound_bastion[j][1][1]
-                        World.empty_bastion.append([actualX, actualY])
-                        World.bound_bastion.remove(World.bound_bastion[j])
+            if game_state.player.dimension == 'Nether':
+                for j in range(len(game_state.world.bound_bastion)):
+                    if (game_state.world.bound_bastion[j][0][0] < game_state.player.x < game_state.world.bound_bastion[j][0][2]) and (
+                            game_state.world.bound_bastion[j][1][0] < game_state.player.y < game_state.world.bound_bastion[j][1][2]):
+                        game_state.player.inventory.add(Item("Pigstep Disc", 1, None, None))
+                        game_state.screen.print("+1 Pigstep Disc")
+                        actualX = game_state.world.bound_bastion[j][0][1]
+                        actualY = game_state.world.bound_bastion[j][1][1]
+                        game_state.world.empty_bastion.append([actualX, actualY])
+                        game_state.world.bound_bastion.remove(game_state.world.bound_bastion[j])
                         call = True
                         break
                 if call:
                     call = False
                 else:
-                    screen.print("You are not at a bastion.")
+                    game_state.screen.print("You are not at a bastion.")
             else:
-                screen.print("You are not in the nether")
+                game_state.screen.print("You are not in the nether")
         elif val == "/playpigstep":
 
             # Declare Variables
             pigstep_disc_bool = False
             jukebox_bool = False
 
-            for i in player.inventory.items:
+            for i in game_state.player.inventory.items:
                 if i is not None:
                     if i.name == "Pigstep Disc":  # Pigstep Disc
                         pigstep_disc_bool = True
                         break
-            for i in player.inventory.items:
+            for i in game_state.player.inventory.items:
                 if i is not None:
                     if i.name == "Jukebox":  # Jukebox
                         jukebox_bool = True
@@ -1169,130 +1169,130 @@ def commands(number, val, rng: RandomNumberGenerator, screen: Screen, timer: Spe
                 pygame.mixer.music.load(str(ASSETS_DIR / "pigstep.mp3"))
                 pygame.mixer.music.set_volume(10)
                 pygame.mixer.music.play()
-                MusicPlayer(screen, timer, player.advancements) #Update Advancement and Speedrun Details
+                MusicPlayer(game_state.screen, game_state.timer, game_state.player.advancements) #Update Advancement and Speedrun Details
             else:
-                screen.print("Error: Not Enough Resources")
+                game_state.screen.print("Error: Not Enough Resources")
         elif val == '/lootruinedportal':  # Loot Ruined Portal
-            if player.dimension == 'Overworld':
-                for j in range(len(World.bound_ruined_portal)):
-                    if (World.bound_ruined_portal[j][0][0] < player.x < World.bound_ruined_portal[j][0][2]) and (
-                            World.bound_ruined_portal[j][1][0] < player.y < World.bound_ruined_portal[j][1][2]):
-                        R_iron_val = rng.next_random(2, 7)
-                        R_flint_val = rng.next_random(1, 3)
-                        R_golden_carrot_val = rng.next_random(0, 6)
-                        R_golden_apple_val = rng.next_random(0, 2)
-                        R_obsidian_val = rng.next_random(0, 3)
-                        player.inventory.add(Item("Iron Ingot", R_iron_val, None, None))  # Add Iron Ingot
-                        screen.print(f"+{R_iron_val} Iron Ingot")
-                        player.inventory.add(Item("Flint", R_flint_val, None, None))  # Add Flint
-                        screen.print(f"+{R_flint_val} Flint")
+            if game_state.player.dimension == 'Overworld':
+                for j in range(len(game_state.world.bound_ruined_portal)):
+                    if (game_state.world.bound_ruined_portal[j][0][0] < game_state.player.x < game_state.world.bound_ruined_portal[j][0][2]) and (
+                            game_state.world.bound_ruined_portal[j][1][0] < game_state.player.y < game_state.world.bound_ruined_portal[j][1][2]):
+                        R_iron_val = game_state.rng.next_random(2, 7)
+                        R_flint_val = game_state.rng.next_random(1, 3)
+                        R_golden_carrot_val = game_state.rng.next_random(0, 6)
+                        R_golden_apple_val = game_state.rng.next_random(0, 2)
+                        R_obsidian_val = game_state.rng.next_random(0, 3)
+                        game_state.player.inventory.add(Item("Iron Ingot", R_iron_val, None, None))  # Add Iron Ingot
+                        game_state.screen.print(f"+{R_iron_val} Iron Ingot")
+                        game_state.player.inventory.add(Item("Flint", R_flint_val, None, None))  # Add Flint
+                        game_state.screen.print(f"+{R_flint_val} Flint")
                         if R_golden_carrot_val > 0:  # Add Golden Carrot
-                            screen.print(f"+{R_golden_carrot_val} Golden Carrot")
-                            player.inventory.add(Item("Golden Carrot", R_golden_carrot_val, None, None))
+                            game_state.screen.print(f"+{R_golden_carrot_val} Golden Carrot")
+                            game_state.player.inventory.add(Item("Golden Carrot", R_golden_carrot_val, None, None))
                         if R_golden_apple_val > 0:  # Add Golden Apple
-                            screen.print(f"+{R_golden_apple_val} Golden Apple")
-                            player.inventory.add(Item("Golden Apple", R_golden_apple_val, None, None))
+                            game_state.screen.print(f"+{R_golden_apple_val} Golden Apple")
+                            game_state.player.inventory.add(Item("Golden Apple", R_golden_apple_val, None, None))
                         if R_obsidian_val > 0:  # Add Obsidian
-                            screen.print(f"+{R_obsidian_val} Obsidian")
-                            player.inventory.add(Item("Obsidian", R_obsidian_val, None, None))
-                        actualX = World.bound_ruined_portal[j][0][1]
-                        actualY = World.bound_ruined_portal[j][1][1]
-                        World.empty_ruined_portal1.append([actualX, actualY])
-                        World.bound_ruined_portal.remove(World.bound_ruined_portal[j])
+                            game_state.screen.print(f"+{R_obsidian_val} Obsidian")
+                            game_state.player.inventory.add(Item("Obsidian", R_obsidian_val, None, None))
+                        actualX = game_state.world.bound_ruined_portal[j][0][1]
+                        actualY = game_state.world.bound_ruined_portal[j][1][1]
+                        game_state.world.empty_ruined_portal1.append([actualX, actualY])
+                        game_state.world.bound_ruined_portal.remove(game_state.world.bound_ruined_portal[j])
                         call = True
-                        empty_ruined_portals(World)
+                        empty_ruined_portals(game_state.world)
                         break
                 if call:
                     call = False
                 else:
-                    screen.print("You are not at a ruined portal")
+                    game_state.screen.print("You are not at a ruined portal")
             else:
-                screen.print("You are not in the overworld")
+                game_state.screen.print("You are not in the overworld")
         elif val == '/portalcomplete':  # Complete Ruined Portal
-            if player.dimension == 'Overworld':
-                for j in range(len(World.bound_ruined_portal2)):
-                    if (World.bound_ruined_portal2[j][0][0] < player.x < World.bound_ruined_portal2[j][0][2]) and (
-                            World.bound_ruined_portal2[j][1][0] < player.y < World.bound_ruined_portal2[j][1][2]):
-                        obsidian_num = 10 - World.obsidian_counts[
+            if game_state.player.dimension == 'Overworld':
+                for j in range(len(game_state.world.bound_ruined_portal2)):
+                    if (game_state.world.bound_ruined_portal2[j][0][0] < game_state.player.x < game_state.world.bound_ruined_portal2[j][0][2]) and (
+                            game_state.world.bound_ruined_portal2[j][1][0] < game_state.player.y < game_state.world.bound_ruined_portal2[j][1][2]):
+                        obsidian_num = 10 - game_state.world.obsidian_counts[
                             j]  # Set number of obsidian remaining to complete the portal (max. 5)
                         flint_and_steel_bool = False
                         obsidian_bool = False
 
-                        for i in player.inventory.items:
+                        for i in game_state.player.inventory.items:
                             if i is not None:
                                 if i.name == 'Flint and Steel':  # Test for flint and steel
                                     flint_and_steel_bool = True
                                     break
                         if obsidian_num == 0:
                             obsidian_bool = True
-                        for i in player.inventory.items:
+                        for i in game_state.player.inventory.items:
                             if i is not None:
                                 if i.name == "Obsidian" and i.number >= obsidian_num:  # Test for enough obsidian
-                                    obsidian_index = player.inventory.items.index(i)
+                                    obsidian_index = game_state.player.inventory.items.index(i)
                                     obsidian_bool = True
                                     break
 
                         if flint_and_steel_bool and obsidian_bool:
                             if obsidian_num > 0:
-                                player.inventory.items[obsidian_index].number -= obsidian_num
-                                screen.print(f"-{obsidian_num} Obsidian")
-                                screen.print("Ruined Portal has been completed")
+                                game_state.player.inventory.items[obsidian_index].number -= obsidian_num
+                                game_state.screen.print(f"-{obsidian_num} Obsidian")
+                                game_state.screen.print("Ruined Portal has been completed")
                             else:
-                                screen.print("Portal is already complete")
-                            actualX = World.bound_ruined_portal2[j][0][1]
-                            actualY = World.bound_ruined_portal2[j][1][1]
-                            World.empty_ruined_portal2.append([actualX, actualY])
-                            World.bound_ruined_portal2.remove(World.bound_ruined_portal2[j])
-                            World.overworld_portal.append([actualX, actualY])
-                            World.bound_overworld_portal.append([[actualX - 10 / 16, actualX, actualX + 10 / 16],
+                                game_state.screen.print("Portal is already complete")
+                            actualX = game_state.world.bound_ruined_portal2[j][0][1]
+                            actualY = game_state.world.bound_ruined_portal2[j][1][1]
+                            game_state.world.empty_ruined_portal2.append([actualX, actualY])
+                            game_state.world.bound_ruined_portal2.remove(game_state.world.bound_ruined_portal2[j])
+                            game_state.world.overworld_portal.append([actualX, actualY])
+                            game_state.world.bound_overworld_portal.append([[actualX - 10 / 16, actualX, actualX + 10 / 16],
                                                            [actualY - 10 / 16, actualY, actualY + 10 / 16]])
                             call = True
-                            empty_ruined_portals(World)
+                            empty_ruined_portals(game_state.world)
                             break
                         elif obsidian_bool and not flint_and_steel_bool:
-                            screen.print("Require Flint and Steel")
+                            game_state.screen.print("Require Flint and Steel")
                             break
                         elif flint_and_steel_bool and not obsidian_bool:
-                            screen.print(f"Require {obsidian_num} Obsidian")
+                            game_state.screen.print(f"Require {obsidian_num} Obsidian")
                             break
                         else:
-                            screen.print(f"Require {obsidian_num} Obsidian")
-                            screen.print("Require Flint and Steel")
+                            game_state.screen.print(f"Require {obsidian_num} Obsidian")
+                            game_state.screen.print("Require Flint and Steel")
                             break
                 if call:
                     call = False
                 else:
-                    screen.print("You are not at a ruined portal")
+                    game_state.screen.print("You are not at a ruined portal")
             else:
-                screen.print("You are not in the overworld")
+                game_state.screen.print("You are not in the overworld")
         elif val == '/table':
             if load == 'Cheats':
-                print_cheats(screen, list(ITEM_TYPES.keys()))
+                print_cheats(game_state.screen, list(ITEM_TYPES.keys()))
             else:
-                screen.print("REQUIRE CHEATS DATAPACK")
+                game_state.screen.print("REQUIRE CHEATS DATAPACK")
         elif val == '/give':
             if load == 'Cheats':
                 length = len(list(ITEM_TYPES.keys())) - 1
-                screen.start_typing(f"Item ID (0 - {length}): ")
+                game_state.screen.start_typing(f"Item ID (0 - {length}): ")
             else:
-                screen.print("REQUIRE CHEATS DATAPACK")
+                game_state.screen.print("REQUIRE CHEATS DATAPACK")
         elif val == '/tp':
             if load == 'Cheats':
-                screen.start_typing("Coordinates (X,Y): ")
+                game_state.screen.start_typing("Coordinates (X,Y): ")
             else:
-                screen.print("REQUIRE CHEATS DATAPACK")
+                game_state.screen.print("REQUIRE CHEATS DATAPACK")
         elif val == "/enchant":
             if load == "Cheats":
-                screen.start_typing("Enchantment (Name, Lvl): ")
+                game_state.screen.start_typing("Enchantment (Name, Lvl): ")
             else:
-                screen.print("REQUIRE CHEATS DATAPACK")
+                game_state.screen.print("REQUIRE CHEATS DATAPACK")
         elif val == "/experience":
             if load == "Cheats":
-                screen.start_typing("Experience Level: ")
+                game_state.screen.start_typing("Experience Level: ")
             else:
-                screen.print("REQUIRE CHEATS DATAPACK")
+                game_state.screen.print("REQUIRE CHEATS DATAPACK")
         else:
-            screen.print("Invalid Function")
+            game_state.screen.print("Invalid Function")
 
 
 '''Empty Structures'''
