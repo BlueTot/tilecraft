@@ -267,6 +267,7 @@ class GameState:
     rng: RandomNumberGenerator
     seed: int
     background: tuple[int, int, int]
+    load: str
 
 
 # common screen interface
@@ -864,7 +865,7 @@ class UndergroundGeneratingScreen(Interface):
 
 
 # Game Loop
-def main(display: pygame.Surface, clock: pygame.time.Clock, context: Context) -> Optional[str]:
+def main(display: pygame.Surface, clock: pygame.time.Clock, context: Context, load: str) -> Optional[str]:
     global play_time_seconds
 
     world = pygame.Surface((750, 750))  # Create Map Surface
@@ -877,7 +878,7 @@ def main(display: pygame.Surface, clock: pygame.time.Clock, context: Context) ->
     current_screen: Interface = OverworldGeneratingScreen(
         display = display,
         context = context,
-        game_state = GameState(screen=None, player=None, world=None, timer=timer, rng=rng, seed=seed, background=(255, 255, 255))
+        game_state = GameState(screen=None, player=None, world=None, timer=timer, rng=rng, seed=seed, background=(255, 255, 255), load=load)
     )
 
     while True:
@@ -913,7 +914,7 @@ def main(display: pygame.Surface, clock: pygame.time.Clock, context: Context) ->
 
 
 def create_world():
-    global load, true_play_time
+    global true_play_time
 
     pygame.init()  # Initialise Pygame Module
     display = pygame.display.set_mode((750, 750))  # Set display
@@ -926,7 +927,7 @@ def create_world():
     Quit()
     true_play_time = ""
 
-    signal = main(display, clock, context)  #Start Game by Calling the Main Loop
+    signal = main(display, clock, context, load)  #Start Game by Calling the Main Loop
 
     if signal == 'title screen':
         title_screen()
@@ -1259,14 +1260,14 @@ def commands(number: int, val: str, game_state: GameState):
 
         # cheats datapack - list items
         elif val == "/table":
-            if load == "Cheats":
+            if game_state.load == "Cheats":
                 print_cheats(game_state.screen, list(ITEM_TYPES.keys()))
             else:
                 game_state.screen.print("REQUIRE CHEATS DATAPACK")
 
         # cheats datapack - give item
         elif val == "/give":
-            if load == "Cheats":
+            if game_state.load == "Cheats":
                 length = len(list(ITEM_TYPES.keys())) - 1
                 game_state.screen.start_typing(f"Item ID (0 - {length}): ")
             else:
@@ -1274,21 +1275,21 @@ def commands(number: int, val: str, game_state: GameState):
 
         # cheats datapack - teleport
         elif val == "/tp":
-            if load == "Cheats":
+            if game_state.load == "Cheats":
                 game_state.screen.start_typing("Coordinates (X,Y): ")
             else:
                 game_state.screen.print("REQUIRE CHEATS DATAPACK")
 
         # cheats datapack - enchant an item
         elif val == "/enchant":
-            if load == "Cheats":
+            if game_state.load == "Cheats":
                 game_state.screen.start_typing("Enchantment (Name, Lvl): ")
             else:
                 game_state.screen.print("REQUIRE CHEATS DATAPACK")
         
         # cheats datapack - give player experience points 
         elif val == "/experience":
-            if load == "Cheats":
+            if game_state.load == "Cheats":
                 game_state.screen.start_typing("Experience Level: ")
             else:
                 game_state.screen.print("REQUIRE CHEATS DATAPACK")
