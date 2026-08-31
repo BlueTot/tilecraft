@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## [0.1.0a1] - 2021-01-11
 
-*Legacy Name: Patch Alpha 1.0 Pre-Relase 1*
+*Legacy Name: Patch Alpha 1.0 Pre-Release 1*
 
 ### Added
 
