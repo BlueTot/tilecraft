@@ -1353,6 +1353,8 @@ class GameScreen(Interface):
                     if len(char) == 1: #Check to prevent non-alphabetical and non-number keys
                         self.game_state.screen.type(char)
 
+        return
+
 
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> Optional[str]:
         global true_play_time
@@ -1395,6 +1397,7 @@ class GameScreen(Interface):
         # general rendering
         self.display.blit(world_map, (0, 0))  # Render map to display
         pygame.display.flip()  # Update Display
+        return
 
 
 class InventoryScreen(Interface):
@@ -1435,6 +1438,8 @@ class InventoryScreen(Interface):
                 self.game_state.player.inventory.handle_right_click(mouse, self.game_state.player.holding_item)
                 self.game_state.player.craft_interface.handle_right_click(mouse, self.game_state.player.holding_item)
 
+        return
+
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> Optional[str]:
         mouse = pygame.mouse.get_pos()
         self.display.fill((0, 0, 0))
@@ -1451,6 +1456,7 @@ class InventoryScreen(Interface):
 
         self.display.blit(world_map, (0, 0))  # Render map to self.display
         pygame.display.flip()  # Update self.display
+        return
 
 
 class CraftingScreen(Interface):
@@ -1488,6 +1494,8 @@ class CraftingScreen(Interface):
                 self.game_state.player.inventory.handle_right_click(mouse, self.game_state.player.holding_item)
                 self.game_state.player.crafting_grid.handle_right_click(mouse, self.game_state.player.holding_item) 
 
+        return
+
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> Optional[str]:
         mouse = pygame.mouse.get_pos()
         self.display.fill((0, 0, 0))
@@ -1503,6 +1511,7 @@ class CraftingScreen(Interface):
 
         self.display.blit(world_map, (0, 0))  # Render map to self.display
         pygame.display.flip()  # Update self.display
+        return
 
 
 class SmeltingScreen(Interface):
@@ -1539,6 +1548,8 @@ class SmeltingScreen(Interface):
                 self.game_state.player.inventory.handle_right_click(mouse, self.game_state.player.holding_item)
                 self.game_state.player.furnace.handle_right_click(mouse, self.game_state.player.holding_item) 
 
+        return
+
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> Optional[str]:
         mouse = pygame.mouse.get_pos()
         self.display.fill((0, 0, 0))
@@ -1554,6 +1565,7 @@ class SmeltingScreen(Interface):
 
         self.display.blit(world_map, (0, 0))  # Render map to self.display
         pygame.display.flip()  # Update self.display
+        return
 
 
 class EnchantingScreen(Interface):
@@ -1591,6 +1603,8 @@ class EnchantingScreen(Interface):
                 self.game_state.player.inventory.handle_right_click(mouse, self.game_state.player.holding_item)
                 self.game_state.player.enchanting_table.handle_right_click(mouse, self.game_state.player.holding_item)
 
+        return
+
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> Optional[str]:
         mouse = pygame.mouse.get_pos()
         self.display.fill((0, 0, 0))
@@ -1605,6 +1619,7 @@ class EnchantingScreen(Interface):
 
         self.display.blit(world_map, (0, 0))  # Render map to self.display
         pygame.display.flip()  # Update self.display
+        return
 
 
 class CompressingScreen(Interface):
@@ -1642,6 +1657,8 @@ class CompressingScreen(Interface):
                 self.game_state.player.inventory.handle_right_click(mouse, self.game_state.player.holding_item)
                 self.game_state.player.compressor.handle_right_click(mouse, self.game_state.player.holding_item)
 
+        return
+
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> Optional[str]:
         mouse = pygame.mouse.get_pos()
         self.display.fill((0, 0, 0))
@@ -1657,6 +1674,7 @@ class CompressingScreen(Interface):
 
         self.display.blit(world_map, (0, 0))  # Render map to self.display
         pygame.display.flip()  # Update self.display
+        return
 
 
 class GrindstoneScreen(Interface):
@@ -1695,6 +1713,8 @@ class GrindstoneScreen(Interface):
                 self.game_state.player.inventory.handle_right_click(mouse, self.game_state.player.holding_item)
                 self.game_state.player.grindstone.handle_right_click(mouse, self.game_state.player.holding_item)
 
+        return
+
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> Optional[str]:
         mouse = pygame.mouse.get_pos()
         self.display.fill((0, 0, 0))
@@ -1710,6 +1730,7 @@ class GrindstoneScreen(Interface):
 
         self.display.blit(world_map, (0, 0))  # Render map to self.display
         pygame.display.flip()  # Update self.display
+        return
 
 
 class OverworldGeneratingScreen(Interface):
@@ -1741,6 +1762,7 @@ class OverworldGeneratingScreen(Interface):
 
         # go to game screen
         self.next_screen = GameScreen(self.display, self.context, self.game_state)
+        return
 
 
 class UndergroundGeneratingScreen(Interface):
@@ -1750,7 +1772,7 @@ class UndergroundGeneratingScreen(Interface):
     def handle_event(self, event: pygame.event.Event) -> Optional[str]:
         return super().handle_event(event)
 
-    def render(self, world_map: pygame.Surface, fps: float, frame_count: int):
+    def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> Optional[str]:
 
         self.display.fill((255, 255, 255))
         for i in range(0, 750, 32):
@@ -1769,10 +1791,11 @@ class UndergroundGeneratingScreen(Interface):
 
         # go to game screen
         self.next_screen = GameScreen(self.display, self.context, self.game_state)
+        return
 
 
 # Game Loop
-def main(display: pygame.Surface, clock: pygame.time.Clock, context: Context):
+def main(display: pygame.Surface, clock: pygame.time.Clock, context: Context) -> Optional[str]:
     global play_time_seconds, netherGenerated
 
     netherGenerated = False
@@ -1823,7 +1846,7 @@ def main(display: pygame.Surface, clock: pygame.time.Clock, context: Context):
 
 
 def create_world():
-    global background, call, load 
+    global background, call, load, true_play_time
 
     pygame.init()  # Initialise Pygame Module
     display = pygame.display.set_mode((750, 750))  # Set display
@@ -1836,6 +1859,7 @@ def create_world():
     call = False
     load = optionData()
     Quit()
+    true_play_time = ""
 
     signal = main(display, clock, context)  #Start Game by Calling the Main Loop
 
