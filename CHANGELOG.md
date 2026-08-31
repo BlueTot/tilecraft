@@ -132,7 +132,7 @@ All notable changes to this project will be documented in this file.
 
 *Legacy Name: Patch Alpha 1.4.1 Release*
 
-## Fixed
+### Fixed
 
 * Fixed Bugs
 
