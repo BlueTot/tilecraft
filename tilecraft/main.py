@@ -939,7 +939,7 @@ def commands(number: int, val: str, game_state: GameState):
         Legcay commands and cheat commands to play the game
         This is to be gradually deprecated in favour of new game mechanics
     """
-    global background, actualX, actualY 
+    global background
 
     if number < 1 or number > 16:
         game_state.screen.print("ERROR: Invalid Integer")
@@ -968,7 +968,7 @@ def commands(number: int, val: str, game_state: GameState):
                     actualY = game_state.world.bound_village[j][1][1]
                     game_state.world.empty_vil1.append([actualX, actualY])
                     game_state.world.bound_village.remove(game_state.world.bound_village[j])
-                    empty_vil(game_state.world)
+                    try_set_empty_village(game_state.world, actualX, actualY)
                     return
             else:
                 game_state.screen.print("You are not at a village")
@@ -988,7 +988,7 @@ def commands(number: int, val: str, game_state: GameState):
                     actualY = game_state.world.bound_village2[j][1][1]
                     game_state.world.empty_vil2.append([actualX, actualY])
                     game_state.world.bound_village2.remove(game_state.world.bound_village2[j])
-                    empty_vil(game_state.world)
+                    try_set_empty_village(game_state.world, actualX, actualY)
                     return
             else:
                 game_state.screen.print("You are not at a village")
@@ -1052,7 +1052,7 @@ def commands(number: int, val: str, game_state: GameState):
                     actualY = game_state.world.bound_village3[j][1][1]
                     game_state.world.empty_vil3.append([actualX, actualY])
                     game_state.world.bound_village3.remove(game_state.world.bound_village3[j])
-                    empty_vil(game_state.world)
+                    try_set_empty_village(game_state.world, actualX, actualY)
                     return
             else:
                 game_state.screen.print("You are not at a village")
@@ -1074,7 +1074,7 @@ def commands(number: int, val: str, game_state: GameState):
                     actualY = game_state.world.bound_village4[j][1][1]
                     game_state.world.empty_vil4.append([actualX, actualY])
                     game_state.world.bound_village4.remove(game_state.world.bound_village4[j])
-                    empty_vil(game_state.world)
+                    try_set_empty_village(game_state.world, actualX, actualY)
                     return
             else:
                 game_state.screen.print("You are not at a village")
@@ -1197,7 +1197,7 @@ def commands(number: int, val: str, game_state: GameState):
                     actualY = game_state.world.bound_ruined_portal[j][1][1]
                     game_state.world.empty_ruined_portal1.append([actualX, actualY])
                     game_state.world.bound_ruined_portal.remove(game_state.world.bound_ruined_portal[j])
-                    empty_ruined_portals(game_state.world)
+                    try_set_empty_ruined_portal(game_state.world, actualX, actualY)
                     break
             else:
                 game_state.screen.print("You are not at a ruined portal")
@@ -1243,7 +1243,7 @@ def commands(number: int, val: str, game_state: GameState):
                         game_state.world.overworld_portal.append([actualX, actualY])
                         game_state.world.bound_overworld_portal.append([[actualX - 10 / 16, actualX, actualX + 10 / 16],
                                                         [actualY - 10 / 16, actualY, actualY + 10 / 16]])
-                        empty_ruined_portals(game_state.world)
+                        try_set_empty_ruined_portal(game_state.world, actualX, actualY)
                         break
                     elif obsidian_bool and not flint_and_steel_bool:
                         game_state.screen.print("Require Flint and Steel")
@@ -1299,46 +1299,50 @@ def commands(number: int, val: str, game_state: GameState):
             game_state.screen.print("Invalid Function")
 
 
-'''Empty Structures'''
+def try_set_empty_village(world: TilecraftWorld, actualX: int, actualY: int):
+    """
+        Try to mark a villge structure as empty
+        actualX, actualY are the coordinates of the village
+    """
 
-# Displays empty village
-def empty_vil(World: TilecraftWorld):
-    global actualX, actualY, bool_empty_vil1, bool_empty_vil2, empty_vil_total, bool_empty_vil3, bool_empty_vil4
     bool_empty_vil1 = False
     bool_empty_vil2 = False
     bool_empty_vil3 = False
     bool_empty_vil4 = False
-    for i in range(len(World.empty_vil1)):
-        if (actualX in World.empty_vil1[i]) and (actualY in World.empty_vil1[i]):
-            bool_empty_vil1 = True
-    for i in range(len(World.empty_vil2)):
-        if (actualX in World.empty_vil2[i]) and (actualY in World.empty_vil2[i]):
-            bool_empty_vil2 = True
-    for i in range(len(World.empty_vil3)):
-        if (actualX in World.empty_vil3[i]) and (actualY in World.empty_vil3[i]):
-            bool_empty_vil3 = True
-    for i in range(len(World.empty_vil4)):
-        if (actualX in World.empty_vil4[i]) and (actualY in World.empty_vil4[i]):
-            bool_empty_vil4 = True
-    if bool_empty_vil1 and bool_empty_vil2 and bool_empty_vil3 and bool_empty_vil4:
-        World.empty_vil_total.append([actualX, actualY])
 
-# Displays empty ruined portal
-def empty_ruined_portals(World: TilecraftWorld):
-    global actualX, actualY, empty_ruined_portal_total
+    for i in range(len(world.empty_vil1)):
+        if (actualX in world.empty_vil1[i]) and (actualY in world.empty_vil1[i]):
+            bool_empty_vil1 = True
+    for i in range(len(world.empty_vil2)):
+        if (actualX in world.empty_vil2[i]) and (actualY in world.empty_vil2[i]):
+            bool_empty_vil2 = True
+    for i in range(len(world.empty_vil3)):
+        if (actualX in world.empty_vil3[i]) and (actualY in world.empty_vil3[i]):
+            bool_empty_vil3 = True
+    for i in range(len(world.empty_vil4)):
+        if (actualX in world.empty_vil4[i]) and (actualY in world.empty_vil4[i]):
+            bool_empty_vil4 = True
+
+    if bool_empty_vil1 and bool_empty_vil2 and bool_empty_vil3 and bool_empty_vil4:
+        world.empty_vil_total.append([actualX, actualY])
+
+
+def try_set_empty_ruined_portal(world: TilecraftWorld, actualX: int, actualY: int):
+    """
+        Try to mark a ruined portal structure as empty
+        actualX, actualY are the coordinates of the ruined portal
+    """
+
     bool_empty_ruined_portal1 = False
     bool_empty_ruined_portal2 = False
-    for i in range(len(World.empty_ruined_portal1)):
-        if (actualX in World.empty_ruined_portal1[i]) and (actualY in World.empty_ruined_portal1[i]):
+    for i in range(len(world.empty_ruined_portal1)):
+        if (actualX in world.empty_ruined_portal1[i]) and (actualY in world.empty_ruined_portal1[i]):
             bool_empty_ruined_portal1 = True
-    for i in range(len(World.empty_ruined_portal2)):
-        if (actualX in World.empty_ruined_portal2[i]) and (actualY in World.empty_ruined_portal2[i]):
+    for i in range(len(world.empty_ruined_portal2)):
+        if (actualX in world.empty_ruined_portal2[i]) and (actualY in world.empty_ruined_portal2[i]):
             bool_empty_ruined_portal2 = True
     if bool_empty_ruined_portal1 and bool_empty_ruined_portal2:
-        World.empty_ruined_portal_total.append([actualX, actualY])
-
-
-'''Title Screen Accessory Functions'''
+        world.empty_ruined_portal_total.append([actualX, actualY])
 
 
 # Select data pack
