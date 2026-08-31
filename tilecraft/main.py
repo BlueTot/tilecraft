@@ -266,6 +266,7 @@ class GameState:
     timer: SpeedrunTimer
     rng: RandomNumberGenerator
     seed: int
+    background: tuple[int, int, int]
 
 
 # common screen interface
@@ -451,7 +452,7 @@ class GameScreen(Interface):
                 self.game_state.screen.scroll_down()
 
         self.display.fill((0, 0, 0))  # Fill world_map border black
-        world_map.fill(background)  # Fill world_map background colour
+        world_map.fill(self.game_state.background)  # Fill world_map background colour
         self.game_state.player.health_update(frame_count)  # Update self.game_state.player Health
         self.game_state.world.render_chunks(self.game_state.player.left, self.game_state.player.right, self.game_state.player.top, self.game_state.player.bottom)  # Generate list of all chunks that are loaded
         self.game_state.world.generate_chunks(self.game_state.player.dimension)  # Generate Chunks that are loaded but have not been generated before
@@ -876,7 +877,7 @@ def main(display: pygame.Surface, clock: pygame.time.Clock, context: Context) ->
     current_screen: Interface = OverworldGeneratingScreen(
         display = display,
         context = context,
-        game_state = GameState(screen=None, player=None, world=None, timer=timer, rng=rng, seed=seed)
+        game_state = GameState(screen=None, player=None, world=None, timer=timer, rng=rng, seed=seed, background=(255, 255, 255))
     )
 
     while True:
@@ -912,7 +913,7 @@ def main(display: pygame.Surface, clock: pygame.time.Clock, context: Context) ->
 
 
 def create_world():
-    global background, load, true_play_time
+    global load, true_play_time
 
     pygame.init()  # Initialise Pygame Module
     display = pygame.display.set_mode((750, 750))  # Set display
@@ -921,7 +922,6 @@ def create_world():
     clock.get_time()
     context = create_context()
 
-    background = (255, 255, 255)
     load = optionData()
     Quit()
     true_play_time = ""
@@ -939,7 +939,6 @@ def commands(number: int, val: str, game_state: GameState):
         Legcay commands and cheat commands to play the game
         This is to be gradually deprecated in favour of new game mechanics
     """
-    global background
 
     if number < 1 or number > 16:
         game_state.screen.print("ERROR: Invalid Integer")
@@ -1088,7 +1087,7 @@ def commands(number: int, val: str, game_state: GameState):
                     game_state.screen.print("Entering Nether Dimension...")
                     actualX = game_state.world.bound_overworld_portal[j][0][1]
                     actualY = game_state.world.bound_overworld_portal[j][1][1]
-                    background = (255, 153, 153)
+                    game_state.background = (255, 153, 153)
                     game_state.player.x /= 8
                     game_state.player.y /= 8
                     game_state.world.generateNether(game_state.player.x, game_state.player.y)
@@ -1115,7 +1114,7 @@ def commands(number: int, val: str, game_state: GameState):
                     game_state.screen.print("Entering Overworld Dimension...")
                     actualX = game_state.world.bound_nether_portal[j][0][1]
                     actualY = game_state.world.bound_nether_portal[j][1][1]
-                    background = (255, 255, 255)
+                    game_state.background = (255, 255, 255)
                     game_state.player.x *= 8
                     game_state.player.y *= 8
                     return
