@@ -4,16 +4,18 @@ Rewrite of an old project started in 2021, a 2D recreation of minecraft.
 
 ## Installation
 
-Create a virtual environment in python, and then install dependencies:
+Create a virtual environment in python. 
+
+To compile as an executable and run it:
 
 ```bash
-pip install -r requirements.txt
+python -m pip install -e .
+tilecraft
 ```
 
-## Running the game
-
-Run the game with
+To run it from the command line:
 
 ```bash
-python src/main.py
+python -m tilecraft
 ```
+
