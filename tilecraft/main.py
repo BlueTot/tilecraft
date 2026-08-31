@@ -935,8 +935,6 @@ def create_world():
         death_screen()
 
 
-'''Function to handle all commands'''
-
 #Limit number of times a player can repeat a command
 def NumberLimit(number, val, game_state: GameState):
     if number > 16:
@@ -946,9 +944,11 @@ def NumberLimit(number, val, game_state: GameState):
     else:
         commands(number, val, game_state.rng, game_state.screen, game_state.timer, game_state.player, game_state.world)
 
+
 def commands(number, val, rng: RandomNumberGenerator, screen: Screen, timer: SpeedrunTimer, player: Player, World: TilecraftWorld):
-    global cobblestone_index, obsidian_index, item_name_list, experience, inventory_list, hotbar_order, hotbar_index, mode, hotbar_item, item_val_list, background, enchantable_list, flint_val, gravel_val, blacksmith_book, bool_blacksmith_iron, bool_blacksmith_diamond, bool_blacksmith_bread, blacksmith_iron, blacksmith_diamond, blacksmith_bread, endTime, bound_overworld_portal, overworld_portal, diaval, call, actualX, actualY, dimension
-    for o in range(number):
+    global background, call, actualX, actualY 
+
+    for _ in range(number):
         if val == "/lootvillagehay":  # Loot Village Hay
             if player.dimension == 'Overworld':
                 if player.inventory.hotbar_item is not None:
