@@ -1,11 +1,14 @@
-import tkinter  
-import tkinter.font 
-import random  
-import pygame  
-import math 
-import sys 
+from __future__ import annotations
+
+import tkinter
+import tkinter.font
+import random
+import math
+import sys
 from typing import Optional
 from dataclasses import dataclass
+
+import pygame
 
 from tilecraft import ASSETS_DIR , VERSION
 from .cheats import print_cheats, give, enchant, teleport, experience
@@ -52,116 +55,6 @@ class SpeedrunTimer:
             self.font.render( self.latest_time_string, True, (0, 0, 0), (255, 255, 255)), 
             (504 - (13 * len(self.latest_time_string)), 0)
         ) #Render Speedrun Timer
-
-
-class Screen:
-    def __init__(self, rng: RandomNumberGenerator, player, world):
-        self.x = 0
-        self.y = 570
-        self.input_line = 0
-        self.print_list = []
-        self.isTyping = False
-        self.typingText = ''
-        self.position = 0
-        self.foretext = ''
-        self.timer = 0
-        self.rng = rng
-        self.player = player
-        self.world = world
-
-    def scroll_up(self):
-        if self.position < len(self.print_list) - 15:
-            self.position += 1
-
-    def scroll_down(self):
-        if self.position > 0:
-            self.position -= 1
-
-    def start_typing(self, text):
-        self.input_line = 15
-        self.isTyping = True
-        self.foretext = text
-        self.timer = 0
-
-    def type(self, char):
-        self.typingText += char
-
-    def stop_typing(self, timer: SpeedrunTimer, player):
-        self.input_line = 0
-        self.isTyping = False
-        length = len(list(ITEM_TYPES.keys())) - 1
-        if self.foretext == f'Item ID (0 - {length}): ':
-            player.inventory.add(give(self, self.typingText))
-            self.foretext = ''
-        elif self.foretext == 'Coordinates (X,Y): ':
-            player.x, player.y = teleport(self, player.x, player.y, self.typingText)
-            self.foretext = ''
-        elif self.foretext == "Enchantment (Name, Lvl): ":
-            item = enchant(self, player.inventory, self.typingText)
-            if item is not None:
-                player.inventory.hotbar_item = item
-            self.foretext = ''
-        elif self.foretext == "Experience Level: ":
-            experience(self, player.experience, self.typingText)
-            self.foretext = ''
-        else:
-            self.text_validate(timer)
-        self.typingText = ''
-        self.position = 0
-
-    def delete(self):
-        self.typingText = self.typingText[0:-1]
-
-    def text_validate(self, timer: SpeedrunTimer):
-        if len(self.typingText) != 0:
-            if self.typingText[0] == '/':
-                self.typingText = self.typingText.replace(' ', '')  # REMOVE WHITESPACES
-                if ',' in self.typingText and self.typingText[-1] != ',':
-                    comma = self.typingText.index(',')
-                    number = self.typingText[comma + 1:len(self.typingText)]
-                    self.typingText = self.typingText[0: comma]
-                    try:
-                        number = int(number)
-                        # Prevent crashes by limiting number size
-                        NumberLimit(number, self.typingText, self.rng, self, timer, self.player, self.world)
-                    except ValueError:
-                        self.print("Invalid integer")
-                else:
-                    number = 1  # Set number to 1 when number is not specified
-                    NumberLimit(number, self.typingText, self.rng, self, timer, self.player, self.world)
-            # Regular text message
-            else:
-                self.print(f"<Player> {self.typingText}")
-
-    def print(self, text):
-        self.timer = 0
-        self.print_list.append(text)
-
-    def render(self, display: pygame.Surface):
-        if self.timer != 600:
-            if len(self.print_list) <= 16:
-                self.screen_list = self.print_list[:]
-                height = len(self.print_list) * 15 + self.input_line
-            else:
-                if self.position == 0:
-                    self.screen_list = self.print_list[-16 - self.position:]
-                    height = 16 * 15 + self.input_line
-                else:
-                    self.screen_list = self.print_list[-16 - self.position: 0 - self.position]
-                    height = 16 * 15 + self.input_line
-            self.screen_list.reverse()
-            width = 375
-            x = self.x
-            y = self.y - height
-            surface = pygame.Surface((width, height))
-            surface.fill((125, 125, 125))
-            surface.set_alpha(200)
-            display.blit(surface, (x, y))
-            font = pygame.font.Font(str(ASSETS_DIR / "monofur/monof55.ttf"), 18)
-            for i in range(len(self.screen_list)):
-                display.blit(font.render(self.screen_list[i], False, (255, 255, 255)), (x, y + height - (i + 1) * 15 - self.input_line))
-            display.blit(font.render(self.foretext + self.typingText, True, (255, 255, 255)), (x, y + height - 15))
-            self.timer += 1
 
 
 #Check for completed advancements
@@ -248,8 +141,6 @@ def MusicPlayer(screen: Screen, timer: SpeedrunTimer, advancements):
         timer.running = False
     return advancements
 
-
-'''Main Part of Game Code'''
 
 class TilecraftWorld:
     def __init__(self, rng: RandomNumberGenerator, seed):
@@ -1187,6 +1078,120 @@ class Player:
             display.blit(Coords, (0, 200))
 
 
+class Screen:
+    def __init__(self, game_state: GameState):
+        self.x = 0
+        self.y = 570
+        self.input_line = 0
+        self.print_list = []
+        self.isTyping = False
+        self.typingText = ''
+        self.position = 0
+        self.foretext = ''
+        self.timer = 0
+
+        self.game_state = game_state 
+
+    def scroll_up(self):
+        if self.position < len(self.print_list) - 15:
+            self.position += 1
+
+    def scroll_down(self):
+        if self.position > 0:
+            self.position -= 1
+
+    def start_typing(self, text):
+        self.input_line = 15
+        self.isTyping = True
+        self.foretext = text
+        self.timer = 0
+
+    def type(self, char):
+        self.typingText += char
+
+    def stop_typing(self):
+        self.input_line = 0
+        self.isTyping = False
+        length = len(list(ITEM_TYPES.keys())) - 1
+        if self.foretext == f'Item ID (0 - {length}): ':
+            self.game_state.player.inventory.add(give(self, self.typingText))
+            self.foretext = ''
+        elif self.foretext == 'Coordinates (X,Y): ':
+            self.game_state.player.x, self.game_state.player.y = teleport(self, self.game_state.player.x, self.game_state.player.y, self.typingText)
+            self.foretext = ''
+        elif self.foretext == "Enchantment (Name, Lvl): ":
+            item = enchant(self, self.game_state.player.inventory, self.typingText)
+            if item is not None:
+                self.game_state.player.inventory.hotbar_item = item
+            self.foretext = ''
+        elif self.foretext == "Experience Level: ":
+            experience(self, self.game_state.player.experience, self.typingText)
+            self.foretext = ''
+        else:
+            self.text_validate()
+        self.typingText = ''
+        self.position = 0
+
+    def delete(self):
+        self.typingText = self.typingText[0:-1]
+
+    def text_validate(self):
+        if len(self.typingText) != 0:
+            if self.typingText[0] == '/':
+                self.typingText = self.typingText.replace(' ', '')  # REMOVE WHITESPACES
+                if ',' in self.typingText and self.typingText[-1] != ',':
+                    comma = self.typingText.index(',')
+                    number = self.typingText[comma + 1:len(self.typingText)]
+                    self.typingText = self.typingText[0: comma]
+                    try:
+                        number = int(number)
+                        # Prevent crashes by limiting number size
+                        NumberLimit(number, self.typingText, self.game_state)
+                    except ValueError:
+                        self.print("Invalid integer")
+                else:
+                    number = 1  # Set number to 1 when number is not specified
+                    NumberLimit(number, self.typingText, self.game_state)
+            # Regular text message
+            else:
+                self.print(f"<Player> {self.typingText}")
+
+    def print(self, text):
+        self.timer = 0
+        self.print_list.append(text)
+
+    def render(self, display: pygame.Surface):
+        if self.timer == 600:
+            return
+
+        if len(self.print_list) <= 16:
+            screen_list = self.print_list[:]
+            height = len(self.print_list) * 15 + self.input_line
+        else:
+            if self.position == 0:
+                screen_list = self.print_list[-16 - self.position:]
+                height = 16 * 15 + self.input_line
+            else:
+                screen_list = self.print_list[-16 - self.position: 0 - self.position]
+                height = 16 * 15 + self.input_line
+
+        screen_list.reverse()
+        width = 375
+        x = self.x
+        y = self.y - height
+        surface = pygame.Surface((width, height))
+        surface.fill((125, 125, 125))
+        surface.set_alpha(200)
+        display.blit(surface, (x, y))
+
+        font = pygame.font.Font(str(ASSETS_DIR / "monofur/monof55.ttf"), 18)
+        for i in range(len(screen_list)):
+            display.blit(font.render(screen_list[i], False, (255, 255, 255)), (x, y + height - (i + 1) * 15 - self.input_line))
+        display.blit(font.render(self.foretext + self.typingText, True, (255, 255, 255)), (x, y + height - 15))
+
+        self.timer += 1
+
+
 @dataclass
 class GameState:
     """
@@ -1345,7 +1350,7 @@ class GameScreen(Interface):
                 if event.key == pygame.K_SPACE: #Type Space
                     self.game_state.screen.type(' ')
                 elif event.key == pygame.K_RETURN: #Enter Key
-                    self.game_state.screen.stop_typing(self.game_state.timer, self.game_state.player)
+                    self.game_state.screen.stop_typing()
                 elif event.key == pygame.K_BACKSPACE: #Delete
                     self.game_state.screen.delete()
                 else:
@@ -1758,7 +1763,7 @@ class OverworldGeneratingScreen(Interface):
         # generate world
         self.game_state.world = TilecraftWorld(self.game_state.rng, self.game_state.seed)  # Create World
         self.game_state.player = Player(self.context, self.game_state.rng, self.game_state.world)  # Create Player
-        self.game_state.screen = Screen(self.game_state.rng, self.game_state.player, self.game_state.world)  # Create Text Screen
+        self.game_state.screen = Screen(self.game_state) # Create Text Screen
 
         # go to game screen
         self.next_screen = GameScreen(self.display, self.context, self.game_state)
@@ -1872,13 +1877,13 @@ def create_world():
 '''Function to handle all commands'''
 
 #Limit number of times a player can repeat a command
-def NumberLimit(number, val, rng: RandomNumberGenerator, screen: Screen, timer: SpeedrunTimer, player, World: TilecraftWorld):
+def NumberLimit(number, val, game_state: GameState):
     if number > 16:
-        screen.print("ERROR: Invalid Integer")
+        game_state.screen.print("ERROR: Invalid Integer")
     elif number < 1:
-        screen.print("ERROR: Invalid Integer")
+        game_state.screen.print("ERROR: Invalid Integer")
     else:
-        commands(number, val, rng, screen, timer, player, World)
+        commands(number, val, game_state.rng, game_state.screen, game_state.timer, game_state.player, game_state.world)
 
 def commands(number, val, rng: RandomNumberGenerator, screen: Screen, timer: SpeedrunTimer, player: Player, World: TilecraftWorld):
     global cobblestone_index, obsidian_index, item_name_list, experience, inventory_list, hotbar_order, hotbar_index, mode, hotbar_item, item_val_list, background, enchantable_list, flint_val, gravel_val, blacksmith_book, bool_blacksmith_iron, bool_blacksmith_diamond, bool_blacksmith_bread, blacksmith_iron, blacksmith_diamond, blacksmith_bread, endTime, bound_overworld_portal, overworld_portal, diaval, call, actualX, actualY, dimension
