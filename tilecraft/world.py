@@ -152,7 +152,7 @@ class TilecraftWorld:
             # DRAWING NETHERRACK TEXTURES
             for k in range(player_rect.x - 384, player_rect.x + 384, 24):
                 for j in range(player_rect.y - 384, player_rect.y + 384, 24):
-                    display.blit(context.ITEM_IMAGES["netherrack_tile"], (k, j))
+                    display.blit(tile_image("Netherrack"), (k, j))
             # DRAWING NETHER NETHER PORTALS
             for k in range(len(self.nether_portal)):
                 if -32 <= (self.nether_portal[k][0] * 32 - player_left) <= 1032 and -32 <= (self.nether_portal[k][1] * 32 - player_top) <= 1032:
