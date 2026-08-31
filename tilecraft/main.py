@@ -5,6 +5,7 @@ import pygame
 import math 
 import sys 
 from typing import Optional
+from dataclasses import dataclass
 
 from tilecraft import ASSETS_DIR , VERSION
 from .cheats import print_cheats, give, enchant, teleport, experience
@@ -1186,30 +1187,49 @@ class Player:
             display.blit(Coords, (0, 200))
 
 
+@dataclass
+class GameState:
+    """
+        Struct containing all game state fields
+    """
+    screen: Screen
+    player: Player
+    world: TilecraftWorld
+    timer: SpeedrunTimer
+    rng: RandomNumberGenerator
+    seed: int
+
+
 # common screen interface
 class Interface:
-    def __init__(self, display: pygame.Surface, context: Context, screen: Screen, player: Player, world: TilecraftWorld, timer: SpeedrunTimer, rng: RandomNumberGenerator, seed: int) -> None:
+    """
+        Interface is a screen to be rendered onto the pygame display
+    """
+
+    def __init__(self, display: pygame.Surface, context: Context, game_state: GameState) -> None:
         self.display = display
         self.context = context
-        self.screen = screen
-        self.player = player
-        self.world = world
-        self.timer = timer
-        self.rng = rng
-        self.seed = seed
+        self.game_state: GameState = game_state
         self.next_screen: Optional[Interface] = self
 
     def handle_event(self, event: pygame.event.Event) -> Optional[str]:
-        pass
+        """
+            Handle an event, returning an optional signal to the title screen
+        """
 
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> Optional[str]:
-        pass
+        """
+            Render the screen, returning an optional signal to the title screen
+        """
 
 
 class GameScreen(Interface):
+    """
+        Main game window
+    """
 
     def handle_event(self, event: pygame.event.Event) -> Optional[str]:
-        if not self.screen.isTyping:
+        if not self.game_state.screen.isTyping:
             # QUIT Key
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -1222,155 +1242,155 @@ class GameScreen(Interface):
                     return 'title screen'
                 # Inventory key
                 if event.key == pygame.K_e:
-                    self.next_screen = InventoryScreen(self.display, self.context, self.screen, self.player, self.world, self.timer, self.rng, self.seed)
+                    self.next_screen = InventoryScreen(self.display, self.context, self.game_state)
                 # Advancements Key
                 if event.key == pygame.K_f:
-                    if not self.player.advancements:
-                        self.screen.print("YOU HAVE NOT EARNED ANY ADVANCEMENTS")
+                    if not self.game_state.player.advancements:
+                        self.game_state.screen.print("YOU HAVE NOT EARNED ANY ADVANCEMENTS")
                     else:
-                        self.screen.print("Advancements: ")
-                        for i in self.player.advancements:
-                            self.screen.print(f"- {i}")
+                        self.game_state.screen.print("Advancements: ")
+                        for i in self.game_state.player.advancements:
+                            self.game_state.screen.print(f"- {i}")
                 # Input and chat key
                 if event.key == pygame.K_t:
-                    self.screen.start_typing('')
+                    self.game_state.screen.start_typing('')
                 # Eat key
                 if event.key == pygame.K_q:
-                    if self.player.inventory.hotbar_item is not None:
-                        if self.player.inventory.hotbar_item.itemType == "Food":
-                            if self.player.hunger < 20:
-                                if self.player.inventory.hotbar_item.name == 'Bread':
-                                    index = self.player.inventory.items.index(self.player.inventory.hotbar_item)
-                                    self.player.inventory.items[index].number -= 1
-                                    self.player.hunger += 5
+                    if self.game_state.player.inventory.hotbar_item is not None:
+                        if self.game_state.player.inventory.hotbar_item.itemType == "Food":
+                            if self.game_state.player.hunger < 20:
+                                if self.game_state.player.inventory.hotbar_item.name == 'Bread':
+                                    index = self.game_state.player.inventory.items.index(self.game_state.player.inventory.hotbar_item)
+                                    self.game_state.player.inventory.items[index].number -= 1
+                                    self.game_state.player.hunger += 5
                                 # GOLDEN CARROT
-                                elif self.player.inventory.hotbar_item.name == 'Golden Carrot':
-                                    index = self.player.inventory.items.index(self.player.inventory.hotbar_item)
-                                    self.player.inventory.items[index].number -= 1
-                                    self.player.hunger += 6
+                                elif self.game_state.player.inventory.hotbar_item.name == 'Golden Carrot':
+                                    index = self.game_state.player.inventory.items.index(self.game_state.player.inventory.hotbar_item)
+                                    self.game_state.player.inventory.items[index].number -= 1
+                                    self.game_state.player.hunger += 6
                                 # GOLDEN APPLE
-                                elif self.player.inventory.hotbar_item.name == 'Golden Apple':
-                                    index = self.player.inventory.items.index(self.player.inventory.hotbar_item)
-                                    self.player.inventory.items[index].number -= 1
-                                    self.player.hunger += 5
-                                    self.player.regenerate_start_time = 0
-                                    self.player.regenerate_val = True
+                                elif self.game_state.player.inventory.hotbar_item.name == 'Golden Apple':
+                                    index = self.game_state.player.inventory.items.index(self.game_state.player.inventory.hotbar_item)
+                                    self.game_state.player.inventory.items[index].number -= 1
+                                    self.game_state.player.hunger += 5
+                                    self.game_state.player.regenerate_start_time = 0
+                                    self.game_state.player.regenerate_val = True
                                 else:
-                                    self.screen.print("You are not holding a food item!")
-                                # self.player.health_hunger_update()  # UPDATE HEALTH / HUNGER
+                                    self.game_state.screen.print("You are not holding a food item!")
+                                # self.game_state.player.health_hunger_update()  # UPDATE HEALTH / HUNGER
                         else:
-                            self.screen.print("You are not holding a food item!")
+                            self.game_state.screen.print("You are not holding a food item!")
                     else:
-                        self.screen.print("You are not holding a food item!")
+                        self.game_state.screen.print("You are not holding a food item!")
                 if event.key == pygame.K_1:
-                    self.player.set_hotbar(0)
+                    self.game_state.player.set_hotbar(0)
                 if event.key == pygame.K_2:
-                    self.player.set_hotbar(1)
+                    self.game_state.player.set_hotbar(1)
                 if event.key == pygame.K_3:
-                    self.player.set_hotbar(2)
+                    self.game_state.player.set_hotbar(2)
                 if event.key == pygame.K_4:
-                    self.player.set_hotbar(3)
+                    self.game_state.player.set_hotbar(3)
                 if event.key == pygame.K_5:
-                    self.player.set_hotbar(4)
+                    self.game_state.player.set_hotbar(4)
                 if event.key == pygame.K_6:
-                    self.player.set_hotbar(5)
+                    self.game_state.player.set_hotbar(5)
                 if event.key == pygame.K_7:
-                    self.player.set_hotbar(6)
+                    self.game_state.player.set_hotbar(6)
                 if event.key == pygame.K_8:
-                    self.player.set_hotbar(7)
+                    self.game_state.player.set_hotbar(7)
                 if event.key == pygame.K_9:
-                    self.player.set_hotbar(8)
+                    self.game_state.player.set_hotbar(8)
                 if event.key == pygame.K_0:
-                    self.player.debug_menu = not self.player.debug_menu
+                    self.game_state.player.debug_menu = not self.game_state.player.debug_menu
                 if event.key == pygame.K_a:  # Turn Left
-                    pos = self.player.direction_list.index(self.player.direction)
-                    self.player.direction = self.player.direction_list[pos - 1]
+                    pos = self.game_state.player.direction_list.index(self.game_state.player.direction)
+                    self.game_state.player.direction = self.game_state.player.direction_list[pos - 1]
                 if event.key == pygame.K_d:  # Turn Right
-                    pos = self.player.direction_list.index(self.player.direction)
+                    pos = self.game_state.player.direction_list.index(self.game_state.player.direction)
                     if pos == 3:
-                        self.player.direction = self.player.direction_list[0]
+                        self.game_state.player.direction = self.game_state.player.direction_list[0]
                     else:
-                        self.player.direction = self.player.direction_list[pos + 1]
+                        self.game_state.player.direction = self.game_state.player.direction_list[pos + 1]
             elif event.type == pygame.MOUSEBUTTONDOWN:  # Mouse Button Down Clicking Event
                 if pygame.mouse.get_pressed(3)[2]:  # Right Click
-                    self.player.mouse_button = 2
-                    if self.player.inventory.hotbar_item is not None:
-                        if self.player.inventory.hotbar_item.name == 'Crafting Table': #Crafting Key
-                            self.next_screen = CraftingScreen(self.display, self.context, self.screen, self.player, self.world, self.timer, self.rng, self.seed)
-                        elif self.player.inventory.hotbar_item.name == 'Furnace': #Smelting Key
-                            self.next_screen = SmeltingScreen(self.display, self.context, self.screen, self.player, self.world, self.timer, self.rng, self.seed)
-                        elif self.player.inventory.hotbar_item.name == 'Enchanting Table': #Enchanting Key
-                            self.next_screen = EnchantingScreen(self.display, self.context, self.screen, self.player, self.world, self.timer, self.rng, self.seed)
-                        elif self.player.inventory.hotbar_item.name == 'Compressor': #Compressing Key
-                            self.next_screen = CompressingScreen(self.display, self.context, self.screen, self.player, self.world, self.timer, self.rng, self.seed)
-                        elif self.player.inventory.hotbar_item.name == "Grindstone": #Repairing and Disenchanting Key
-                            self.next_screen = GrindstoneScreen(self.display, self.context, self.screen, self.player, self.world, self.timer, self.rng, self.seed)
-                        elif self.player.inventory.hotbar_item.name == "Bucket": #Picking up liquids
-                            self.player.pick_up_liquid()
-                        elif self.player.inventory.hotbar_item.name == "Water Bucket" or \
-                                self.player.inventory.hotbar_item.name == "Lava Bucket":  #Placing liquids
-                            self.player.place_liquid()
+                    self.game_state.player.mouse_button = 2
+                    if self.game_state.player.inventory.hotbar_item is not None:
+                        if self.game_state.player.inventory.hotbar_item.name == 'Crafting Table': #Crafting Key
+                            self.next_screen = CraftingScreen(self.display, self.context, self.game_state)
+                        elif self.game_state.player.inventory.hotbar_item.name == 'Furnace': #Smelting Key
+                            self.next_screen = SmeltingScreen(self.display, self.context, self.game_state)
+                        elif self.game_state.player.inventory.hotbar_item.name == 'Enchanting Table': #Enchanting Key
+                            self.next_screen = EnchantingScreen(self.display, self.context, self.game_state)
+                        elif self.game_state.player.inventory.hotbar_item.name == 'Compressor': #Compressing Key
+                            self.next_screen = CompressingScreen(self.display, self.context, self.game_state)
+                        elif self.game_state.player.inventory.hotbar_item.name == "Grindstone": #Repairing and Disenchanting Key
+                            self.next_screen = GrindstoneScreen(self.display, self.context, self.game_state)
+                        elif self.game_state.player.inventory.hotbar_item.name == "Bucket": #Picking up liquids
+                            self.game_state.player.pick_up_liquid()
+                        elif self.game_state.player.inventory.hotbar_item.name == "Water Bucket" or \
+                                self.game_state.player.inventory.hotbar_item.name == "Lava Bucket":  #Placing liquids
+                            self.game_state.player.place_liquid()
                         else:
-                            self.player.place_tile()
+                            self.game_state.player.place_tile()
                 elif pygame.mouse.get_pressed(3)[0]:
-                    self.player.mouse_button = 1
-                    self.player.isBreaking = True
+                    self.game_state.player.mouse_button = 1
+                    self.game_state.player.isBreaking = True
             if event.type == pygame.MOUSEBUTTONUP:
-                if self.player.mouse_button == 1:
-                    self.player.breaking_time = 0
-                    self.player.isBreaking = False
+                if self.game_state.player.mouse_button == 1:
+                    self.game_state.player.breaking_time = 0
+                    self.game_state.player.isBreaking = False
 
         else:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE: #Type Space
-                    self.screen.type(' ')
+                    self.game_state.screen.type(' ')
                 elif event.key == pygame.K_RETURN: #Enter Key
-                    self.screen.stop_typing(self.timer, self.player)
+                    self.game_state.screen.stop_typing(self.game_state.timer, self.game_state.player)
                 elif event.key == pygame.K_BACKSPACE: #Delete
-                    self.screen.delete()
+                    self.game_state.screen.delete()
                 else:
                     char = str(pygame.key.name(event.key)) #Get Key name
                     if len(char) == 1: #Check to prevent non-alphabetical and non-number keys
-                        self.screen.type(char)
+                        self.game_state.screen.type(char)
 
 
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> Optional[str]:
         global true_play_time
 
-        if self.player.dimension == "Underground" and not self.world.is_underground_generated:
-            self.next_screen = UndergroundGeneratingScreen(self.display, self.context, self.screen, self.player, self.world, self.timer, self.rng, self.seed)
+        if self.game_state.player.dimension == "Underground" and not self.game_state.world.is_underground_generated:
+            self.next_screen = UndergroundGeneratingScreen(self.display, self.context, self.game_state)
             return
 
-        if not self.screen.isTyping:
-            # Kill self.player
-            if self.player.dead:
+        if not self.game_state.screen.isTyping:
+            # Kill self.game_state.player
+            if self.game_state.player.dead:
                 minute = int(play_time_seconds // 60)
                 seconds = int(round(play_time_seconds % 60))
                 true_play_time = "Time Played:   " + str(minute) + "m " + str(seconds) + "s"
                 pygame.quit()
                 return 'death screen'
-            if self.player.isBreaking:
-                self.player.breaking(fps)
-            self.player.move()  # Move self.player
+            if self.game_state.player.isBreaking:
+                self.game_state.player.breaking(fps)
+            self.game_state.player.move()  # Move self.game_state.player
 
         else:
             keys = pygame.key.get_pressed()
             if keys[pygame.K_UP]: #Scroll Up
-                self.screen.scroll_up()
+                self.game_state.screen.scroll_up()
             elif keys[pygame.K_DOWN]: #Scroll Down
-                self.screen.scroll_down()
+                self.game_state.screen.scroll_down()
 
         self.display.fill((0, 0, 0))  # Fill world_map border black
         world_map.fill(background)  # Fill world_map background colour
-        self.player.health_update(frame_count)  # Update self.player Health
-        self.world.render_chunks(self.player.left, self.player.right, self.player.top, self.player.bottom)  # Generate list of all chunks that are loaded
-        self.world.generate_chunks(self.player.dimension)  # Generate Chunks that are loaded but have not been generated before
-        self.world.render(world_map, self.context, self.player.dimension, self.player.left, self.player.top, self.player.rect, self.player.breaking_time, self.player.target)  # Render all world_map blocks to world_map
-        self.player.remove_items() #Remove Items if their number is 0
-        self.player.render(self.context, world_map, screen_width, screen_height, fps)  # Render self.player and self.player accessories to world_map
-        self.timer.render(world_map, play_time_seconds)
-        advancements_update(self.screen, self.timer, self.player.advancements, self.player.inventory.items, self.player.armour.items, self.player.dimension)  # Update Advancements
-        self.screen.render(world_map) #Render Text self.screen
+        self.game_state.player.health_update(frame_count)  # Update self.game_state.player Health
+        self.game_state.world.render_chunks(self.game_state.player.left, self.game_state.player.right, self.game_state.player.top, self.game_state.player.bottom)  # Generate list of all chunks that are loaded
+        self.game_state.world.generate_chunks(self.game_state.player.dimension)  # Generate Chunks that are loaded but have not been generated before
+        self.game_state.world.render(world_map, self.context, self.game_state.player.dimension, self.game_state.player.left, self.game_state.player.top, self.game_state.player.rect, self.game_state.player.breaking_time, self.game_state.player.target)  # Render all world_map blocks to world_map
+        self.game_state.player.remove_items() #Remove Items if their number is 0
+        self.game_state.player.render(self.context, world_map, screen_width, screen_height, fps)  # Render self.game_state.player and self.game_state.player accessories to world_map
+        self.game_state.timer.render(world_map, play_time_seconds)
+        advancements_update(self.game_state.screen, self.game_state.timer, self.game_state.player.advancements, self.game_state.player.inventory.items, self.game_state.player.armour.items, self.game_state.player.dimension)  # Update Advancements
+        self.game_state.screen.render(world_map) #Render Text self.game_state.screen
 
         # general rendering
         self.display.blit(world_map, (0, 0))  # Render map to display
@@ -1384,50 +1404,50 @@ class InventoryScreen(Interface):
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_e: # Exit 
-                self.next_screen = GameScreen(self.display, self.context, self.screen, self.player, self.world, self.timer, self.rng, self.seed)
+                self.next_screen = GameScreen(self.display, self.context, self.game_state)
             elif event.key == pygame.K_1: #1
-                self.player.inventory.hotbar_swap(mouse, 1)
+                self.game_state.player.inventory.hotbar_swap(mouse, 1)
             elif event.key == pygame.K_2: #2
-                self.player.inventory.hotbar_swap(mouse, 2)
+                self.game_state.player.inventory.hotbar_swap(mouse, 2)
             elif event.key == pygame.K_3: #3
-                self.player.inventory.hotbar_swap(mouse, 3)
+                self.game_state.player.inventory.hotbar_swap(mouse, 3)
             elif event.key == pygame.K_4: #4
-                self.player.inventory.hotbar_swap(mouse, 4)
+                self.game_state.player.inventory.hotbar_swap(mouse, 4)
             elif event.key == pygame.K_5: #5
-                self.player.inventory.hotbar_swap(mouse, 5)
+                self.game_state.player.inventory.hotbar_swap(mouse, 5)
             elif event.key == pygame.K_6: #6
-                self.player.inventory.hotbar_swap(mouse, 6)
+                self.game_state.player.inventory.hotbar_swap(mouse, 6)
             elif event.key == pygame.K_7: #7
-                self.player.inventory.hotbar_swap(mouse, 7)
+                self.game_state.player.inventory.hotbar_swap(mouse, 7)
             elif event.key == pygame.K_8: #8
-                self.player.inventory.hotbar_swap(mouse, 8)
+                self.game_state.player.inventory.hotbar_swap(mouse, 8)
             elif event.key == pygame.K_9: #9
-                self.player.inventory.hotbar_swap(mouse, 9)
+                self.game_state.player.inventory.hotbar_swap(mouse, 9)
 
         elif event.type == pygame.MOUSEBUTTONDOWN: #Mouse Button Down Clicking Event
             
             if pygame.mouse.get_pressed(3)[0]: #Left Click
-                self.player.inventory.handle_left_click(mouse, self.player.holding_item)
-                self.player.armour.handle_left_click(mouse, self.player.holding_item)
-                self.player.craft_interface.handle_left_click(mouse, self.player.holding_item, self.player.inventory)
+                self.game_state.player.inventory.handle_left_click(mouse, self.game_state.player.holding_item)
+                self.game_state.player.armour.handle_left_click(mouse, self.game_state.player.holding_item)
+                self.game_state.player.craft_interface.handle_left_click(mouse, self.game_state.player.holding_item, self.game_state.player.inventory)
 
             elif pygame.mouse.get_pressed(3)[2]: #Right Click
-                self.player.inventory.handle_right_click(mouse, self.player.holding_item)
-                self.player.craft_interface.handle_right_click(mouse, self.player.holding_item)
+                self.game_state.player.inventory.handle_right_click(mouse, self.game_state.player.holding_item)
+                self.game_state.player.craft_interface.handle_right_click(mouse, self.game_state.player.holding_item)
 
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> Optional[str]:
         mouse = pygame.mouse.get_pos()
         self.display.fill((0, 0, 0))
         world_map.fill((211, 211, 211))
 
-        is_holding = self.player.holding_item.item is not None
-        self.player.inventory.render(self.context, world_map, mouse, is_holding) #Render Inventory Grid
-        self.player.armour.render(world_map, self.context, mouse, is_holding) #Render Armour Grid for self.player
-        self.player.craft_interface.render(world_map, self.context, mouse, is_holding) #Render Small Crafting Grid
-        self.player.craft_interface.update() #Update Small 2x2 Crafting Grid
+        is_holding = self.game_state.player.holding_item.item is not None
+        self.game_state.player.inventory.render(self.context, world_map, mouse, is_holding) #Render Inventory Grid
+        self.game_state.player.armour.render(world_map, self.context, mouse, is_holding) #Render Armour Grid for self.game_state.player
+        self.game_state.player.craft_interface.render(world_map, self.context, mouse, is_holding) #Render Small Crafting Grid
+        self.game_state.player.craft_interface.update() #Update Small 2x2 Crafting Grid
 
-        self.player.remove_items() #Remove all items with number of 0 or durability of 0
-        self.player.holding_item.render(world_map, self.context) #Render the item the user is holding
+        self.game_state.player.remove_items() #Remove all items with number of 0 or durability of 0
+        self.game_state.player.holding_item.render(world_map, self.context) #Render the item the user is holding
 
         self.display.blit(world_map, (0, 0))  # Render map to self.display
         pygame.display.flip()  # Update self.display
@@ -1439,47 +1459,47 @@ class CraftingScreen(Interface):
         mouse = pygame.mouse.get_pos()
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_e: # Exit 
-                self.next_screen = GameScreen(self.display, self.context, self.screen, self.player, self.world, self.timer, self.rng, self.seed)
+                self.next_screen = GameScreen(self.display, self.context, self.game_state)
             elif event.key == pygame.K_1: #1
-                self.player.inventory.hotbar_swap(mouse, 1)
+                self.game_state.player.inventory.hotbar_swap(mouse, 1)
             elif event.key == pygame.K_2: #2
-                self.player.inventory.hotbar_swap(mouse, 2)
+                self.game_state.player.inventory.hotbar_swap(mouse, 2)
             elif event.key == pygame.K_3: #3
-                self.player.inventory.hotbar_swap(mouse, 3)
+                self.game_state.player.inventory.hotbar_swap(mouse, 3)
             elif event.key == pygame.K_4: #4
-                self.player.inventory.hotbar_swap(mouse, 4)
+                self.game_state.player.inventory.hotbar_swap(mouse, 4)
             elif event.key == pygame.K_5: #5
-                self.player.inventory.hotbar_swap(mouse, 5)
+                self.game_state.player.inventory.hotbar_swap(mouse, 5)
             elif event.key == pygame.K_6: #6
-                self.player.inventory.hotbar_swap(mouse, 6)
+                self.game_state.player.inventory.hotbar_swap(mouse, 6)
             elif event.key == pygame.K_7: #7
-                self.player.inventory.hotbar_swap(mouse, 7)
+                self.game_state.player.inventory.hotbar_swap(mouse, 7)
             elif event.key == pygame.K_8: #8
-                self.player.inventory.hotbar_swap(mouse, 8)
+                self.game_state.player.inventory.hotbar_swap(mouse, 8)
             elif event.key == pygame.K_9: #9
-                self.player.inventory.hotbar_swap(mouse, 9)
+                self.game_state.player.inventory.hotbar_swap(mouse, 9)
 
         elif event.type == pygame.MOUSEBUTTONDOWN: #Mouse Button Down Clicking Event
             if pygame.mouse.get_pressed(3)[0]: #Left Click
-                self.player.inventory.handle_left_click(mouse, self.player.holding_item)
-                self.player.crafting_grid.handle_left_click(mouse, self.player.holding_item, self.player.inventory) 
+                self.game_state.player.inventory.handle_left_click(mouse, self.game_state.player.holding_item)
+                self.game_state.player.crafting_grid.handle_left_click(mouse, self.game_state.player.holding_item, self.game_state.player.inventory) 
 
             elif pygame.mouse.get_pressed(3)[2]: #Right Click
-                self.player.inventory.handle_right_click(mouse, self.player.holding_item)
-                self.player.crafting_grid.handle_right_click(mouse, self.player.holding_item) 
+                self.game_state.player.inventory.handle_right_click(mouse, self.game_state.player.holding_item)
+                self.game_state.player.crafting_grid.handle_right_click(mouse, self.game_state.player.holding_item) 
 
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> Optional[str]:
         mouse = pygame.mouse.get_pos()
         self.display.fill((0, 0, 0))
         world_map.fill((211, 211, 211))
 
-        is_holding = self.player.holding_item.item is not None
-        self.player.inventory.render(self.context, world_map, mouse, is_holding) #Render Inventory Grid
-        self.player.crafting_grid.render(world_map, self.context, mouse, is_holding) #Render 3x3 Crafting Grid
-        self.player.crafting_grid.update()  #Update 3x3 Crafting Grid
+        is_holding = self.game_state.player.holding_item.item is not None
+        self.game_state.player.inventory.render(self.context, world_map, mouse, is_holding) #Render Inventory Grid
+        self.game_state.player.crafting_grid.render(world_map, self.context, mouse, is_holding) #Render 3x3 Crafting Grid
+        self.game_state.player.crafting_grid.update()  #Update 3x3 Crafting Grid
 
-        self.player.remove_items() #Remove all items with number of 0 or durability of 0
-        self.player.holding_item.render(world_map, self.context) #Render the item the user is holding
+        self.game_state.player.remove_items() #Remove all items with number of 0 or durability of 0
+        self.game_state.player.holding_item.render(world_map, self.context) #Render the item the user is holding
 
         self.display.blit(world_map, (0, 0))  # Render map to self.display
         pygame.display.flip()  # Update self.display
@@ -1490,47 +1510,47 @@ class SmeltingScreen(Interface):
         mouse = pygame.mouse.get_pos()
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_e: # Exit 
-                self.next_screen = GameScreen(self.display, self.context, self.screen, self.player, self.world, self.timer, self.rng, self.seed)
+                self.next_screen = GameScreen(self.display, self.context, self.game_state)
             elif event.key == pygame.K_1: #1
-                self.player.inventory.hotbar_swap(mouse, 1)
+                self.game_state.player.inventory.hotbar_swap(mouse, 1)
             elif event.key == pygame.K_2: #2
-                self.player.inventory.hotbar_swap(mouse, 2)
+                self.game_state.player.inventory.hotbar_swap(mouse, 2)
             elif event.key == pygame.K_3: #3
-                self.player.inventory.hotbar_swap(mouse, 3)
+                self.game_state.player.inventory.hotbar_swap(mouse, 3)
             elif event.key == pygame.K_4: #4
-                self.player.inventory.hotbar_swap(mouse, 4)
+                self.game_state.player.inventory.hotbar_swap(mouse, 4)
             elif event.key == pygame.K_5: #5
-                self.player.inventory.hotbar_swap(mouse, 5)
+                self.game_state.player.inventory.hotbar_swap(mouse, 5)
             elif event.key == pygame.K_6: #6
-                self.player.inventory.hotbar_swap(mouse, 6)
+                self.game_state.player.inventory.hotbar_swap(mouse, 6)
             elif event.key == pygame.K_7: #7
-                self.player.inventory.hotbar_swap(mouse, 7)
+                self.game_state.player.inventory.hotbar_swap(mouse, 7)
             elif event.key == pygame.K_8: #8
-                self.player.inventory.hotbar_swap(mouse, 8)
+                self.game_state.player.inventory.hotbar_swap(mouse, 8)
             elif event.key == pygame.K_9: #9
-                self.player.inventory.hotbar_swap(mouse, 9)
+                self.game_state.player.inventory.hotbar_swap(mouse, 9)
 
         elif event.type == pygame.MOUSEBUTTONDOWN: #Mouse Button Down Clicking Event
             if pygame.mouse.get_pressed(3)[0]: #Left Click
-                self.player.inventory.handle_left_click(mouse, self.player.holding_item)
-                self.player.furnace.handle_left_click(mouse, self.player.holding_item, self.player.inventory) 
+                self.game_state.player.inventory.handle_left_click(mouse, self.game_state.player.holding_item)
+                self.game_state.player.furnace.handle_left_click(mouse, self.game_state.player.holding_item, self.game_state.player.inventory) 
 
             elif pygame.mouse.get_pressed(3)[2]: #Right Click
-                self.player.inventory.handle_right_click(mouse, self.player.holding_item)
-                self.player.furnace.handle_right_click(mouse, self.player.holding_item) 
+                self.game_state.player.inventory.handle_right_click(mouse, self.game_state.player.holding_item)
+                self.game_state.player.furnace.handle_right_click(mouse, self.game_state.player.holding_item) 
 
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> Optional[str]:
         mouse = pygame.mouse.get_pos()
         self.display.fill((0, 0, 0))
         world_map.fill((211, 211, 211))
 
-        is_holding = self.player.holding_item.item is not None
-        self.player.inventory.render(self.context, world_map, mouse, is_holding) #Render Inventory Grid
-        self.player.furnace.render(world_map, self.context, mouse, fps, is_holding) #Render Furnace Interface
-        self.player.furnace.smelt(self.context, fps, self.player.experience) #Furnace Smelting
+        is_holding = self.game_state.player.holding_item.item is not None
+        self.game_state.player.inventory.render(self.context, world_map, mouse, is_holding) #Render Inventory Grid
+        self.game_state.player.furnace.render(world_map, self.context, mouse, fps, is_holding) #Render Furnace Interface
+        self.game_state.player.furnace.smelt(self.context, fps, self.game_state.player.experience) #Furnace Smelting
 
-        self.player.remove_items() #Remove all items with number of 0 or durability of 0
-        self.player.holding_item.render(world_map, self.context) #Render the item the user is holding
+        self.game_state.player.remove_items() #Remove all items with number of 0 or durability of 0
+        self.game_state.player.holding_item.render(world_map, self.context) #Render the item the user is holding
 
         self.display.blit(world_map, (0, 0))  # Render map to self.display
         pygame.display.flip()  # Update self.display
@@ -1542,46 +1562,46 @@ class EnchantingScreen(Interface):
         mouse = pygame.mouse.get_pos()
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_e: # Exit 
-                self.next_screen = GameScreen(self.display, self.context, self.screen, self.player, self.world, self.timer, self.rng, self.seed)
+                self.next_screen = GameScreen(self.display, self.context, self.game_state)
             elif event.key == pygame.K_1: #1
-                self.player.inventory.hotbar_swap(mouse, 1)
+                self.game_state.player.inventory.hotbar_swap(mouse, 1)
             elif event.key == pygame.K_2: #2
-                self.player.inventory.hotbar_swap(mouse, 2)
+                self.game_state.player.inventory.hotbar_swap(mouse, 2)
             elif event.key == pygame.K_3: #3
-                self.player.inventory.hotbar_swap(mouse, 3)
+                self.game_state.player.inventory.hotbar_swap(mouse, 3)
             elif event.key == pygame.K_4: #4
-                self.player.inventory.hotbar_swap(mouse, 4)
+                self.game_state.player.inventory.hotbar_swap(mouse, 4)
             elif event.key == pygame.K_5: #5
-                self.player.inventory.hotbar_swap(mouse, 5)
+                self.game_state.player.inventory.hotbar_swap(mouse, 5)
             elif event.key == pygame.K_6: #6
-                self.player.inventory.hotbar_swap(mouse, 6)
+                self.game_state.player.inventory.hotbar_swap(mouse, 6)
             elif event.key == pygame.K_7: #7
-                self.player.inventory.hotbar_swap(mouse, 7)
+                self.game_state.player.inventory.hotbar_swap(mouse, 7)
             elif event.key == pygame.K_8: #8
-                self.player.inventory.hotbar_swap(mouse, 8)
+                self.game_state.player.inventory.hotbar_swap(mouse, 8)
             elif event.key == pygame.K_9: #9
-                self.player.inventory.hotbar_swap(mouse, 9)
+                self.game_state.player.inventory.hotbar_swap(mouse, 9)
 
         elif event.type == pygame.MOUSEBUTTONDOWN: #Mouse Button Down Clicking Event
             if pygame.mouse.get_pressed(3)[0]: #Left Click
-                self.player.inventory.handle_left_click(mouse, self.player.holding_item)
-                self.player.enchanting_table.handle_left_click(mouse, self.player.holding_item, self.player.experience, self.rng)
+                self.game_state.player.inventory.handle_left_click(mouse, self.game_state.player.holding_item)
+                self.game_state.player.enchanting_table.handle_left_click(mouse, self.game_state.player.holding_item, self.game_state.player.experience, self.game_state.rng)
 
             elif pygame.mouse.get_pressed(3)[2]: #Right Click
-                self.player.inventory.handle_right_click(mouse, self.player.holding_item)
-                self.player.enchanting_table.handle_right_click(mouse, self.player.holding_item)
+                self.game_state.player.inventory.handle_right_click(mouse, self.game_state.player.holding_item)
+                self.game_state.player.enchanting_table.handle_right_click(mouse, self.game_state.player.holding_item)
 
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> Optional[str]:
         mouse = pygame.mouse.get_pos()
         self.display.fill((0, 0, 0))
         world_map.fill((211, 211, 211))
 
-        is_holding = self.player.holding_item.item is not None
-        self.player.inventory.render(self.context, world_map, mouse, is_holding) #Render Inventory Grid
-        self.player.enchanting_table.render(world_map, self.context, mouse, is_holding) #Render Enchanting Table Interface
+        is_holding = self.game_state.player.holding_item.item is not None
+        self.game_state.player.inventory.render(self.context, world_map, mouse, is_holding) #Render Inventory Grid
+        self.game_state.player.enchanting_table.render(world_map, self.context, mouse, is_holding) #Render Enchanting Table Interface
 
-        self.player.remove_items() #Remove all items with number of 0 or durability of 0
-        self.player.holding_item.render(world_map, self.context) #Render the item the user is holding
+        self.game_state.player.remove_items() #Remove all items with number of 0 or durability of 0
+        self.game_state.player.holding_item.render(world_map, self.context) #Render the item the user is holding
 
         self.display.blit(world_map, (0, 0))  # Render map to self.display
         pygame.display.flip()  # Update self.display
@@ -1592,48 +1612,48 @@ class CompressingScreen(Interface):
         mouse = pygame.mouse.get_pos()
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_e: # Exit 
-                self.next_screen = GameScreen(self.display, self.context, self.screen, self.player, self.world, self.timer, self.rng, self.seed)
+                self.next_screen = GameScreen(self.display, self.context, self.game_state)
             elif event.key == pygame.K_1: #1
-                self.player.inventory.hotbar_swap(mouse, 1)
+                self.game_state.player.inventory.hotbar_swap(mouse, 1)
             elif event.key == pygame.K_2: #2
-                self.player.inventory.hotbar_swap(mouse, 2)
+                self.game_state.player.inventory.hotbar_swap(mouse, 2)
             elif event.key == pygame.K_3: #3
-                self.player.inventory.hotbar_swap(mouse, 3)
+                self.game_state.player.inventory.hotbar_swap(mouse, 3)
             elif event.key == pygame.K_4: #4
-                self.player.inventory.hotbar_swap(mouse, 4)
+                self.game_state.player.inventory.hotbar_swap(mouse, 4)
             elif event.key == pygame.K_5: #5
-                self.player.inventory.hotbar_swap(mouse, 5)
+                self.game_state.player.inventory.hotbar_swap(mouse, 5)
             elif event.key == pygame.K_6: #6
-                self.player.inventory.hotbar_swap(mouse, 6)
+                self.game_state.player.inventory.hotbar_swap(mouse, 6)
             elif event.key == pygame.K_7: #7
-                self.player.inventory.hotbar_swap(mouse, 7)
+                self.game_state.player.inventory.hotbar_swap(mouse, 7)
             elif event.key == pygame.K_8: #8
-                self.player.inventory.hotbar_swap(mouse, 8)
+                self.game_state.player.inventory.hotbar_swap(mouse, 8)
             elif event.key == pygame.K_9: #9
-                self.player.inventory.hotbar_swap(mouse, 9)
+                self.game_state.player.inventory.hotbar_swap(mouse, 9)
 
         elif event.type == pygame.MOUSEBUTTONDOWN: #Mouse Button Down Clicking Event
             
             if pygame.mouse.get_pressed(3)[0]: #Left Click
-                self.player.inventory.handle_left_click(mouse, self.player.holding_item)
-                self.player.compressor.handle_left_click(mouse, self.player.holding_item, self.player.inventory)
+                self.game_state.player.inventory.handle_left_click(mouse, self.game_state.player.holding_item)
+                self.game_state.player.compressor.handle_left_click(mouse, self.game_state.player.holding_item, self.game_state.player.inventory)
 
             elif pygame.mouse.get_pressed(3)[2]: #Right Click
-                self.player.inventory.handle_right_click(mouse, self.player.holding_item)
-                self.player.compressor.handle_right_click(mouse, self.player.holding_item)
+                self.game_state.player.inventory.handle_right_click(mouse, self.game_state.player.holding_item)
+                self.game_state.player.compressor.handle_right_click(mouse, self.game_state.player.holding_item)
 
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> Optional[str]:
         mouse = pygame.mouse.get_pos()
         self.display.fill((0, 0, 0))
         world_map.fill((211, 211, 211))
 
-        is_holding = self.player.holding_item.item is not None
-        self.player.inventory.render(self.context, world_map, mouse, is_holding) #Render Inventory Grid
-        self.player.compressor.render(world_map, self.context, mouse, fps, is_holding) #Render Compressor Interface
-        self.player.compressor.compress(fps) #Compressing Process
+        is_holding = self.game_state.player.holding_item.item is not None
+        self.game_state.player.inventory.render(self.context, world_map, mouse, is_holding) #Render Inventory Grid
+        self.game_state.player.compressor.render(world_map, self.context, mouse, fps, is_holding) #Render Compressor Interface
+        self.game_state.player.compressor.compress(fps) #Compressing Process
 
-        self.player.remove_items() #Remove all items with number of 0 or durability of 0
-        self.player.holding_item.render(world_map, self.context) #Render the item the user is holding
+        self.game_state.player.remove_items() #Remove all items with number of 0 or durability of 0
+        self.game_state.player.holding_item.render(world_map, self.context) #Render the item the user is holding
 
         self.display.blit(world_map, (0, 0))  # Render map to self.display
         pygame.display.flip()  # Update self.display
@@ -1645,48 +1665,48 @@ class GrindstoneScreen(Interface):
         mouse = pygame.mouse.get_pos()
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_e: # Exit 
-                self.next_screen = GameScreen(self.display, self.context, self.screen, self.player, self.world, self.timer, self.rng, self.seed)
+                self.next_screen = GameScreen(self.display, self.context, self.game_state)
             elif event.key == pygame.K_1: #1
-                self.player.inventory.hotbar_swap(mouse, 1)
+                self.game_state.player.inventory.hotbar_swap(mouse, 1)
             elif event.key == pygame.K_2: #2
-                self.player.inventory.hotbar_swap(mouse, 2)
+                self.game_state.player.inventory.hotbar_swap(mouse, 2)
             elif event.key == pygame.K_3: #3
-                self.player.inventory.hotbar_swap(mouse, 3)
+                self.game_state.player.inventory.hotbar_swap(mouse, 3)
             elif event.key == pygame.K_4: #4
-                self.player.inventory.hotbar_swap(mouse, 4)
+                self.game_state.player.inventory.hotbar_swap(mouse, 4)
             elif event.key == pygame.K_5: #5
-                self.player.inventory.hotbar_swap(mouse, 5)
+                self.game_state.player.inventory.hotbar_swap(mouse, 5)
             elif event.key == pygame.K_6: #6
-                self.player.inventory.hotbar_swap(mouse, 6)
+                self.game_state.player.inventory.hotbar_swap(mouse, 6)
             elif event.key == pygame.K_7: #7
-                self.player.inventory.hotbar_swap(mouse, 7)
+                self.game_state.player.inventory.hotbar_swap(mouse, 7)
             elif event.key == pygame.K_8: #8
-                self.player.inventory.hotbar_swap(mouse, 8)
+                self.game_state.player.inventory.hotbar_swap(mouse, 8)
             elif event.key == pygame.K_9: #9
-                self.player.inventory.hotbar_swap(mouse, 9)
+                self.game_state.player.inventory.hotbar_swap(mouse, 9)
 
         elif event.type == pygame.MOUSEBUTTONDOWN: #Mouse Button Down Clicking Event
             
             if pygame.mouse.get_pressed(3)[0]: #Left Click
-                self.player.inventory.handle_left_click(mouse, self.player.holding_item)
-                self.player.grindstone.handle_left_click(mouse, self.player.holding_item, self.player.inventory, self.player.experience)
+                self.game_state.player.inventory.handle_left_click(mouse, self.game_state.player.holding_item)
+                self.game_state.player.grindstone.handle_left_click(mouse, self.game_state.player.holding_item, self.game_state.player.inventory, self.game_state.player.experience)
 
             elif pygame.mouse.get_pressed(3)[2]: #Right Click
-                self.player.inventory.handle_right_click(mouse, self.player.holding_item)
-                self.player.grindstone.handle_right_click(mouse, self.player.holding_item)
+                self.game_state.player.inventory.handle_right_click(mouse, self.game_state.player.holding_item)
+                self.game_state.player.grindstone.handle_right_click(mouse, self.game_state.player.holding_item)
 
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> Optional[str]:
         mouse = pygame.mouse.get_pos()
         self.display.fill((0, 0, 0))
         world_map.fill((211, 211, 211))
 
-        is_holding = self.player.holding_item.item is not None
-        self.player.inventory.render(self.context, world_map, mouse, is_holding) #Render Inventory Grid
-        self.player.grindstone.render(world_map, self.context, mouse, is_holding) #Render Grindstone Interface
-        self.player.grindstone.repair_and_disenchant() #Update repaired/disenchanted item
+        is_holding = self.game_state.player.holding_item.item is not None
+        self.game_state.player.inventory.render(self.context, world_map, mouse, is_holding) #Render Inventory Grid
+        self.game_state.player.grindstone.render(world_map, self.context, mouse, is_holding) #Render Grindstone Interface
+        self.game_state.player.grindstone.repair_and_disenchant() #Update repaired/disenchanted item
 
-        self.player.remove_items() #Remove all items with number of 0 or durability of 0
-        self.player.holding_item.render(world_map, self.context) #Render the item the user is holding
+        self.game_state.player.remove_items() #Remove all items with number of 0 or durability of 0
+        self.game_state.player.holding_item.render(world_map, self.context) #Render the item the user is holding
 
         self.display.blit(world_map, (0, 0))  # Render map to self.display
         pygame.display.flip()  # Update self.display
@@ -1715,12 +1735,12 @@ class OverworldGeneratingScreen(Interface):
         pygame.mixer.music.play()
 
         # generate world
-        self.world = TilecraftWorld(self.rng, self.seed)  # Create World
-        self.player = Player(self.context, self.rng, self.world)  # Create Player
-        self.screen = Screen(self.rng, self.player, self.world)  # Create Text Screen
+        self.game_state.world = TilecraftWorld(self.game_state.rng, self.game_state.seed)  # Create World
+        self.game_state.player = Player(self.context, self.game_state.rng, self.game_state.world)  # Create Player
+        self.game_state.screen = Screen(self.game_state.rng, self.game_state.player, self.game_state.world)  # Create Text Screen
 
         # go to game screen
-        self.next_screen = GameScreen(self.display, self.context, self.screen, self.player, self.world, self.timer, self.rng, self.seed)
+        self.next_screen = GameScreen(self.display, self.context, self.game_state)
 
 
 class UndergroundGeneratingScreen(Interface):
@@ -1741,14 +1761,14 @@ class UndergroundGeneratingScreen(Interface):
 
         pygame.display.flip()
 
-        self.world.generateUnderground()
-        self.world.UndergroundTiles = UndergroundGeneratePortal(round(self.player.x), round(self.player.y), self.world.UndergroundTiles)
+        self.game_state.world.generateUnderground()
+        self.game_state.world.UndergroundTiles = UndergroundGeneratePortal(round(self.game_state.player.x), round(self.game_state.player.y), self.game_state.world.UndergroundTiles)
 
         # mark underground as generated
-        self.world.is_underground_generated = True
+        self.game_state.world.is_underground_generated = True
 
         # go to game screen
-        self.next_screen = GameScreen(self.display, self.context, self.screen, self.player, self.world, self.timer, self.rng, self.seed)
+        self.next_screen = GameScreen(self.display, self.context, self.game_state)
 
 
 # Game Loop
@@ -1767,12 +1787,7 @@ def main(display: pygame.Surface, clock: pygame.time.Clock, context: Context):
     current_screen: Interface = OverworldGeneratingScreen(
         display = display,
         context = context,
-        screen = None,
-        player = None,
-        world = None,
-        timer = timer,
-        rng = rng,
-        seed=seed
+        game_state = GameState(screen=None, player=None, world=None, timer=timer, rng=rng, seed=seed)
     )
 
     while True:
