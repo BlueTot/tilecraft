@@ -912,7 +912,7 @@ def main(display: pygame.Surface, clock: pygame.time.Clock, context: Context) ->
 
 
 def create_world():
-    global background, call, load, true_play_time
+    global background, load, true_play_time
 
     pygame.init()  # Initialise Pygame Module
     display = pygame.display.set_mode((750, 750))  # Set display
@@ -922,7 +922,6 @@ def create_world():
     context = create_context()
 
     background = (255, 255, 255)
-    call = False
     load = optionData()
     Quit()
     true_play_time = ""
@@ -946,7 +945,7 @@ def NumberLimit(number: int, val: str, game_state: GameState):
 
 
 def commands(number: int, val: str, game_state: GameState):
-    global background, call, actualX, actualY 
+    global background, actualX, actualY 
 
     for _ in range(number):
         if val == "/lootvillagehay":  # Loot Village Hay
@@ -963,15 +962,12 @@ def commands(number: int, val: str, game_state: GameState):
                                 actualY = game_state.world.bound_village[j][1][1]
                                 game_state.world.empty_vil1.append([actualX, actualY])
                                 game_state.world.bound_village.remove(game_state.world.bound_village[j])
-                                call = True
                                 empty_vil(game_state.world)
                                 break
+                        else:
+                            game_state.screen.print("You are not at a village")
                     else:
                         game_state.screen.print("Require Stone Hoe")
-                    if call:
-                        call = False
-                    else:
-                        game_state.screen.print("You are not at a village")
                 else:
                     game_state.screen.print("Require Stone Hoe")
             else:
@@ -988,11 +984,8 @@ def commands(number: int, val: str, game_state: GameState):
                         actualY = game_state.world.bound_village2[j][1][1]
                         game_state.world.empty_vil2.append([actualX, actualY])
                         game_state.world.bound_village2.remove(game_state.world.bound_village2[j])
-                        call = True
                         empty_vil(game_state.world)
                         break
-                if call:
-                    call = False
                 else:
                     game_state.screen.print("You are not at a village")
             else:
@@ -1053,11 +1046,8 @@ def commands(number: int, val: str, game_state: GameState):
                         actualY = game_state.world.bound_village3[j][1][1]
                         game_state.world.empty_vil3.append([actualX, actualY])
                         game_state.world.bound_village3.remove(game_state.world.bound_village3[j])
-                        call = True
                         empty_vil(game_state.world)
                         break
-                if call:
-                    call = False
                 else:
                     game_state.screen.print("You are not at a village")
             else:
@@ -1076,11 +1066,8 @@ def commands(number: int, val: str, game_state: GameState):
                         actualY = game_state.world.bound_village4[j][1][1]
                         game_state.world.empty_vil4.append([actualX, actualY])
                         game_state.world.bound_village4.remove(game_state.world.bound_village4[j])
-                        call = True
                         empty_vil(game_state.world)
                         break
-                if call:
-                    call = False
                 else:
                     game_state.screen.print("You are not at a village")
             else:
@@ -1096,7 +1083,6 @@ def commands(number: int, val: str, game_state: GameState):
                     background = (255, 153, 153)
                     game_state.player.x /= 8
                     game_state.player.y /= 8
-                    call = True
                     game_state.world.generateNether()
                     if actualX / 8 not in game_state.world.nether_portal or actualY / 8 not in game_state.world.nether_portal:
                         # Generating Nether Portal coordinates (IN NETHER) and bounding box
@@ -1104,8 +1090,6 @@ def commands(number: int, val: str, game_state: GameState):
                         game_state.world.bound_nether_portal.append([[actualX / 8 - 10 / 16, actualX / 8, actualX / 8 + 10 / 16],
                                                     [actualY / 8 - 10 / 16, actualY / 8, actualY / 8 + 10 / 16]])
                     break
-            if call:
-                call = False
             else:
                 game_state.screen.print("You are not at a nether portal")
         elif val == "/dimensionoverworld":  # Enter overworld dimension
@@ -1120,10 +1104,7 @@ def commands(number: int, val: str, game_state: GameState):
                         background = (255, 255, 255)
                         game_state.player.x *= 8
                         game_state.player.y *= 8
-                        call = True
                         break
-                if call:
-                    call = False
                 else:
                     game_state.screen.print("You are not at a nether portal")
             else:
@@ -1139,10 +1120,7 @@ def commands(number: int, val: str, game_state: GameState):
                         actualY = game_state.world.bound_bastion[j][1][1]
                         game_state.world.empty_bastion.append([actualX, actualY])
                         game_state.world.bound_bastion.remove(game_state.world.bound_bastion[j])
-                        call = True
                         break
-                if call:
-                    call = False
                 else:
                     game_state.screen.print("You are not at a bastion.")
             else:
@@ -1199,11 +1177,8 @@ def commands(number: int, val: str, game_state: GameState):
                         actualY = game_state.world.bound_ruined_portal[j][1][1]
                         game_state.world.empty_ruined_portal1.append([actualX, actualY])
                         game_state.world.bound_ruined_portal.remove(game_state.world.bound_ruined_portal[j])
-                        call = True
                         empty_ruined_portals(game_state.world)
                         break
-                if call:
-                    call = False
                 else:
                     game_state.screen.print("You are not at a ruined portal")
             else:
@@ -1246,7 +1221,6 @@ def commands(number: int, val: str, game_state: GameState):
                             game_state.world.overworld_portal.append([actualX, actualY])
                             game_state.world.bound_overworld_portal.append([[actualX - 10 / 16, actualX, actualX + 10 / 16],
                                                            [actualY - 10 / 16, actualY, actualY + 10 / 16]])
-                            call = True
                             empty_ruined_portals(game_state.world)
                             break
                         elif obsidian_bool and not flint_and_steel_bool:
@@ -1259,8 +1233,6 @@ def commands(number: int, val: str, game_state: GameState):
                             game_state.screen.print(f"Require {obsidian_num} Obsidian")
                             game_state.screen.print("Require Flint and Steel")
                             break
-                if call:
-                    call = False
                 else:
                     game_state.screen.print("You are not at a ruined portal")
             else:
