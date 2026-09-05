@@ -710,7 +710,9 @@ class TitleScreen(Interface):
                 return 'title screen'
 
         self.text_input.handle_event(event)
-        self.drop_down.handle_event(event)
+
+        if self.drop_down.handle_event(event): # if we handle a drop down event, do not handle any others
+            return
 
         if self.play_button.handle_event(event):
             pass
