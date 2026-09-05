@@ -720,10 +720,12 @@ class TitleScreen(Interface):
             return
 
         if self.patch_notes_button.handle_event(event):
-            pass
+            self.next_screen = PatchNotesScreen(self.display, self.context, self.game_state)
+            return
 
         if self.credits_button.handle_event(event):
-            pass
+            self.next_screen = GameCreditsScreen(self.display, self.context, self.game_state)
+            return
 
         if self.quit_button.handle_event(event):
             pass
@@ -827,6 +829,116 @@ class HowToPlayScreen(Interface):
         # render game instructions scrollable text box
         self.instructions.update()
         self.instructions.render(self.display)
+
+        pygame.display.flip()
+
+
+class PatchNotesScreen(Interface):
+    """
+        Screen to see patch notes for the game
+    """
+
+    TEXT_INPUT_WIDTH = 600
+    TEXT_INPUT_HEIGHT = 570
+
+    def __init__(self, display, context, game_state):
+        super().__init__(display, context, game_state)
+
+        font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 18)
+
+        with open("docs/patch_notes.txt") as f:
+            patch_notes = f.read()
+
+        self.patch_notes = ScrollableTextBox(
+            rect=pygame.Rect(
+                (SCREEN_WIDTH - self.TEXT_INPUT_WIDTH) // 2, 130, 
+                self.TEXT_INPUT_WIDTH, self.TEXT_INPUT_HEIGHT
+            ),
+            text=patch_notes,
+            font=font,
+        )
+
+    def handle_event(self, event: pygame.event.Event) -> Optional[str]:
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            return 'title screen'
+
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                self.next_screen = TitleScreen(self.display, self.context, self.game_state) # go back to title screen
+                return
+
+        self.patch_notes.handle_event(event)
+
+    def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> Optional[str]:
+
+        # render background
+        self.display.blit(self.context.TITLE_SCREEN_IMAGE, (0, 0))
+
+        # render game title
+        title_screen_font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftBold-nMK1.otf"), 50)
+        title_screen_surface = title_screen_font.render("Patch Notes", False, (0, 0, 0))
+        text_rect = title_screen_surface.get_rect(center=(SCREEN_WIDTH // 2, 50))
+        self.display.blit(title_screen_surface, (text_rect.x, text_rect.y))
+        
+        # render patch notes scrollable text box
+        self.patch_notes.update()
+        self.patch_notes.render(self.display)
+
+        pygame.display.flip()
+
+
+class GameCreditsScreen(Interface):
+    """
+        Screen to see credits for the game
+    """
+
+    TEXT_INPUT_WIDTH = 600
+    TEXT_INPUT_HEIGHT = 570
+
+    def __init__(self, display, context, game_state):
+        super().__init__(display, context, game_state)
+
+        font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 18)
+        
+        with open("docs/credits.txt") as f:
+            game_credits = f.read()
+
+        self.game_credits = ScrollableTextBox(
+            rect=pygame.Rect(
+                (SCREEN_WIDTH - self.TEXT_INPUT_WIDTH) // 2, 130, 
+                self.TEXT_INPUT_WIDTH, self.TEXT_INPUT_HEIGHT
+            ),
+            text=game_credits,
+            font=font,
+        )
+
+    def handle_event(self, event: pygame.event.Event) -> Optional[str]:
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            return 'title screen'
+
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                self.next_screen = TitleScreen(self.display, self.context, self.game_state) # go back to title screen
+                return
+
+        self.game_credits.handle_event(event)
+
+    def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> Optional[str]:
+
+        # render background
+        self.display.blit(self.context.TITLE_SCREEN_IMAGE, (0, 0))
+
+        # render game title
+        title_screen_font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftBold-nMK1.otf"), 50)
+        title_screen_surface = title_screen_font.render("Game Credits", False, (0, 0, 0))
+        text_rect = title_screen_surface.get_rect(center=(SCREEN_WIDTH // 2, 50))
+        self.display.blit(title_screen_surface, (text_rect.x, text_rect.y))
+        
+        # render game credits scrollable text box
+        self.game_credits.update()
+        self.game_credits.render(self.display)
 
         pygame.display.flip()
 
