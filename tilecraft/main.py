@@ -15,6 +15,7 @@ from .player import Player
 from .ui.text_input import TextInput
 from .ui.drop_down_menu import Dropdown
 from .ui.button import Button
+from .ui.scrollable_text_box import ScrollableTextBox
 from .world import TilecraftWorld
 
 SCREEN_WIDTH = 750
@@ -616,6 +617,9 @@ class UndergroundGeneratingScreen(Interface):
 
 
 class TitleScreen(Interface):
+    """
+        Menu screen the user is first greeted by
+    """
 
     TEXT_INPUT_WIDTH = 500
     TEXT_INPUT_HEIGHT = 40
@@ -712,7 +716,8 @@ class TitleScreen(Interface):
             pass
 
         if self.how_to_play_button.handle_event(event):
-            pass
+            self.next_screen = HowToPlayScreen(self.display, self.context, self.game_state)
+            return
 
         if self.patch_notes_button.handle_event(event):
             pass
@@ -725,7 +730,7 @@ class TitleScreen(Interface):
 
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> Optional[str]:
 
-        # render title screen
+        # render background
         self.display.blit(self.context.TITLE_SCREEN_IMAGE, (0, 0))
 
         # render game title
@@ -767,6 +772,61 @@ class TitleScreen(Interface):
         # update and render drop down box
         self.drop_down.update()
         self.drop_down.render(self.display)
+
+        pygame.display.flip()
+
+
+class HowToPlayScreen(Interface):
+    """
+        Screen to see how to play instructions
+    """
+
+    TEXT_INPUT_WIDTH = 600
+    TEXT_INPUT_HEIGHT = 570
+
+    def __init__(self, display, context, game_state):
+        super().__init__(display, context, game_state)
+
+        font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 18)
+
+        with open("docs/how_to_play.txt") as f:
+            instructions = f.read()
+
+        self.instructions = ScrollableTextBox(
+            rect=pygame.Rect(
+                (SCREEN_WIDTH - self.TEXT_INPUT_WIDTH) // 2, 130, 
+                self.TEXT_INPUT_WIDTH, self.TEXT_INPUT_HEIGHT
+            ),
+            text=instructions,
+            font=font,
+        )
+
+    def handle_event(self, event: pygame.event.Event) -> Optional[str]:
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            return 'title screen'
+
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                self.next_screen = TitleScreen(self.display, self.context, self.game_state) # go back to title screen
+                return
+
+        self.instructions.handle_event(event)
+
+    def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> Optional[str]:
+
+        # render background
+        self.display.blit(self.context.TITLE_SCREEN_IMAGE, (0, 0))
+
+        # render game title
+        title_screen_font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftBold-nMK1.otf"), 50)
+        title_screen_surface = title_screen_font.render("How to Play", False, (0, 0, 0))
+        text_rect = title_screen_surface.get_rect(center=(SCREEN_WIDTH // 2, 50))
+        self.display.blit(title_screen_surface, (text_rect.x, text_rect.y))
+        
+        # render game instructions scrollable text box
+        self.instructions.update()
+        self.instructions.render(self.display)
 
         pygame.display.flip()
 
