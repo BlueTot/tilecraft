@@ -728,7 +728,8 @@ class TitleScreen(Interface):
             return
 
         if self.quit_button.handle_event(event):
-            pass
+            pygame.quit()
+            return 'title screen'
 
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> Optional[str]:
 
