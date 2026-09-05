@@ -12,7 +12,13 @@ from .constants import RandomNumberGenerator, Context, create_context
 from .game_state import GameState, advancements_update, Screen, SpeedrunTimer
 from .generation import UndergroundGeneratePortal
 from .player import Player
+from .ui.text_input import TextInput
+from .ui.drop_down_menu import Dropdown
+from .ui.button import Button
 from .world import TilecraftWorld
+
+SCREEN_WIDTH = 750
+SCREEN_HEIGHT = 750
 
 
 # common screen interface
@@ -609,6 +615,162 @@ class UndergroundGeneratingScreen(Interface):
         return
 
 
+class TitleScreen(Interface):
+
+    TEXT_INPUT_WIDTH = 500
+    TEXT_INPUT_HEIGHT = 40
+    BUTTON_HEIGHT = 70
+
+    LOAD_OPTIONS = ['"Music Player" Speedrun Data Pack', '"God Gear" Speedrun Data Pack', 'Cheats Data Pack', 'None']
+
+    def __init__(self, display, context, game_state):
+        super().__init__(display, context, game_state)
+
+        text_input_font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 20)
+        self.text_input = TextInput(
+            rect = pygame.Rect(
+                (SCREEN_WIDTH - self.TEXT_INPUT_WIDTH) // 2, 225, 
+                self.TEXT_INPUT_WIDTH, self.TEXT_INPUT_HEIGHT
+            ), 
+            font = text_input_font,
+            placeholder="World Seed: "
+        )
+
+        self.drop_down = Dropdown(
+            rect = pygame.Rect(
+                (SCREEN_WIDTH - self.TEXT_INPUT_WIDTH) // 2, 265, 
+                self.TEXT_INPUT_WIDTH, self.TEXT_INPUT_HEIGHT
+            ), 
+            options = self.LOAD_OPTIONS, 
+            font = text_input_font, 
+           starting_option = "None" 
+        )
+
+        button_font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 30)
+
+        self.play_button = Button(
+            rect = pygame.Rect(
+                (SCREEN_WIDTH - self.TEXT_INPUT_WIDTH) // 2, 305,
+                self.TEXT_INPUT_WIDTH, self.BUTTON_HEIGHT
+            ),
+            text = "New World",
+            font = button_font,
+        )
+
+        self.how_to_play_button = Button(
+            rect = pygame.Rect(
+                (SCREEN_WIDTH - self.TEXT_INPUT_WIDTH) // 2, 375,
+                self.TEXT_INPUT_WIDTH, self.BUTTON_HEIGHT
+            ),
+            text = "How to Play",
+            font = button_font,
+        )
+
+        self.patch_notes_button = Button(
+            rect = pygame.Rect(
+                (SCREEN_WIDTH - self.TEXT_INPUT_WIDTH) // 2, 445,
+                self.TEXT_INPUT_WIDTH, self.BUTTON_HEIGHT
+            ),
+            text = "Patch Notes",
+            font = button_font,
+        )
+
+        self.credits_button = Button(
+            rect = pygame.Rect(
+                (SCREEN_WIDTH - self.TEXT_INPUT_WIDTH) // 2, 515,
+                self.TEXT_INPUT_WIDTH, self.BUTTON_HEIGHT
+            ),
+            text = "Credits",
+            font = button_font,
+        )
+
+        self.quit_button = Button(
+            rect = pygame.Rect(
+                (SCREEN_WIDTH - self.TEXT_INPUT_WIDTH) // 2, 585,
+                self.TEXT_INPUT_WIDTH, self.BUTTON_HEIGHT
+            ),
+            text = "Quit",
+            font = button_font,
+        )
+
+
+    def handle_event(self, event: pygame.event.Event) -> Optional[str]:
+
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            return 'title screen'
+
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                pygame.quit()
+                return 'title screen'
+
+        self.text_input.handle_event(event)
+        self.drop_down.handle_event(event)
+
+        if self.play_button.handle_event(event):
+            pass
+
+        if self.how_to_play_button.handle_event(event):
+            pass
+
+        if self.patch_notes_button.handle_event(event):
+            pass
+
+        if self.credits_button.handle_event(event):
+            pass
+
+        if self.quit_button.handle_event(event):
+            pass
+
+    def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> Optional[str]:
+
+        # render title screen
+        self.display.blit(self.context.TITLE_SCREEN_IMAGE, (0, 0))
+
+        # render game title
+        title_screen_font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftBold-nMK1.otf"), 75)
+        title_screen_surface = title_screen_font.render("TILECRAFT", False, (0, 0, 0))
+        text_rect = title_screen_surface.get_rect(center=(SCREEN_WIDTH // 2, 100))
+        self.display.blit(title_screen_surface, (text_rect.x, text_rect.y))
+
+        # render game version
+        game_version_font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftItalic-R8Mo.otf"), 30)
+        game_version_surface = game_version_font.render("v0.9.0a4", False, (0, 0, 0))
+        text_rect = game_version_surface.get_rect(center=(SCREEN_WIDTH // 2, 140))
+        self.display.blit(game_version_surface, (text_rect.x, text_rect.y))
+        
+        # update and render text input box
+        self.text_input.update()
+        self.text_input.render(self.display)
+
+        # update and render play button
+        self.play_button.update()
+        self.play_button.render(self.display)
+
+        # update and render how to play button
+        self.how_to_play_button.update()
+        self.how_to_play_button.render(self.display)
+
+        # update and render patch notes button
+        self.patch_notes_button.update()
+        self.patch_notes_button.render(self.display)
+
+        # update and render credits button
+        self.credits_button.update()
+        self.credits_button.render(self.display)
+
+        # update and render quit button
+        self.quit_button.update()
+        self.quit_button.render(self.display)
+
+        # update and render drop down box
+        self.drop_down.update()
+        self.drop_down.render(self.display)
+
+        pygame.display.flip()
+
+
 # Game Loop
 def main(display: pygame.Surface, clock: pygame.time.Clock, context: Context, load: str) -> Optional[str]:
     global play_time_seconds
@@ -620,7 +782,7 @@ def main(display: pygame.Surface, clock: pygame.time.Clock, context: Context, lo
     frame_count = 0
 
     # start by generating the overworld
-    current_screen: Interface = OverworldGeneratingScreen(
+    current_screen: Interface = TitleScreen(
         display = display,
         context = context,
         game_state = GameState(screen=None, player=None, world=None, timer=timer, rng=rng, seed=seed, background=(255, 255, 255), load=load)
@@ -662,6 +824,7 @@ def create_world():
     global true_play_time
 
     pygame.init()  # Initialise Pygame Module
+
     display = pygame.display.set_mode((750, 750))  # Set display
     pygame.display.set_caption(VERSION)  # Set title
     clock = pygame.time.Clock()
