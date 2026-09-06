@@ -9,6 +9,8 @@ from .inventory import Inventory, Hotbar, Armour, SmallCraftingInterface, Crafti
 from .player_info import HealthBar, HungerBar, Experience, ExperienceBar
 from .world import TilecraftWorld
 
+HUNGER_DECREMENT = 512
+
 #Player Class and Methods
 class Player:
     def __init__(self, context: Context, rng: RandomNumberGenerator, world: TilecraftWorld):
@@ -82,7 +84,7 @@ class Player:
 
     # Hunger mechanism to decrease hunger as distance travelled increases
     def hunger_mechanism(self):
-        if self.hunger > 0 and self.distance != 0 and self.distance // 512 != self.hunger_subtracted:
+        if self.hunger > 0 and self.distance != 0 and self.distance // HUNGER_DECREMENT != self.hunger_subtracted:
             self.hunger -= 1
             self.hunger_subtracted += 1
 

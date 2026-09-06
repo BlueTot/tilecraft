@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import tkinter
-import tkinter.font
 import random
 from typing import Optional
 
@@ -45,7 +43,10 @@ class Interface:
         """
 
 
+
 class GameScreen(Interface):
+
+
     """
         Main game window
     """
@@ -179,7 +180,9 @@ class GameScreen(Interface):
 
 
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> None:
-        global true_play_time
+
+        # update play time
+        self.game_state.play_time_seconds = (pygame.time.get_ticks() - self.game_state.start_ticks) / 1000.0
 
         if self.game_state.player.dimension == "Underground" and not self.game_state.world.is_underground_generated:
             self.next_screen = UndergroundGeneratingScreen(self.display, self.context, self.game_state)
@@ -188,12 +191,7 @@ class GameScreen(Interface):
         if not self.game_state.screen.isTyping:
 
             if self.game_state.player.dead: # kill player
-                minute = int(play_time_seconds // 60)
-                seconds = int(round(play_time_seconds % 60))
-                true_play_time = "Time Played:   " + str(minute) + "m " + str(seconds) + "s"
-                pygame.quit()
-                self.next_screen = None # stop the loop
-                # TODO: go to death screen
+                self.next_screen = DeathScreen(self.display, self.context, self.game_state) # go to death screen
                 return
 
             if self.game_state.player.isBreaking:
@@ -216,7 +214,7 @@ class GameScreen(Interface):
         self.game_state.world.render(world_map, self.context, self.game_state.player.dimension, self.game_state.player.left, self.game_state.player.top, self.game_state.player.rect, self.game_state.player.breaking_time, self.game_state.player.target)  # Render all world_map blocks to world_map
         self.game_state.player.remove_items() #Remove Items if their number is 0
         self.game_state.player.render(self.context, world_map, SCREEN_WIDTH, SCREEN_HEIGHT, fps)  # Render self.game_state.player and self.game_state.player accessories to world_map
-        self.game_state.timer.render(world_map, play_time_seconds)
+        self.game_state.timer.render(world_map, self.game_state.play_time_seconds)
         advancements_update(self.game_state.screen, self.game_state.timer, self.game_state.player.advancements, self.game_state.player.inventory.items, self.game_state.player.armour.items, self.game_state.player.dimension)  # Update Advancements
         self.game_state.screen.render(world_map) #Render Text self.game_state.screen
 
@@ -563,8 +561,6 @@ class OverworldGeneratingScreen(Interface):
     """
         Screen shown when the overworld is first generated upon world startup
     """
-    def handle_event(self, event: pygame.event.Event) -> None:
-        return super().handle_event(event)
 
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> None:
 
@@ -586,6 +582,9 @@ class OverworldGeneratingScreen(Interface):
         self.game_state.player = Player(self.context, self.game_state.rng, self.game_state.world)  # Create Player
         self.game_state.screen = Screen(self.game_state) # Create Text Screen
 
+        # set start ticks from when world finished generating
+        self.game_state.start_ticks = pygame.time.get_ticks()
+
         # go to game screen
         self.next_screen = GameScreen(self.display, self.context, self.game_state)
         return
@@ -595,8 +594,6 @@ class UndergroundGeneratingScreen(Interface):
     """
         Screen shown when user first enters the underground dimension
     """
-    def handle_event(self, event: pygame.event.Event) -> None:
-        return super().handle_event(event)
 
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> None:
 
@@ -992,11 +989,52 @@ class GameCreditsScreen(Interface):
         pygame.display.flip()
 
 
+class DeathScreen(Interface):
+    """
+        Screen shown when the player dies
+    """
+
+    def __init__(self, display, context, game_state):
+        super().__init__(display, context, game_state)
+
+        minute = int(self.game_state.play_time_seconds // 60)
+        seconds = int(round(self.game_state.play_time_seconds % 60))
+        self.true_play_time = "Time Played:   " + str(minute) + "m " + str(seconds) + "s"
+
+    def handle_event(self, event: pygame.event.Event) -> None:
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            self.next_screen = None # stop the loop
+            return
+
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                self.next_screen = TitleScreen(self.display, self.context, self.game_state) # go back to title screen
+                return
+
+    def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> None:
+
+        self.display.fill("#FFCCCB")
+
+        # render game title
+        font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftBold-nMK1.otf"), 50)
+        surface = font.render("You Died!", False, (0, 0, 0))
+        rect = surface.get_rect(center=(SCREEN_WIDTH // 2, 250))
+        self.display.blit(surface, (rect.x, rect.y))
+
+        # render time played
+        font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 50)
+        surface = font.render(self.true_play_time, False, (0, 0, 0))
+        rect = surface.get_rect(center=(SCREEN_WIDTH // 2, 400))
+        self.display.blit(surface, (rect.x, rect.y))
+
+        pygame.display.flip()
+
+
 def main() -> None:
     """
         Main event loop for the game, also the entry point for the program
     """
-    global play_time_seconds, true_play_time
 
     pygame.init()  # Initialise Pygame Module
 
@@ -1005,8 +1043,6 @@ def main() -> None:
     clock = pygame.time.Clock()
     clock.get_time()
     context = create_context()
-
-    true_play_time = ""
 
     world = pygame.Surface((750, 750))  # Create Map Surface
     world.fill((0, 0, 0))  # Fill Map Surface Black
@@ -1025,6 +1061,8 @@ def main() -> None:
             seed=None, 
             background=(255, 255, 255), 
             load=None,
+            start_ticks=0,
+            play_time_seconds=0.0,
         )
     )
 
@@ -1033,17 +1071,10 @@ def main() -> None:
         clock.tick(60) # maximum FPS of 60
         frame_count += 1 # increment no. of frames
         fps = clock.get_fps()
-        play_time_seconds = pygame.time.get_ticks() / 1000.0 # in seconds 
 
         # TODO:
         # furnace and compressor now do not update when user is not on the screen
         # separate update logic to rendering logic and make update a player method
-
-        # TODO:
-        # fix speedrun timer start point to be when game loads
-
-        # TODO:
-        # add death screen
 
         # event loop
         for event in pygame.event.get():
@@ -1064,35 +1095,3 @@ def main() -> None:
             if current_screen.game_state.rng.next_random(1, 500) == 1:
                 pygame.mixer.music.load(str(ASSETS_DIR / "music/song") + str(random.choice([3, 5, 7, 11, 12, 13, 14, 18])) + ".mp3")
                 pygame.mixer.music.play()
-
-# def exit_death_screen():
-#     global death_window
-#     death_window.destroy()
-#     title_screen()
-
-
-# def death_screen():
-#     global death_window, true_play_time
-#     death_window = tkinter.Tk()
-#     death_window.title("Tilecraft Beta 1.0 Pre-Release 3")
-#     death_window.geometry("500x500")
-#     death_window.configure(bg='#FFCCCB')
-
-#     font = tkinter.font.Font(size=45, family='Minecraft')
-#     font2 = tkinter.font.Font(size=30, family='Minecraft')
-#     font3 = tkinter.font.Font(size=30, family='Avenir')
-
-#     death_title = tkinter.Label(death_window, text="You Died!", fg='black', font=font, bg='#FFCCCB')
-#     death_title.place(x=150, y=0)
-
-#     death_reason = tkinter.Label(death_window, text="Death reason:   Starvation", fg='black', font=font3, bg='#FFCCCB')
-#     death_reason.place(x=50, y=150)
-
-#     time_played = tkinter.Label(death_window, text=true_play_time, fg='black', font=font3, bg='#FFCCCB')
-#     time_played.place(x=50, y=200)
-
-#     back_to_title_screen = tkinter.Button(death_window, font=font2, text="Back to Title Screen", width=20, height=3,
-#                                           fg='black', command=exit_death_screen)
-#     back_to_title_screen.place(x=50, y=300)
-
-#     death_window.mainloop()
