@@ -14,7 +14,7 @@ from .ui.text_input import TextInput
 from .ui.drop_down_menu import Dropdown
 from .ui.button import Button
 from .ui.scrollable_text_box import ScrollableTextBox
-from .widgets import InventoryWidget
+from .widgets import InventoryWidget, ArmourWidget
 from .world import TilecraftWorld
 
 SCREEN_WIDTH = 750
@@ -232,12 +232,14 @@ class InventoryScreen(Interface):
     def __init__(self, display, context, game_state):
         super().__init__(display, context, game_state)
         self.inventory_widget = InventoryWidget(0, 390, self.game_state.player.inventory, self.game_state.player.holding_item)
+        self.armour_widget = ArmourWidget(0, 0, self.game_state.player.armour, self.game_state.player.holding_item)
 
 
     def handle_event(self, event: pygame.event.Event) -> None:
         mouse = pygame.mouse.get_pos()
 
         self.inventory_widget.handle_event(event)
+        self.armour_widget.handle_event(event)
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_e: # Exit 
@@ -246,7 +248,6 @@ class InventoryScreen(Interface):
         elif event.type == pygame.MOUSEBUTTONDOWN: #Mouse Button Down Clicking Event
             
             if pygame.mouse.get_pressed(3)[0]: #Left Click
-                self.game_state.player.armour.handle_left_click(mouse, self.game_state.player.holding_item)
                 self.game_state.player.craft_interface.handle_left_click(mouse, self.game_state.player.holding_item, self.game_state.player.inventory)
 
             elif pygame.mouse.get_pressed(3)[2]: #Right Click
@@ -260,7 +261,7 @@ class InventoryScreen(Interface):
 
         is_holding = self.game_state.player.holding_item.item is not None
         self.inventory_widget.render(world_map, self.context)
-        self.game_state.player.armour.render(world_map, self.context, mouse, is_holding) #Render Armour Grid for self.game_state.player
+        self.armour_widget.render(world_map, self.context)
         self.game_state.player.craft_interface.render(world_map, self.context, mouse, is_holding) #Render Small Crafting Grid
         self.game_state.player.craft_interface.update() #Update Small 2x2 Crafting Grid
 

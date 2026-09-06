@@ -3,7 +3,7 @@ import pygame
 
 from tilecraft import ASSETS_DIR
 from .constants import Context, Coordinate, Item, ITEM_IMAGE_MAPPING
-from .inventory import Inventory, HoldingItem, RenderDurabilityBar, TextBox
+from .inventory import Inventory, HoldingItem, Armour, RenderDurabilityBar, TextBox
 
 
 class Widget:
@@ -198,3 +198,142 @@ class InventoryWidget(Widget):
         
         font = pygame.font.Font(str(ASSETS_DIR / "monofur/monof55.ttf"), 22)
         TextBox(display, self.inventory.items[index], mouse[0], mouse[1], font) 
+
+
+class ArmourWidget(Widget):
+    """
+        Widget to render the player's armour items and a small model of the player
+    """
+
+    CELL_SIZE = 82
+    
+    def __init__(self, x: int, y: int, armour: Armour, holding_item: HoldingItem):
+        self.x = x
+        self.y = y
+        self.armour = armour
+        self.holding_item = holding_item
+
+        self.__cells: list[pygame.Rect] = []
+        for i in range(4):
+            self.__cells.append(pygame.Rect((self.x + self.CELL_SIZE*i, self.y + 240), (self.CELL_SIZE, self.CELL_SIZE)))
+
+
+    def handle_event(self, event):
+        mouse = pygame.mouse.get_pos()
+
+        if event.type == pygame.MOUSEBUTTONDOWN: #Mouse Button Down Clicking Event
+            if pygame.mouse.get_pressed(3)[0]: #Left Click
+                self.__handle_left_click(mouse)
+
+
+    def __get_hover_box(self, mouse: tuple[int, int]) -> Optional[int]:
+        for i, rect in enumerate(self.__cells):
+            if rect.collidepoint(mouse):
+                return i
+        return None
+
+
+    def __handle_left_click(self, mouse: tuple[int, int]) -> None:
+        if (index := self.__get_hover_box(mouse)) is None:
+            return
+
+        if index == 0: #Tier 1
+            if self.holding_item.item is not None and self.armour.items[index] is None:
+                if self.holding_item.item.itemType == 'Tier1':
+                    self.holding_item.item, self.armour.items[index] = self.armour.items[index], self.holding_item.item
+            elif self.holding_item.item is None and self.armour.items[index] is not None:
+                self.holding_item.item, self.armour.items[index] = self.armour.items[index], self.holding_item.item
+            elif self.holding_item.item is not None and self.armour.items[index] is not None:
+                if self.holding_item.item.itemType == 'Tier1' and self.armour.items[index].itemType == 'Tier1':
+                    self.holding_item.item, self.armour.items[index] = self.armour.items[index], self.holding_item.item
+
+        elif index == 1: #Tier 2
+            if self.holding_item.item is not None and self.armour.items[index] is None:
+                if self.holding_item.item.itemType == 'Tier2':
+                    self.holding_item.item, self.armour.items[index] = self.armour.items[index], self.holding_item.item
+            elif self.holding_item.item is None and self.armour.items[index] is not None:
+                self.holding_item.item, self.armour.items[index] = self.armour.items[index], self.holding_item.item
+            elif self.holding_item.item is not None and self.armour.items[index] is not None:
+                if self.holding_item.item.itemType == 'Tier2' and self.armour.items[index].itemType == 'Tier2':
+                    self.holding_item.item, self.armour.items[index] = self.armour.items[index], self.holding_item.item
+
+        elif index == 2: #Tier 3
+            if self.holding_item.item is not None and self.armour.items[index] is None:
+                if self.holding_item.item.itemType == 'Tier3':
+                    self.holding_item.item, self.armour.items[index] = self.armour.items[index], self.holding_item.item
+            elif self.holding_item.item is None and self.armour.items[index] is not None:
+                self.holding_item.item, self.armour.items[index] = self.armour.items[index], self.holding_item.item
+            elif self.holding_item.item is not None and self.armour.items[index] is not None:
+                if self.holding_item.item.itemType == 'Tier3' and self.armour.items[index].itemType == 'Tier3':
+                    self.holding_item.item, self.armour.items[index] = self.armour.items[index], self.holding_item.item
+
+        elif index == 3: #Shield
+            if self.holding_item.item is not None and self.armour.items[index] is None:
+                if self.holding_item.item.itemType == 'Shield':
+                    self.holding_item.item, self.armour.items[index] = self.armour.items[index], self.holding_item.item
+            elif self.holding_item.item is None and self.armour.items[index] is not None:
+                self.holding_item.item, self.armour.items[index] = self.armour.items[index], self.holding_item.item
+
+
+    def render(self, display: pygame.Surface, context: Context):
+        mouse = pygame.mouse.get_pos()
+        is_holding = self.holding_item.item is not None
+
+        images = []
+        layer_list = []
+
+        # Create armour image list for armour slots
+        for item in self.armour.items:
+            if item is None:  # Set White Background for NONE Slots
+                images.append(context.ITEM_IMAGES["none_img"])
+            else:
+                images.append(context.ITEM_IMAGES[ITEM_IMAGE_MAPPING[item.name]])
+
+        for item in self.armour.items:
+            if item is not None:
+                if item.name == 'Tier 1 Iron Plate':
+                    layer_list.append([(200, 200, 200), 1])
+                elif item.name == 'Tier 2 Iron Plate':
+                    layer_list.append([(200, 200, 200), 2])
+                elif item.name == 'Tier 3 Iron Plate':
+                    layer_list.append([(200, 200, 200), 3])
+                elif item.name == 'Tier 1 Diamond Plate':
+                    layer_list.append([(75, 237, 219), 1])
+                elif item.name == 'Tier 2 Diamond Plate':
+                    layer_list.append([(75, 237, 219), 2])
+                elif item.name == 'Tier 3 Diamond Plate':
+                    layer_list.append([(75, 237, 219), 3])
+            else:
+                layer_list.append(None)
+
+        for i, cell in enumerate(self.__cells):
+            display.blit(images[i], (cell.x, cell.y))
+            pygame.draw.rect(display, (83, 83, 83), cell, 2)
+            if self.armour.items[i] is not None:
+                if self.armour.items[i].enchantments is not None:
+                    display.blit(context.TC_GLINTS[self.armour.items[i].name], (cell.x, cell.y))
+                if self.armour.items[i].durability is not None:
+                    RenderDurabilityBar(display, cell.x, cell.y, self.armour.items[i].durability, self.armour.items[i].max_durability)
+
+        pygame.draw.rect(display, (0, 0, 0), (self.x, self.y, 330, 240)) #Draw Black Background
+        pygame.draw.rect(display, (255, 0, 0), (self.x + 127, self.y + 82, 75, 75)) #Draw Player Icon
+
+        for item in layer_list: #Draw Armour Layers
+            if item is not None:
+                if item[1] == 1: #Tier 1
+                    pygame.draw.rect(display, item[0], (self.x + 112, self.y + 67, 105, 105), 12)
+                elif item[1] == 2: #Tier 2
+                    pygame.draw.rect(display, item[0], (self.x + 99, self.y + 54, 133, 133), 12)
+                elif item[1] == 3: #Tier 3
+                    pygame.draw.rect(display, item[0], (self.x + 84, self.y + 39, 165, 165), 12)
+
+        if not is_holding:
+            self.render_hovering_item(display, mouse)
+
+
+    def render_hovering_item(self, display: pygame.Surface, mouse: tuple[int, int]):
+        if (index := self.__get_hover_box(mouse)) is None:
+            return
+        
+        font = pygame.font.Font(str(ASSETS_DIR / "monofur/monof55.ttf"), 22)
+        TextBox(display, self.armour.items[index], mouse[0], mouse[1], font) 
