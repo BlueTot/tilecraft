@@ -5,8 +5,9 @@ import pygame
 from tilecraft import ASSETS_DIR, VERSION
 from .constants import Context, RandomNumberGenerator, Item
 from .generation import Tile, UndergroundGeneratePortal, OverworldGeneratePortal
-from .inventory import Inventory, Hotbar, Armour, SmallCraftingInterface, CraftingTableInterface, FurnaceInterface, EnchantingTable, Compressor, Grindstone, HoldingItem
+from .inventory import Inventory, Armour, SmallCraftingInterface, CraftingTableInterface, FurnaceInterface, EnchantingTable, Compressor, Grindstone, HoldingItem
 from .player_info import HealthBar, HungerBar, Experience, ExperienceBar
+from .widgets import HotbarWidget
 from .world import TilecraftWorld
 
 HUNGER_DECREMENT = 512
@@ -68,7 +69,7 @@ class Player:
         self.waiting_list = []
         self.selected_slot = 'slot1'
 
-        self.hotbar = Hotbar() # hotbar
+        self.hotbar = HotbarWidget(self.inventory) # hotbar
         self.armour = Armour() # armour
         self.craft_interface = SmallCraftingInterface() # small crafting grid
         self.crafting_grid = CraftingTableInterface() # crafting table
@@ -78,9 +79,6 @@ class Player:
         self.grindstone = Grindstone() # grindstone interface
         self.holding_item = HoldingItem()
 
-    # set player hotbar index and item
-    def set_hotbar(self, index: int):
-        self.inventory.selected_hotbar = index
 
     # Hunger mechanism to decrease hunger as distance travelled increases
     def hunger_mechanism(self):
@@ -752,7 +750,7 @@ class Player:
         self.experience_bar.render(display, self.experience.levels)
 
         # render hotbar
-        self.hotbar.render(display, context, self.inventory.items[27:36], self.inventory.selected_hotbar)
+        self.hotbar.render(display, context)
 
         # RENDER DEBUG MENU
         if self.debug_menu:

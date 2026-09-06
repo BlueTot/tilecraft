@@ -142,57 +142,6 @@ class Inventory:
                         self.items[i] = None
 
 
-class Hotbar:
-    def __init__(self):
-        self.__COORDINATES: list[Coordinate] = []
-        for i in range(9):
-            self.__COORDINATES.append(Coordinate(7 + 82*i, 667))
-
-        self.__HOTBAR_BACKGROUNDS: list[pygame.Rect] = []
-        for i in range(9):
-            self.__HOTBAR_BACKGROUNDS.append(pygame.Rect((7 + 82*i, 667), (82, 82)))
-
-        self.__font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 24)
-        
-    def render(self, display: pygame.Surface, context: Context, items: list[Item], selected: int):
-
-        images = [None]*9
-        numbers = ['']*9
-        
-        # populate images and numbers arrays
-        for i in range(9):
-            if items[i] is None: # Set White Background for NONE Slots
-                images[i] = context.INFOBAR_IMAGES["slot"]
-            else: # no enchantments
-                images[i] = context.ITEM_IMAGES[ITEM_IMAGE_MAPPING[items[i].name]]
-                if items[i].number != 1:
-                    numbers[i] = str(items[i].number)
-
-        # draw images
-        for i, coordinate in enumerate(self.__COORDINATES):
-            display.blit(context.INFOBAR_IMAGES["slot"], (coordinate.x, coordinate.y)) # background
-            display.blit(images[i], (coordinate.x, coordinate.y))
-            if items[i] is not None:
-                if items[i].enchantments is not None:
-                    display.blit(context.TC_GLINTS[items[i].name], (coordinate.x, coordinate.y))
-                if items[i].durability is not None:
-                    RenderDurabilityBar(display, coordinate.x, coordinate.y, items[i].durability, items[i].max_durability)
-
-        # draw background rects based on selected hotbar value
-        for i in range(9):
-            if selected == i:
-                pygame.draw.rect(display, (255, 255, 255), self.__HOTBAR_BACKGROUNDS[i], 3)
-            else:
-                pygame.draw.rect(display, (83, 83, 83), self.__HOTBAR_BACKGROUNDS[i], 2)
-
-        # draw numbers
-        for i in range(9):
-            surface = self.__font.render(numbers[i], True, (255, 0, 0), (255, 255, 255))
-            x = 60 + 82*i
-            y = 720
-            display.blit(surface, (x, y))
-
-
 class Armour:
     """
         Player's armour items consist of four slots:

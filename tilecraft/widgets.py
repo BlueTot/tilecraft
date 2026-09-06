@@ -337,3 +337,83 @@ class ArmourWidget(Widget):
         
         font = pygame.font.Font(str(ASSETS_DIR / "monofur/monof55.ttf"), 22)
         TextBox(display, self.armour.items[index], mouse[0], mouse[1], font) 
+
+
+class HotbarWidget(Widget):
+    """
+        Hotbar to be rendered to the main game screen at the bottom
+    """
+
+    def __init__(self, inventory: Inventory):
+        self.inventory = inventory
+
+        self.__coordinates: list[Coordinate] = []
+        for i in range(9):
+            self.__coordinates.append(Coordinate(7 + 82*i, 667))
+
+        self.__hotbar_backgrounds: list[pygame.Rect] = []
+        for i in range(9):
+            self.__hotbar_backgrounds.append(pygame.Rect((7 + 82*i, 667), (82, 82)))
+
+        self.__font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 24)
+
+
+    def handle_event(self, event):
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_1:
+                self.inventory.selected_hotbar = 0
+            if event.key == pygame.K_2:
+                self.inventory.selected_hotbar = 1
+            if event.key == pygame.K_3:
+                self.inventory.selected_hotbar = 2
+            if event.key == pygame.K_4:
+                self.inventory.selected_hotbar = 3
+            if event.key == pygame.K_5:
+                self.inventory.selected_hotbar = 4
+            if event.key == pygame.K_6:
+                self.inventory.selected_hotbar = 5
+            if event.key == pygame.K_7:
+                self.inventory.selected_hotbar = 6
+            if event.key == pygame.K_8:
+                self.inventory.selected_hotbar = 7
+            if event.key == pygame.K_9:
+                self.inventory.selected_hotbar = 8
+
+
+    def render(self, display: pygame.Surface, context: Context):
+
+        images = [None]*9
+        numbers = ['']*9
+        
+        # populate images and numbers arrays
+        for i in range(9):
+            if self.inventory.items[i+27] is None: # Set White Background for NONE Slots
+                images[i] = context.INFOBAR_IMAGES["slot"]
+            else: # no enchantments
+                images[i] = context.ITEM_IMAGES[ITEM_IMAGE_MAPPING[self.inventory.items[i+27].name]]
+                if self.inventory.items[i+27].number != 1:
+                    numbers[i] = str(self.inventory.items[i+27].number)
+
+        # draw images
+        for i, coordinate in enumerate(self.__coordinates):
+            display.blit(context.INFOBAR_IMAGES["slot"], (coordinate.x, coordinate.y)) # background
+            display.blit(images[i], (coordinate.x, coordinate.y))
+            if self.inventory.items[i+27] is not None:
+                if self.inventory.items[i+27].enchantments is not None:
+                    display.blit(context.TC_GLINTS[self.inventory.items[i+27].name], (coordinate.x, coordinate.y))
+                if self.inventory.items[i+27].durability is not None:
+                    RenderDurabilityBar(display, coordinate.x, coordinate.y, self.inventory.items[i+27].durability, self.inventory.items[i+27].max_durability)
+
+        # draw background rects based on selected hotbar value
+        for i in range(9):
+            if self.inventory.selected_hotbar == i:
+                pygame.draw.rect(display, (255, 255, 255), self.__hotbar_backgrounds[i], 3)
+            else:
+                pygame.draw.rect(display, (83, 83, 83), self.__hotbar_backgrounds[i], 2)
+
+        # draw numbers
+        for i in range(9):
+            surface = self.__font.render(numbers[i], True, (255, 0, 0), (255, 255, 255))
+            x = 60 + 82*i
+            y = 720
+            display.blit(surface, (x, y))
