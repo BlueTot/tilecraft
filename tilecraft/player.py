@@ -758,11 +758,11 @@ class Player:
         if self.debug_menu:
             font9 = pygame.font.Font(
                 str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 25)
-            version = font9.render(VERSION, True, (0, 0, 0), (255, 255, 255))
+            version = font9.render(f"Tilecraft {VERSION}", True, (0, 0, 0), (255, 255, 255))
             display.blit(version, (0, 0))
             python_version = font9.render(f"Python {sys.version[0:6]}", True, (0, 0, 0), (255, 255, 255))
             display.blit(python_version, (0, 25))
-            pygame_version = font9.render("Graphics: pygame v2.1.2", True, (0, 0, 0), (255, 255, 255))
+            pygame_version = font9.render(f"Graphics: pygame {pygame.version.ver}", True, (0, 0, 0), (255, 255, 255))
             display.blit(pygame_version, (0, 50))
             display_size = font9.render(f"Display Size: {screen_width}x{screen_height}", True, (0, 0, 0), (255, 255, 255))
             display.blit(display_size, (0, 75))

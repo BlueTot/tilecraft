@@ -786,7 +786,7 @@ class TitleScreen(Interface):
 
         # render game version
         game_version_font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftItalic-R8Mo.otf"), 30)
-        game_version_surface = game_version_font.render("v0.9.0a4", False, (0, 0, 0))
+        game_version_surface = game_version_font.render(VERSION, False, (0, 0, 0))
         text_rect = game_version_surface.get_rect(center=(SCREEN_WIDTH // 2, 140))
         self.display.blit(game_version_surface, (text_rect.x, text_rect.y))
         
@@ -1039,7 +1039,7 @@ def main() -> None:
     pygame.init()  # Initialise Pygame Module
 
     display = pygame.display.set_mode((750, 750))  # Set display
-    pygame.display.set_caption(VERSION)  # Set title
+    pygame.display.set_caption(f"Tilecraft {VERSION}")  # Set title
     clock = pygame.time.Clock()
     clock.get_time()
     context = create_context()
