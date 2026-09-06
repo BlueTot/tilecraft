@@ -1,4 +1,4 @@
-from .main import title_screen 
+from .main import main 
 
 if __name__ == "__main__":
-    title_screen()
+    main()
