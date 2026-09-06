@@ -9,7 +9,7 @@ dependencies = [
 ]
 
 [project.scripts]
-tilecraft = "tilecraft.main:title_screen"
+tilecraft = "tilecraft.main:main"
 
 [tool.setuptools.package-data]
 tilecraft = [

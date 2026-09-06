@@ -490,6 +490,7 @@ class Context:
     BREAKING_LIST: list[pygame.Surface]
     INFOBAR_IMAGES: dict[str, pygame.Surface]
     LOADING_IMAGE: pygame.Surface
+    TITLE_SCREEN_IMAGE: pygame.Surface
 
 def create_context() -> Context:
 
@@ -663,13 +664,17 @@ def create_context() -> Context:
     # [EXPORT]
     loading = pygame.image.load(str(ASSETS_DIR / "loading.png")).convert()
 
+    # [EXPORT]
+    title_screen_image = pygame.image.load(str(ASSETS_DIR / "background_vB1_0_pre3.png"))
+
     context = Context(
         ITEM_IMAGES = ITEM_IMAGES,
         TC_GLINTS = TC_GLINTS,
         TILE_IMAGES = TILE_IMAGES,
         BREAKING_LIST = BREAKING_LIST,
         INFOBAR_IMAGES = INFOBAR_IMAGES,
-        LOADING_IMAGE = loading
+        LOADING_IMAGE = loading,
+        TITLE_SCREEN_IMAGE = title_screen_image,
     )
 
     # return context to be passed around

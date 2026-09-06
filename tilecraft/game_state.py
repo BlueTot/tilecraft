@@ -13,37 +13,46 @@ from .world import TilecraftWorld
 
 
 class SpeedrunTimer:
+    """
+        Timer to log how long the user has been playing
+    """
+
     def __init__(self, load_val: str):
         self.font = pygame.font.Font(str(ASSETS_DIR / "monofur/monof55.ttf"), 25)
         self.enabled = (load_val in ("Music Player", "God Gear"))
         self.running = True 
         self.latest_time_string = ""
 
-    def render(self, display: pygame.Surface, play_time: float):
+    def render(self, display: pygame.Surface, play_time_seconds: float):
+        """
+            Render the speedrun timer to the display
+            If not enabled, it will not render
+        """
+
         if not self.enabled:
             return
 
         if self.running:
-            if play_time // 3600 >= 10:  # HOURS 2 digits
-                HourTime = str(int(play_time // 3600))
+            if play_time_seconds // 3600 >= 10:  # HOURS 2 digits
+                hour_time = str(int(play_time_seconds // 3600))
             else:  # HOURS 1 digit
-                HourTime = f"0{int(play_time // 3600)}"
-            if play_time // 60 >= 10:  # MINUTES 2 digits
-                MinuteTime = str(int(play_time // 60))
+                hour_time = f"0{int(play_time_seconds // 3600)}"
+            if play_time_seconds // 60 >= 10:  # MINUTES 2 digits
+                minute_time = str(int(play_time_seconds // 60))
             else:  # MINUTES 1 digit
-                MinuteTime = f"0{int(play_time // 60)}"
-            if play_time % 60 >= 10:  # SECONDS 2 digits
-                SecondTime = str(round(play_time % 60))
+                minute_time = f"0{int(play_time_seconds // 60)}"
+            if play_time_seconds % 60 >= 10:  # SECONDS 2 digits
+                second_time = str(round(play_time_seconds % 60))
             else:  # SECONDS 1 digit
-                SecondTime = f"0{round(play_time % 60)}"
-            MSecondTime = (round(play_time, 3) - math.floor(play_time)) * 1000  # Milliseconds
-            if MSecondTime >= 100:  # 3 digits
-                MSecondTime = str(int(MSecondTime))
-            elif MSecondTime >= 10:  # 2 digits
-                MSecondTime = f"0{int(MSecondTime)}"
+                second_time = f"0{round(play_time_seconds % 60)}"
+            millisecond_time = (round(play_time_seconds, 3) - math.floor(play_time_seconds)) * 1000  # Milliseconds
+            if millisecond_time >= 100:  # 3 digits
+                millisecond_time = str(int(millisecond_time))
+            elif millisecond_time >= 10:  # 2 digits
+                millisecond_time = f"0{int(millisecond_time)}"
             else:  # 1 digit
-                MSecondTime = f"00{int(MSecondTime)}"
-            self.latest_time_string = HourTime + ":" + MinuteTime + ":" + SecondTime + '.' + MSecondTime  # Current in-game time
+                millisecond_time = f"00{int(millisecond_time)}"
+            self.latest_time_string = hour_time + ":" + minute_time + ":" + second_time + '.' + millisecond_time  # Current in-game time
 
         display.blit(
             self.font.render( self.latest_time_string, True, (0, 0, 0), (255, 255, 255)), 
@@ -264,6 +273,8 @@ class GameState:
     seed: int
     background: tuple[int, int, int]
     load: str
+    start_ticks: int 
+    play_time_seconds: float
 
 
 def commands(number: int, val: str, game_state: GameState):
