@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Optional
 import pygame
 import math
@@ -60,26 +62,10 @@ class HoldingItem:
 
 class Inventory:
 
-    COLOUR = (83, 83, 83)
-    WIDTH = 2
-
     def __init__(self):
         self.items = [None]*36
         self.full = False
-        self.__font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 25)
         self.__selected_hotbar = 0
-
-        self.__INVENTORY_SLOTS: list[pygame.Rect] = [None]*36
-        for row in range(4):
-            for col in range(9):
-                index = row*9 + col
-                self.__INVENTORY_SLOTS[index] = pygame.Rect((0 + 82*col, 390 + 82*row), (82, 82))
-
-        self.__NUMBER_COORDINATES: list[Coordinate] = [None]*36
-        for row in range(4):
-            for col in range(9):
-                index = row*9 + col
-                self.__NUMBER_COORDINATES[index] = Coordinate(54 + 82*col, 442 + 82*row)
     
     @property
     def selected_hotbar(self):
@@ -151,101 +137,6 @@ class Inventory:
                         none_index = self.items.index(None)
                         self.items[none_index] = Item(self.items[i].name, self.items[i].number, self.items[i].enchantments, self.items[i].durability)
                         self.items[i] = None
-
-    # interface method?
-    def get_hover_box(self, mouse: tuple[int, int]) -> Optional[int]:
-        for i, rect in enumerate(self.__INVENTORY_SLOTS):
-            if rect.collidepoint(mouse):
-                return i
-        return None
-
-    #Switch items in inventory straight to hotbar
-    def hotbar_swap(self, mouse: tuple[int, int], key_pressed: int) -> None:
-        if (index := self.get_hover_box(mouse)) is None:
-            return
-        self.items[key_pressed + 26], self.items[index] = self.items[index], self.items[key_pressed + 26]
-
-    # interface method?
-    def handle_left_click(self, mouse: tuple[int, int], holding_item: HoldingItem) -> None:
-        if (index := self.get_hover_box(mouse)) is None:
-            return
-
-        if holding_item.item is not None and self.items[index] is not None:
-            if holding_item.item.name == self.items[index].name and (self.items[index].number + holding_item.item.number <= holding_item.item.stackNum): #Items can be combined
-                self.items[index].number += holding_item.item.number
-                holding_item.item = None
-            else:
-                holding_item.item, self.items[index] = self.items[index], holding_item.item
-        else:
-            holding_item.item, self.items[index] = self.items[index], holding_item.item
-
-    # interface method?
-    def handle_right_click(self, mouse: tuple[int, int], holding_item: HoldingItem) -> None:
-        if (index := self.get_hover_box(mouse)) is None:
-            return
-
-        if holding_item.item is None:
-            return
-
-        if self.items[index] is None:
-            self.items[index] = Item(holding_item.item.name, 1, holding_item.item.enchantments, holding_item.item.durability)
-            holding_item.item.number -= 1
-        elif self.items[index] is not None and self.items[index].name == holding_item.item.name and (self.items[index].number + 1 <= self.items[index].stackNum):
-            self.items[index].number += 1
-            holding_item.item.number -= 1
-
-    # render inventory to screen
-    def render(self, context: Context, display: pygame.Surface, mouse: tuple[int, int], is_holding: bool):
-
-        images = [None]*36
-        numbers = ['']*36
-
-        # Remove Values with 0
-        for i in range(len(self.items)):
-            if self.items[i] is not None:
-                if self.items[i].number == 0:
-                    self.items[i] = None
-
-        # Create images list and number list
-        for i, item in enumerate(self.items):
-            if item is None:  # Set White Background for NONE Slots
-                images[i] = context.ITEM_IMAGES["none_img"]
-                numbers[i] = ''
-            else:
-                images[i] = context.ITEM_IMAGES[ITEM_IMAGE_MAPPING[item.name]]
-                numbers[i] = str(item.number)
-
-        # Remove Value if Number is 1
-        for i in range(len(self.items)):
-            if self.items[i] is not None:
-                if self.items[i].number == 1:
-                    numbers[i] = ''
-
-        # draw images
-        for i, cell in enumerate(self.__INVENTORY_SLOTS):
-            display.blit(images[i], (cell.x, cell.y))
-            pygame.draw.rect(display, self.COLOUR, cell, self.WIDTH)
-            if self.items[i] is not None:
-                if self.items[i].enchantments is not None:
-                    display.blit(context.TC_GLINTS[self.items[i].name], (cell.x, cell.y))
-                if self.items[i].durability is not None:
-                    RenderDurabilityBar(display, cell.x, cell.y, self.items[i].durability, self.items[i].max_durability)
-
-        # draw numbers
-        for i, coordinate in enumerate(self.__NUMBER_COORDINATES):
-            surface = self.__font.render(numbers[i], False, (255, 255, 255))
-            display.blit(surface, (coordinate.x, coordinate.y))
-
-        if not is_holding:
-            self.render_hovering_item(display, mouse)
-
-
-    def render_hovering_item(self, display: pygame.Surface, mouse: tuple[int, int]):
-        if (index := self.get_hover_box(mouse)) is None:
-            return
-        
-        font = pygame.font.Font(str(ASSETS_DIR / "monofur/monof55.ttf"), 22)
-        TextBox(display, self.items[index], mouse[0], mouse[1], font) 
 
 
 class Hotbar:
