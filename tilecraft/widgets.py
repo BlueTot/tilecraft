@@ -1,9 +1,10 @@
 from typing import Optional
+import math
 import pygame
 
 from tilecraft import ASSETS_DIR
 from .constants import Context, Coordinate, Item, ITEM_IMAGE_MAPPING
-from .inventory import Inventory, HoldingItem, Armour, SmallCraftingInterface, RenderDurabilityBar, TextBox
+from .inventory import Inventory, HoldingItem, Armour, SmallCraftingInterface, RenderDurabilityBar, TextBox, Experience
 
 
 class Widget:
@@ -574,3 +575,33 @@ class SmallCraftingWidget(Widget):
         
         font = pygame.font.Font(str(ASSETS_DIR / "monofur/monof55.ttf"), 22)
         TextBox(display, self.small_crafting_grid.items[index], mouse[0], mouse[1], font) 
+
+
+class ExperienceBarWidget(Widget):
+    """
+        Experience bar rendered on the main game screen
+    """
+
+    def __init__(self, experience: Experience):
+        self.experience = experience 
+        self.__font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 45)
+
+
+    def render(self, display: pygame.Surface, context: Context):
+        levels = self.experience.levels
+
+        try:
+            percent_xp_to_next_level = (levels - math.floor(levels))
+        except ZeroDivisionError:
+            percent_xp_to_next_level = 0
+
+        pygame.draw.rect(display, "#72a34c", (5, 630, round(percent_xp_to_next_level * 738), 30))
+        pygame.draw.rect(display, "#424d42", (round(percent_xp_to_next_level * 738) + 5, 630, round((1 - percent_xp_to_next_level) * 738), 30))
+
+        for i in range(18):
+            pygame.draw.rect(display, (0, 0, 0), (i * 41 + 5, 630, 41, 30), 2)
+
+        experience_number = self.__font.render(str(math.floor(levels)), True, '#82b054', (255, 255, 255))
+        experience_number_r = experience_number.get_rect()
+        experience_number_r.center = (378, 615)
+        display.blit(experience_number, experience_number_r)  # Experience Number

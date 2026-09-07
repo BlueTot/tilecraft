@@ -14,7 +14,7 @@ from .ui.text_input import TextInput
 from .ui.drop_down_menu import Dropdown
 from .ui.button import Button
 from .ui.scrollable_text_box import ScrollableTextBox
-from .widgets import InventoryWidget, ArmourWidget, SmallCraftingWidget, HotbarWidget
+from .widgets import InventoryWidget, ArmourWidget, SmallCraftingWidget, HotbarWidget, ExperienceBarWidget
 from .world import TilecraftWorld
 
 SCREEN_WIDTH = 750
@@ -52,6 +52,7 @@ class GameScreen(Interface):
     def __init__(self, display, context, game_state):
         super().__init__(display, context, game_state)
         self.hotbar_widget = HotbarWidget(self.game_state.player.inventory) # hotbar
+        self.experience_bar_widget = ExperienceBarWidget(self.game_state.player.experience) # experience
 
     def handle_event(self, event: pygame.event.Event) -> None:
         if not self.game_state.screen.isTyping:
@@ -212,6 +213,7 @@ class GameScreen(Interface):
         self.game_state.player.remove_items() #Remove Items if their number is 0
         self.game_state.player.render(self.context, world_map, SCREEN_WIDTH, SCREEN_HEIGHT, fps)  # Render self.game_state.player and self.game_state.player accessories to world_map
 
+        self.experience_bar_widget.render(world_map, self.context) # render experience bar
         self.hotbar_widget.render(world_map, self.context) # render hotbar
 
         self.game_state.timer.render(world_map, self.game_state.play_time_seconds)

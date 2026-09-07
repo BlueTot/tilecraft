@@ -44,37 +44,30 @@ class HungerBar:
 
 
 class Experience:
+    """
+        A player's experience is made up of points and levels
+        When you get enough points the level increases
+    """
     def __init__(self) -> None:
         self.__levels: float = 0
 
     def add_points(self, experience_points: int) -> None:
+        """
+            Add a set number of points to the experience counter
+        """
         self.__levels += (-1 + (1 + 4 * (experience_points + self.__levels ** 2 + self.__levels)) ** 0.5) / 2 - self.__levels
 
     @property
     def levels(self) -> float:
+        """
+            Get number of experience levels
+        """
         return self.__levels
 
     def subtract(self, levels: int) -> None:
+        """
+            Subtract a set number of levels from the counter
+        """
         if self.__levels - levels < 0:
             return
         self.__levels -= levels
-
-class ExperienceBar:
-    def __init__(self):
-        self.__font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 45)
-
-    def render(self, display: pygame.Surface, levels: float):
-        try:
-            percent_xp_to_next_level = (levels - math.floor(levels))
-        except ZeroDivisionError:
-            percent_xp_to_next_level = 0
-
-        # DRAW EXPERIENCE BAR
-        pygame.draw.rect(display, "#72a34c", (5, 630, round(percent_xp_to_next_level * 738), 30))
-        pygame.draw.rect(display, "#424d42", (round(percent_xp_to_next_level * 738) + 5, 630, round((1 - percent_xp_to_next_level) * 738), 30))
-        for i in range(18):
-            pygame.draw.rect(display, (0, 0, 0), (i * 41 + 5, 630, 41, 30), 2)
-        experience_number = self.__font.render(str(math.floor(levels)), True, '#82b054', (255, 255, 255))
-        experience_number_r = experience_number.get_rect()
-        experience_number_r.center = (378, 615)
-        display.blit(experience_number, experience_number_r)  # Experience Number

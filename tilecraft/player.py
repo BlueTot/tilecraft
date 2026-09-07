@@ -6,7 +6,7 @@ from tilecraft import ASSETS_DIR, VERSION
 from .constants import Context, RandomNumberGenerator, Item
 from .generation import Tile, UndergroundGeneratePortal, OverworldGeneratePortal
 from .inventory import Inventory, Armour, SmallCraftingInterface, CraftingTableInterface, FurnaceInterface, EnchantingTable, Compressor, Grindstone, HoldingItem
-from .player_info import HealthBar, HungerBar, Experience, ExperienceBar
+from .player_info import HealthBar, HungerBar, Experience
 from .world import TilecraftWorld
 
 HUNGER_DECREMENT = 512
@@ -55,7 +55,6 @@ class Player:
         self.hunger_bar = HungerBar()
 
         self.experience = Experience()
-        self.experience_bar = ExperienceBar()
 
         self.distance = 0  # Set Distance Travelled
         self.dead = False
@@ -743,9 +742,6 @@ class Player:
         # render health and hunger bars
         self.health_bar.render(display, context, self.health)
         self.hunger_bar.render(display, context, self.hunger)
-
-        # render experience bar
-        self.experience_bar.render(display, self.experience.levels)
 
         # RENDER DEBUG MENU
         if self.debug_menu:
