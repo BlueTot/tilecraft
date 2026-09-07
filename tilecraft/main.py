@@ -14,7 +14,7 @@ from .ui.text_input import TextInput
 from .ui.drop_down_menu import Dropdown
 from .ui.button import Button
 from .ui.scrollable_text_box import ScrollableTextBox
-from .widgets import InventoryWidget, ArmourWidget, SmallCraftingWidget
+from .widgets import InventoryWidget, ArmourWidget, SmallCraftingWidget, HotbarWidget
 from .world import TilecraftWorld
 
 SCREEN_WIDTH = 750
@@ -45,11 +45,13 @@ class Interface:
 
 
 class GameScreen(Interface):
-
-
     """
         Main game window
     """
+
+    def __init__(self, display, context, game_state):
+        super().__init__(display, context, game_state)
+        self.hotbar_widget = HotbarWidget(self.game_state.player.inventory) # hotbar
 
     def handle_event(self, event: pygame.event.Event) -> None:
         if not self.game_state.screen.isTyping:
@@ -61,7 +63,7 @@ class GameScreen(Interface):
             elif event.type == pygame.KEYDOWN:
 
                 # handle switch to hotbar events
-                self.game_state.player.hotbar.handle_event(event)
+                self.hotbar_widget.handle_event(event)
 
                 if event.key == pygame.K_ESCAPE: # escape key (quit)
                     self.next_screen = TitleScreen(self.display, self.context, self.game_state)
@@ -192,20 +194,26 @@ class GameScreen(Interface):
             self.game_state.player.move()  # Move self.game_state.player
 
         else:
+
+            # handle screen up/down arrow movements
             keys = pygame.key.get_pressed()
-            if keys[pygame.K_UP]: #Scroll Up
+            if keys[pygame.K_UP]: # scroll up
                 self.game_state.screen.scroll_up()
-            elif keys[pygame.K_DOWN]: #Scroll Down
+            elif keys[pygame.K_DOWN]: # scroll down
                 self.game_state.screen.scroll_down()
 
         self.display.fill((0, 0, 0))  # Fill world_map border black
         world_map.fill(self.game_state.background)  # Fill world_map background colour
+
         self.game_state.player.health_update(frame_count)  # Update self.game_state.player Health
         self.game_state.world.render_chunks(self.game_state.player.left, self.game_state.player.right, self.game_state.player.top, self.game_state.player.bottom)  # Generate list of all chunks that are loaded
         self.game_state.world.generate_chunks(self.game_state.player.dimension)  # Generate Chunks that are loaded but have not been generated before
         self.game_state.world.render(world_map, self.context, self.game_state.player.dimension, self.game_state.player.left, self.game_state.player.top, self.game_state.player.rect, self.game_state.player.breaking_time, self.game_state.player.target)  # Render all world_map blocks to world_map
         self.game_state.player.remove_items() #Remove Items if their number is 0
         self.game_state.player.render(self.context, world_map, SCREEN_WIDTH, SCREEN_HEIGHT, fps)  # Render self.game_state.player and self.game_state.player accessories to world_map
+
+        self.hotbar_widget.render(world_map, self.context) # render hotbar
+
         self.game_state.timer.render(world_map, self.game_state.play_time_seconds)
         advancements_update(self.game_state.screen, self.game_state.timer, self.game_state.player.advancements, self.game_state.player.inventory.items, self.game_state.player.armour.items, self.game_state.player.dimension)  # Update Advancements
         self.game_state.screen.render(world_map) #Render Text self.game_state.screen

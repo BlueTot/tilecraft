@@ -7,7 +7,6 @@ from .constants import Context, RandomNumberGenerator, Item
 from .generation import Tile, UndergroundGeneratePortal, OverworldGeneratePortal
 from .inventory import Inventory, Armour, SmallCraftingInterface, CraftingTableInterface, FurnaceInterface, EnchantingTable, Compressor, Grindstone, HoldingItem
 from .player_info import HealthBar, HungerBar, Experience, ExperienceBar
-from .widgets import HotbarWidget
 from .world import TilecraftWorld
 
 HUNGER_DECREMENT = 512
@@ -69,7 +68,6 @@ class Player:
         self.waiting_list = []
         self.selected_slot = 'slot1'
 
-        self.hotbar = HotbarWidget(self.inventory) # hotbar
         self.armour = Armour() # armour
         self.craft_interface = SmallCraftingInterface() # small crafting grid
         self.crafting_grid = CraftingTableInterface() # crafting table
@@ -748,9 +746,6 @@ class Player:
 
         # render experience bar
         self.experience_bar.render(display, self.experience.levels)
-
-        # render hotbar
-        self.hotbar.render(display, context)
 
         # RENDER DEBUG MENU
         if self.debug_menu:
