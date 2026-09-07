@@ -212,7 +212,6 @@ class GameScreen(Interface):
 
         # general rendering
         self.display.blit(world_map, (0, 0))  # Render map to display
-        pygame.display.flip()  # Update Display
         return
 
 
@@ -268,7 +267,6 @@ class InventoryScreen(Interface):
         self.game_state.player.holding_item.render(world_map, self.context)
 
         self.display.blit(world_map, (0, 0))  # Render map to self.display
-        pygame.display.flip()  # Update self.display
 
 
 class CraftingScreen(Interface):
@@ -312,7 +310,6 @@ class CraftingScreen(Interface):
         self.game_state.player.holding_item.render(world_map, self.context) #Render the item the user is holding
 
         self.display.blit(world_map, (0, 0))  # Render map to self.display
-        pygame.display.flip()  # Update self.display
 
 
 class SmeltingScreen(Interface):
@@ -356,7 +353,6 @@ class SmeltingScreen(Interface):
         self.game_state.player.holding_item.render(world_map, self.context) #Render the item the user is holding
 
         self.display.blit(world_map, (0, 0))  # Render map to self.display
-        pygame.display.flip()  # Update self.display
 
 
 class EnchantingScreen(Interface):
@@ -400,7 +396,6 @@ class EnchantingScreen(Interface):
         self.game_state.player.holding_item.render(world_map, self.context) #Render the item the user is holding
 
         self.display.blit(world_map, (0, 0))  # Render map to self.display
-        pygame.display.flip()  # Update self.display
 
 
 class CompressingScreen(Interface):
@@ -446,7 +441,6 @@ class CompressingScreen(Interface):
         self.game_state.player.holding_item.render(world_map, self.context) #Render the item the user is holding
 
         self.display.blit(world_map, (0, 0))  # Render map to self.display
-        pygame.display.flip()  # Update self.display
 
 
 class GrindstoneScreen(Interface):
@@ -492,7 +486,6 @@ class GrindstoneScreen(Interface):
         self.game_state.player.holding_item.render(world_map, self.context) #Render the item the user is holding
 
         self.display.blit(world_map, (0, 0))  # Render map to self.display
-        pygame.display.flip()  # Update self.display
 
 
 class OverworldGeneratingScreen(Interface):
@@ -756,8 +749,6 @@ class TitleScreen(Interface):
         self.drop_down.update()
         self.drop_down.render(self.display)
 
-        pygame.display.flip()
-
 
 class HowToPlayScreen(Interface):
     """
@@ -811,8 +802,6 @@ class HowToPlayScreen(Interface):
         # render game instructions scrollable text box
         self.instructions.update()
         self.instructions.render(self.display)
-
-        pygame.display.flip()
 
 
 class PatchNotesScreen(Interface):
@@ -868,8 +857,6 @@ class PatchNotesScreen(Interface):
         self.patch_notes.update()
         self.patch_notes.render(self.display)
 
-        pygame.display.flip()
-
 
 class GameCreditsScreen(Interface):
     """
@@ -924,8 +911,6 @@ class GameCreditsScreen(Interface):
         self.game_credits.update()
         self.game_credits.render(self.display)
 
-        pygame.display.flip()
-
 
 class DeathScreen(Interface):
     """
@@ -965,8 +950,6 @@ class DeathScreen(Interface):
         surface = font.render(self.true_play_time, False, (0, 0, 0))
         rect = surface.get_rect(center=(SCREEN_WIDTH // 2, 400))
         self.display.blit(surface, (rect.x, rect.y))
-
-        pygame.display.flip()
 
 
 def main() -> None:
@@ -1028,6 +1011,7 @@ def main() -> None:
 
         # render screen
         current_screen.render(world, fps, frame_count)
+        pygame.display.flip()
 
         if current_screen.game_state.rng is not None and not pygame.mixer.music.get_busy():
             if current_screen.game_state.rng.next_random(1, 500) == 1:
