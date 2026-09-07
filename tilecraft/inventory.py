@@ -153,29 +153,19 @@ class Armour:
 
 
 class SmallCraftingInterface:
+    """
+        2x2 small crafting grid in the player's inventory
+        consists of four cells and one result cell
+    """
+
     def __init__(self):
         self.items: list[Optional[Item]] = [None]*5
-        
-        self.__CELLS: list[pygame.Rect] = [
-            pygame.Rect((390, 75), (82, 82)),
-            pygame.Rect((472, 75), (82, 82)),
-            pygame.Rect((390, 157), (82, 82)),
-            pygame.Rect((472, 157), (82, 82)),
-            pygame.Rect((637, 117), (82, 82))
-        ]
 
-        self.__NUMBERS: list[Coordinate] = [
-            Coordinate(442, 127),
-            Coordinate(525, 127),
-            Coordinate(442, 210),
-            Coordinate(525, 210),
-            Coordinate(690, 169)
-        ]
-
-        self.__font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 25)
-        self.__arrow_font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftBold-nMK1.otf"), 36)
 
     def update(self):
+        """
+            Update attempts to craft an item from the ingredients
+        """
         if self.items[0] is not None and self.items[1] is None and self.items[2] is None and self.items[3] is None:
             if self.items[0].name == 'Oak Log':
                 self.items[4] = Item("Oak Planks", 4, None, None)
@@ -198,98 +188,6 @@ class SmallCraftingInterface:
                 self.items[4] = None
         else:
             self.items[4] = None
-
-    def get_hover_box(self, mouse: tuple[int, int]) -> Optional[int]:
-        for i, rect in enumerate(self.__CELLS):
-            if rect.collidepoint(mouse):
-                return i
-        return None
-
-    # interface method?
-    def handle_left_click(self, mouse: tuple[int, int], holding_item: HoldingItem, inventory: Inventory):
-        if (index := self.get_hover_box(mouse)) is None:
-            return
-
-        # main crafting grid
-        if index != 4:
-            if holding_item.item is not None and self.items[index] is not None: #Items can be combined
-                if holding_item.item.name == self.items[index].name and (self.items[index].number + holding_item.item.number <= holding_item.item.stackNum):
-                    self.items[index].number += holding_item.item.number
-                    holding_item.item = None
-                else:
-                    holding_item.item, self.items[index] = self.items[index], holding_item.item
-            else:
-                holding_item.item, self.items[index] = self.items[index], holding_item.item
-
-        # result cell 
-        else:
-            if self.items[4] is not None:
-                inventory.add(self.items[4])
-                for i in range(4):
-                    if self.items[i] is not None:
-                        self.items[i].number -= 1
-
-    # interface method?
-    def handle_right_click(self, mouse: tuple[int, int], holding_item: HoldingItem) -> None:
-        if (index := self.get_hover_box(mouse)) is None:
-            return
-
-        if index == 4: # cannot right click on the results box
-            return
-
-        if holding_item.item is None:
-            return
-        
-        if self.items[index] is None:
-            self.items[index] = Item(holding_item.item.name, 1, holding_item.item.enchantments, holding_item.item.durability)
-            holding_item.item.number -= 1
-        elif self.items[index] is not None and self.items[index].name == holding_item.item.name and (self.items[index].number + 1 <= self.items[index].stackNum):
-            self.items[index].number += 1
-            holding_item.item.number -= 1
-
-    def render(self, display: pygame.Surface, context: Context, mouse: tuple[int, int], is_holding: bool):
-
-        images = []
-        numbers = []
-
-        for item in self.items:
-            if item is None:  # Set White Background for NONE Slots
-                images.append(context.ITEM_IMAGES["none_img"])
-                numbers.append('')
-            else:
-                images.append(context.ITEM_IMAGES[ITEM_IMAGE_MAPPING[item.name]])
-                numbers.append(str(item.number))
-
-        # Remove Value if Number is 1
-        for j in range(len(self.items)):
-            if self.items[j] is not None:
-                if self.items[j].number == 1:
-                    numbers[j] = ''
-
-        for i, cell in enumerate(self.__CELLS):
-            display.blit(images[i], (cell.x, cell.y))
-            pygame.draw.rect(display, (83, 83,83), cell, 2)
-            if self.items[i] is not None:
-                if self.items[i].enchantments is not None:
-                    display.blit(context.TC_GLINTS[self.items[i].name], (cell.x, cell.y))
-                if self.items[i].durability is not None:
-                    RenderDurabilityBar(display, cell.x, cell.y, self.items[i].durability, self.items[i].max_durability)
-
-        for i, coordinate in enumerate(self.__NUMBERS):
-            surface = self.__font.render(numbers[i], False, (255, 255, 255))
-            display.blit(surface, (coordinate.x, coordinate.y))
-
-        display.blit(self.__arrow_font.render('-->', False, (0, 0, 0)), (562, 142))
-
-        if not is_holding:
-            self.render_hovering_item(display, mouse)
-
-    def render_hovering_item(self, display: pygame.Surface, mouse: tuple[int, int]):
-        if (index := self.get_hover_box(mouse)) is None:
-            return
-        
-        font = pygame.font.Font(str(ASSETS_DIR / "monofur/monof55.ttf"), 22)
-        TextBox(display, self.items[index], mouse[0], mouse[1], font) 
 
 
 class CraftingTableInterface:

@@ -14,7 +14,7 @@ from .ui.text_input import TextInput
 from .ui.drop_down_menu import Dropdown
 from .ui.button import Button
 from .ui.scrollable_text_box import ScrollableTextBox
-from .widgets import InventoryWidget, ArmourWidget
+from .widgets import InventoryWidget, ArmourWidget, SmallCraftingWidget
 from .world import TilecraftWorld
 
 SCREEN_WIDTH = 750
@@ -53,32 +53,35 @@ class GameScreen(Interface):
 
     def handle_event(self, event: pygame.event.Event) -> None:
         if not self.game_state.screen.isTyping:
-            # QUIT Key
+
             if event.type == pygame.QUIT:
                 self.next_screen = TitleScreen(self.display, self.context, self.game_state)
                 return
-            # Specify key types (key down)
+
             elif event.type == pygame.KEYDOWN:
-                # Escape key (QUIT)
-                if event.key == pygame.K_ESCAPE:
+
+                # handle switch to hotbar events
+                self.game_state.player.hotbar.handle_event(event)
+
+                if event.key == pygame.K_ESCAPE: # escape key (quit)
                     self.next_screen = TitleScreen(self.display, self.context, self.game_state)
                     return
-                # Inventory key
-                if event.key == pygame.K_e:
+
+                if event.key == pygame.K_e: # inventory key
                     self.next_screen = InventoryScreen(self.display, self.context, self.game_state)
-                # Advancements Key
-                if event.key == pygame.K_f:
+
+                if event.key == pygame.K_f: # advancements key
                     if not self.game_state.player.advancements:
                         self.game_state.screen.print("YOU HAVE NOT EARNED ANY ADVANCEMENTS")
                     else:
                         self.game_state.screen.print("Advancements: ")
                         for i in self.game_state.player.advancements:
                             self.game_state.screen.print(f"- {i}")
-                # Input and chat key
-                if event.key == pygame.K_t:
+
+                if event.key == pygame.K_t: # input and chat key
                     self.game_state.screen.start_typing('')
-                # Eat key
-                if event.key == pygame.K_q:
+
+                if event.key == pygame.K_q: # eat key
                     if self.game_state.player.inventory.hotbar_item is not None:
                         if self.game_state.player.inventory.hotbar_item.itemType == "Food":
                             if self.game_state.player.hunger < 20:
@@ -105,36 +108,23 @@ class GameScreen(Interface):
                             self.game_state.screen.print("You are not holding a food item!")
                     else:
                         self.game_state.screen.print("You are not holding a food item!")
-                if event.key == pygame.K_1:
-                    self.game_state.player.set_hotbar(0)
-                if event.key == pygame.K_2:
-                    self.game_state.player.set_hotbar(1)
-                if event.key == pygame.K_3:
-                    self.game_state.player.set_hotbar(2)
-                if event.key == pygame.K_4:
-                    self.game_state.player.set_hotbar(3)
-                if event.key == pygame.K_5:
-                    self.game_state.player.set_hotbar(4)
-                if event.key == pygame.K_6:
-                    self.game_state.player.set_hotbar(5)
-                if event.key == pygame.K_7:
-                    self.game_state.player.set_hotbar(6)
-                if event.key == pygame.K_8:
-                    self.game_state.player.set_hotbar(7)
-                if event.key == pygame.K_9:
-                    self.game_state.player.set_hotbar(8)
-                if event.key == pygame.K_0:
+
+                if event.key == pygame.K_0: # debug key
                     self.game_state.player.debug_menu = not self.game_state.player.debug_menu
+
                 if event.key == pygame.K_a:  # Turn Left
                     pos = self.game_state.player.direction_list.index(self.game_state.player.direction)
                     self.game_state.player.direction = self.game_state.player.direction_list[pos - 1]
+
                 if event.key == pygame.K_d:  # Turn Right
                     pos = self.game_state.player.direction_list.index(self.game_state.player.direction)
                     if pos == 3:
                         self.game_state.player.direction = self.game_state.player.direction_list[0]
                     else:
                         self.game_state.player.direction = self.game_state.player.direction_list[pos + 1]
+
             elif event.type == pygame.MOUSEBUTTONDOWN:  # Mouse Button Down Clicking Event
+
                 if pygame.mouse.get_pressed(3)[2]:  # Right Click
                     self.game_state.player.mouse_button = 2
                     if self.game_state.player.inventory.hotbar_item is not None:
@@ -155,9 +145,11 @@ class GameScreen(Interface):
                             self.game_state.player.place_liquid()
                         else:
                             self.game_state.player.place_tile()
+
                 elif pygame.mouse.get_pressed(3)[0]:
                     self.game_state.player.mouse_button = 1
                     self.game_state.player.isBreaking = True
+
             if event.type == pygame.MOUSEBUTTONUP:
                 if self.game_state.player.mouse_button == 1:
                     self.game_state.player.breaking_time = 0
@@ -231,42 +223,49 @@ class InventoryScreen(Interface):
 
     def __init__(self, display, context, game_state):
         super().__init__(display, context, game_state)
-        self.inventory_widget = InventoryWidget(0, 390, self.game_state.player.inventory, self.game_state.player.holding_item)
-        self.armour_widget = ArmourWidget(0, 0, self.game_state.player.armour, self.game_state.player.holding_item)
+        self.inventory_widget = InventoryWidget(
+            0, 390, 
+            self.game_state.player.inventory, 
+            self.game_state.player.holding_item
+        )
+        self.armour_widget = ArmourWidget(
+            0, 0, 
+            self.game_state.player.armour, 
+            self.game_state.player.holding_item
+        )
+        self.small_crafting_widget = SmallCraftingWidget(
+            390, 75, 
+            self.game_state.player.inventory, 
+            self.game_state.player.craft_interface, 
+            self.game_state.player.holding_item
+        )
 
 
     def handle_event(self, event: pygame.event.Event) -> None:
-        mouse = pygame.mouse.get_pos()
 
         self.inventory_widget.handle_event(event)
         self.armour_widget.handle_event(event)
+        self.small_crafting_widget.handle_event(event)
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_e: # Exit 
                 self.next_screen = GameScreen(self.display, self.context, self.game_state)
 
-        elif event.type == pygame.MOUSEBUTTONDOWN: #Mouse Button Down Clicking Event
-            
-            if pygame.mouse.get_pressed(3)[0]: #Left Click
-                self.game_state.player.craft_interface.handle_left_click(mouse, self.game_state.player.holding_item, self.game_state.player.inventory)
-
-            elif pygame.mouse.get_pressed(3)[2]: #Right Click
-                self.game_state.player.craft_interface.handle_right_click(mouse, self.game_state.player.holding_item)
-
 
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> None:
-        mouse = pygame.mouse.get_pos()
+
+        # update logic
+        self.game_state.player.craft_interface.update() #Update Small 2x2 Crafting Grid
+        self.game_state.player.remove_items() #Remove all items with number of 0 or durability of 0
+
+        # render logic
         self.display.fill((0, 0, 0))
         world_map.fill((211, 211, 211))
 
-        is_holding = self.game_state.player.holding_item.item is not None
         self.inventory_widget.render(world_map, self.context)
         self.armour_widget.render(world_map, self.context)
-        self.game_state.player.craft_interface.render(world_map, self.context, mouse, is_holding) #Render Small Crafting Grid
-        self.game_state.player.craft_interface.update() #Update Small 2x2 Crafting Grid
-
-        self.game_state.player.remove_items() #Remove all items with number of 0 or durability of 0
-        self.game_state.player.holding_item.render(world_map, self.context) #Render the item the user is holding
+        self.small_crafting_widget.render(world_map, self.context)
+        self.game_state.player.holding_item.render(world_map, self.context)
 
         self.display.blit(world_map, (0, 0))  # Render map to self.display
         pygame.display.flip()  # Update self.display
