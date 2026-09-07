@@ -6,7 +6,7 @@ from tilecraft import ASSETS_DIR, VERSION
 from .constants import Context, RandomNumberGenerator, Item
 from .generation import Tile, UndergroundGeneratePortal, OverworldGeneratePortal
 from .inventory import Inventory, Armour, SmallCraftingInterface, CraftingTableInterface, FurnaceInterface, EnchantingTable, Compressor, Grindstone, HoldingItem
-from .player_info import HealthBar, HungerBar, Experience
+from .player_info import Health, HungerBar, Experience
 from .world import TilecraftWorld
 
 HUNGER_DECREMENT = 512
@@ -48,8 +48,7 @@ class Player:
             else:
                 break #tile is air so the loop ends
 
-        self.health = 20
-        self.health_bar = HealthBar()
+        self.health = Health(20)
         
         self.hunger = 20
         self.hunger_bar = HungerBar()
@@ -85,17 +84,17 @@ class Player:
 
     #Update Health and Regeneration
     def health_update(self, frame_count: int):
-        if self.hunger >= 17 and self.health < 20 and frame_count % 16 == 0:
+        if self.hunger >= 17 and self.health.value < 20 and frame_count % 16 == 0:
             self.hunger -= 1
-            self.health += 1
+            self.health.value += 1
         if self.hunger == 0 and frame_count % 16 == 0:
-            self.health -= 1
-        if self.health == 0:
+            self.health.value -= 1
+        if self.health.value == 0:
             self.dead = True
-        if self.regenerate_val and self.health < 20:
+        if self.regenerate_val and self.health.value < 20:
             if self.regenerate_start_time < 60:
                 if frame_count % 5 == 0:
-                    self.health += 1
+                    self.health.value += 1
                 self.regenerate_start_time += 1
             else:
                 self.regenerate_val = False
@@ -740,7 +739,6 @@ class Player:
             pygame.draw.line(display, (0, 0, 0), (375, 375), (359, 375), width=4)
 
         # render health and hunger bars
-        self.health_bar.render(display, context, self.health)
         self.hunger_bar.render(display, context, self.hunger)
 
         # RENDER DEBUG MENU

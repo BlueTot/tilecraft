@@ -1,27 +1,15 @@
+from dataclasses import dataclass
 import pygame
-import math
 
-from tilecraft import ASSETS_DIR
 from .constants import Context, Coordinate
 
-class HealthBar:
-    def __init__(self):
-        self.__COORDINATES: list[Coordinate] = []
-        for i in range(10):
-            self.__COORDINATES.append(Coordinate(7 + 35*i, 592))
+@dataclass
+class Health:
+    """
+        A player's health from 0 to 20
+    """
+    value: int
 
-    def render(self, display: pygame.Surface, context: Context, health_value: int):
-        curr = health_value
-        for coordinate in self.__COORDINATES:
-            if curr >= 2:
-                image = context.INFOBAR_IMAGES["full_heart"]
-                curr -= 2
-            elif curr == 1:
-                image = context.INFOBAR_IMAGES["half_heart"] 
-                curr -= 1
-            else:
-                image = context.INFOBAR_IMAGES["empty_heart"] 
-            display.blit(image, (coordinate.x, coordinate.y))
 
 class HungerBar:
     def __init__(self):

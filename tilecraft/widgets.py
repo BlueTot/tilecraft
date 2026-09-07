@@ -4,6 +4,7 @@ import pygame
 
 from tilecraft import ASSETS_DIR
 from .constants import Context, Coordinate, Item, ITEM_IMAGE_MAPPING
+from .player_info import Health
 from .inventory import Inventory, HoldingItem, Armour, SmallCraftingInterface, RenderDurabilityBar, TextBox, Experience
 
 
@@ -605,3 +606,30 @@ class ExperienceBarWidget(Widget):
         experience_number_r = experience_number.get_rect()
         experience_number_r.center = (378, 615)
         display.blit(experience_number, experience_number_r)  # Experience Number
+
+
+class HealthBarWidget(Widget):
+    """
+        Health bar widget to be rendered on the main game screen
+    """
+
+
+    def __init__(self, health: Health):
+        self.health = health
+        self.__coordinates: list[Coordinate] = []
+        for i in range(10):
+            self.__coordinates.append(Coordinate(7 + 35*i, 592))
+
+
+    def render(self, display: pygame.Surface, context: Context):
+        curr = self.health.value 
+        for coordinate in self.__coordinates:
+            if curr >= 2:
+                image = context.INFOBAR_IMAGES["full_heart"]
+                curr -= 2
+            elif curr == 1:
+                image = context.INFOBAR_IMAGES["half_heart"] 
+                curr -= 1
+            else:
+                image = context.INFOBAR_IMAGES["empty_heart"] 
+            display.blit(image, (coordinate.x, coordinate.y))
