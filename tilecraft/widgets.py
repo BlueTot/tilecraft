@@ -4,8 +4,8 @@ import pygame
 
 from tilecraft import ASSETS_DIR
 from .constants import Context, Coordinate, Item, ITEM_IMAGE_MAPPING
-from .player_info import Health
-from .inventory import Inventory, HoldingItem, Armour, SmallCraftingInterface, RenderDurabilityBar, TextBox, Experience
+from .player_info import Health, Hunger, Experience
+from .inventory import Inventory, HoldingItem, Armour, SmallCraftingInterface, RenderDurabilityBar, TextBox
 
 
 class Widget:
@@ -632,4 +632,31 @@ class HealthBarWidget(Widget):
                 curr -= 1
             else:
                 image = context.INFOBAR_IMAGES["empty_heart"] 
+            display.blit(image, (coordinate.x, coordinate.y))
+
+
+class HungerBarWidget(Widget):
+    """
+        Hunger bar widget to be rendered on the main game screen
+    """
+
+
+    def __init__(self, hunger: Hunger):
+        self.hunger = hunger
+        self.__coordinates:list[Coordinate] = []
+        for i in range(10):
+            self.__coordinates.append(Coordinate(715 - 34*i, 592))
+
+
+    def render(self, display: pygame.Surface, context: Context):
+        curr = self.hunger.value 
+        for coordinate in self.__coordinates:
+            if curr >= 2:
+                image = context.INFOBAR_IMAGES["full_hunger"]
+                curr -= 2
+            elif curr == 1:
+                image = context.INFOBAR_IMAGES["half_hunger"] 
+                curr -= 1
+            else:
+                image = context.INFOBAR_IMAGES["empty_hunger"] 
             display.blit(image, (coordinate.x, coordinate.y))

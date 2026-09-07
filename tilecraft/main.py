@@ -14,7 +14,7 @@ from .ui.text_input import TextInput
 from .ui.drop_down_menu import Dropdown
 from .ui.button import Button
 from .ui.scrollable_text_box import ScrollableTextBox
-from .widgets import InventoryWidget, ArmourWidget, SmallCraftingWidget, HotbarWidget, ExperienceBarWidget, HealthBarWidget
+from .widgets import InventoryWidget, ArmourWidget, SmallCraftingWidget, HotbarWidget, ExperienceBarWidget, HealthBarWidget, HungerBarWidget
 from .world import TilecraftWorld
 
 SCREEN_WIDTH = 750
@@ -51,9 +51,10 @@ class GameScreen(Interface):
 
     def __init__(self, display, context, game_state):
         super().__init__(display, context, game_state)
-        self.hotbar_widget = HotbarWidget(self.game_state.player.inventory)
-        self.experience_bar_widget = ExperienceBarWidget(self.game_state.player.experience)
         self.health_bar_widget = HealthBarWidget(self.game_state.player.health)
+        self.hunger_bar_widget = HungerBarWidget(self.game_state.player.hunger)
+        self.experience_bar_widget = ExperienceBarWidget(self.game_state.player.experience)
+        self.hotbar_widget = HotbarWidget(self.game_state.player.inventory)
 
     def handle_event(self, event: pygame.event.Event) -> None:
         if not self.game_state.screen.isTyping:
@@ -86,32 +87,17 @@ class GameScreen(Interface):
                     self.game_state.screen.start_typing('')
 
                 if event.key == pygame.K_q: # eat key
-                    if self.game_state.player.inventory.hotbar_item is not None:
-                        if self.game_state.player.inventory.hotbar_item.itemType == "Food":
-                            if self.game_state.player.hunger < 20:
-                                if self.game_state.player.inventory.hotbar_item.name == 'Bread':
-                                    index = self.game_state.player.inventory.items.index(self.game_state.player.inventory.hotbar_item)
-                                    self.game_state.player.inventory.items[index].number -= 1
-                                    self.game_state.player.hunger += 5
-                                # GOLDEN CARROT
-                                elif self.game_state.player.inventory.hotbar_item.name == 'Golden Carrot':
-                                    index = self.game_state.player.inventory.items.index(self.game_state.player.inventory.hotbar_item)
-                                    self.game_state.player.inventory.items[index].number -= 1
-                                    self.game_state.player.hunger += 6
-                                # GOLDEN APPLE
-                                elif self.game_state.player.inventory.hotbar_item.name == 'Golden Apple':
-                                    index = self.game_state.player.inventory.items.index(self.game_state.player.inventory.hotbar_item)
-                                    self.game_state.player.inventory.items[index].number -= 1
-                                    self.game_state.player.hunger += 5
-                                    self.game_state.player.regenerate_start_time = 0
-                                    self.game_state.player.regenerate_val = True
-                                else:
-                                    self.game_state.screen.print("You are not holding a food item!")
-                                # self.game_state.player.health_hunger_update()  # UPDATE HEALTH / HUNGER
-                        else:
-                            self.game_state.screen.print("You are not holding a food item!")
-                    else:
+                    if self.game_state.player.inventory.hotbar_item is None:
                         self.game_state.screen.print("You are not holding a food item!")
+                        return
+
+                    if self.game_state.player.inventory.hotbar_item.itemType != "Food":
+                        self.game_state.screen.print("You are not holding a food item!")
+                        return
+
+                    if not self.game_state.player.eat(): # try to eat
+                        self.game_state.screen.print("You are not holding a food item!")
+                        return
 
                 if event.key == pygame.K_0: # debug key
                     self.game_state.player.debug_menu = not self.game_state.player.debug_menu
@@ -215,6 +201,7 @@ class GameScreen(Interface):
         self.game_state.player.render(self.context, world_map, SCREEN_WIDTH, SCREEN_HEIGHT, fps)  # Render self.game_state.player and self.game_state.player accessories to world_map
 
         self.health_bar_widget.render(world_map, self.context)
+        self.hunger_bar_widget.render(world_map, self.context)
         self.experience_bar_widget.render(world_map, self.context) # render experience bar
         self.hotbar_widget.render(world_map, self.context) # render hotbar
 

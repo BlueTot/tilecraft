@@ -6,13 +6,18 @@ from tilecraft import ASSETS_DIR, VERSION
 from .constants import Context, RandomNumberGenerator, Item
 from .generation import Tile, UndergroundGeneratePortal, OverworldGeneratePortal
 from .inventory import Inventory, Armour, SmallCraftingInterface, CraftingTableInterface, FurnaceInterface, EnchantingTable, Compressor, Grindstone, HoldingItem
-from .player_info import Health, HungerBar, Experience
+from .player_info import Health, Hunger, Experience
 from .world import TilecraftWorld
+
 
 HUNGER_DECREMENT = 512
 
-#Player Class and Methods
+
 class Player:
+    """
+        Player class and methods
+    """
+
     def __init__(self, context: Context, rng: RandomNumberGenerator, world: TilecraftWorld):
         self.world = world
 
@@ -49,10 +54,7 @@ class Player:
                 break #tile is air so the loop ends
 
         self.health = Health(20)
-        
-        self.hunger = 20
-        self.hunger_bar = HungerBar()
-
+        self.hunger = Hunger(20)
         self.experience = Experience()
 
         self.distance = 0  # Set Distance Travelled
@@ -76,18 +78,54 @@ class Player:
         self.holding_item = HoldingItem()
 
 
-    # Hunger mechanism to decrease hunger as distance travelled increases
+    def eat(self) -> bool:
+        """
+            Eat the food item in their hand
+            Returns true if okay, false otherwise
+        """
+
+        if self.hunger.value < 20:
+
+            if self.inventory.hotbar_item.name == 'Bread':
+                index = self.inventory.items.index(self.inventory.hotbar_item)
+                self.inventory.items[index].number -= 1
+                self.hunger.value += 5
+
+            elif self.inventory.hotbar_item.name == 'Golden Carrot':
+                index = self.inventory.items.index(self.inventory.hotbar_item)
+                self.inventory.items[index].number -= 1
+                self.hunger.value += 6
+
+            elif self.inventory.hotbar_item.name == 'Golden Apple':
+                index = self.inventory.items.index(self.inventory.hotbar_item)
+                self.inventory.items[index].number -= 1
+                self.hunger.value += 5
+                self.regenerate_start_time = 0
+                self.regenerate_val = True
+
+            else:
+                return False
+
+        return True
+
+
     def hunger_mechanism(self):
-        if self.hunger > 0 and self.distance != 0 and self.distance // HUNGER_DECREMENT != self.hunger_subtracted:
-            self.hunger -= 1
+        """
+            Hunger mechanism to decrease hunger as distance travelled increases
+        """
+        if self.hunger.value > 0 and self.distance != 0 and self.distance // HUNGER_DECREMENT != self.hunger_subtracted:
+            self.hunger.value -= 1
             self.hunger_subtracted += 1
 
-    #Update Health and Regeneration
+
     def health_update(self, frame_count: int):
-        if self.hunger >= 17 and self.health.value < 20 and frame_count % 16 == 0:
-            self.hunger -= 1
+        """
+            Update Health and Regeneration
+        """
+        if self.hunger.value >= 17 and self.health.value < 20 and frame_count % 16 == 0:
+            self.hunger.value -= 1
             self.health.value += 1
-        if self.hunger == 0 and frame_count % 16 == 0:
+        if self.hunger.value == 0 and frame_count % 16 == 0:
             self.health.value -= 1
         if self.health.value == 0:
             self.dead = True
@@ -99,8 +137,11 @@ class Player:
             else:
                 self.regenerate_val = False
 
-    # remove items that shouldn't be there
+
     def remove_items(self):
+        """
+            Remove items that shouldn't be there
+        """
         all_lists = [self.enchanting_table.items, self.inventory.items, self.craft_interface.items,
                     self.crafting_grid.items, self.furnace.items, self.compressor.items, self.grindstone.items]
         for i in all_lists:
@@ -119,6 +160,7 @@ class Player:
             elif self.holding_item.item.durability is not None:
                 if self.holding_item.item.durability <= 0:
                     self.holding_item.item = None
+
 
     def collide(self): #Collisions with tiles
         self.canMove = True
@@ -737,9 +779,6 @@ class Player:
             pygame.draw.line(display, (0, 0, 0), (375, 375), (375, 391), width=4)
         elif self.direction == 'West':
             pygame.draw.line(display, (0, 0, 0), (375, 375), (359, 375), width=4)
-
-        # render health and hunger bars
-        self.hunger_bar.render(display, context, self.hunger)
 
         # RENDER DEBUG MENU
         if self.debug_menu:

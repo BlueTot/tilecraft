@@ -1,7 +1,4 @@
 from dataclasses import dataclass
-import pygame
-
-from .constants import Context, Coordinate
 
 @dataclass
 class Health:
@@ -11,24 +8,12 @@ class Health:
     value: int
 
 
-class HungerBar:
-    def __init__(self):
-        self.__COORDINATES: list[Coordinate] = []
-        for i in range(10):
-            self.__COORDINATES.append(Coordinate(715 - 34*i, 592))
-
-    def render(self, display: pygame.Surface, context: Context, hunger_value: int):
-        curr = hunger_value
-        for coordinate in self.__COORDINATES:
-            if curr >= 2:
-                image = context.INFOBAR_IMAGES["full_hunger"]
-                curr -= 2
-            elif curr == 1:
-                image = context.INFOBAR_IMAGES["half_hunger"] 
-                curr -= 1
-            else:
-                image = context.INFOBAR_IMAGES["empty_hunger"] 
-            display.blit(image, (coordinate.x, coordinate.y))
+@dataclass
+class Hunger:
+    """
+        A player's hunger from 0 to 20
+    """
+    value: int
 
 
 class Experience:
