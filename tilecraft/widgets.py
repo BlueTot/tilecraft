@@ -1,11 +1,13 @@
 from typing import Optional
 import math
+import sys
 import pygame
 
-from tilecraft import ASSETS_DIR
-from .constants import Context, Coordinate, Item, ITEM_IMAGE_MAPPING
+from tilecraft import ASSETS_DIR, VERSION
+from .constants import Context, Coordinate, Item, ITEM_IMAGE_MAPPING, SCREEN_WIDTH, SCREEN_HEIGHT
 from .player_info import Health, Hunger, Experience
 from .inventory import Inventory, HoldingItem, Armour, SmallCraftingInterface, RenderDurabilityBar, TextBox
+from .game_state import GameState
 
 
 class Widget:
@@ -660,3 +662,45 @@ class HungerBarWidget(Widget):
             else:
                 image = context.INFOBAR_IMAGES["empty_hunger"] 
             display.blit(image, (coordinate.x, coordinate.y))
+
+
+class DebugWidget(Widget):
+    """
+        Widget containing debug info to be rendered on the main game screen
+    """
+
+
+    def __init__(self, game_state: GameState):
+        self.game_state = game_state 
+
+
+    def render(self, display: pygame.Surface, context: Context, fps: float):
+
+        font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 25)
+
+        version = font.render(f"Tilecraft {VERSION}", True, (0, 0, 0), (255, 255, 255))
+        display.blit(version, (0, 0))
+
+        python_version = font.render(f"Python {sys.version[0:6]}", True, (0, 0, 0), (255, 255, 255))
+        display.blit(python_version, (0, 25))
+
+        pygame_version = font.render(f"Graphics: pygame {pygame.version.ver}", True, (0, 0, 0), (255, 255, 255))
+        display.blit(pygame_version, (0, 50))
+
+        display_size = font.render(f"Display Size: {SCREEN_WIDTH}x{SCREEN_HEIGHT}", True, (0, 0, 0), (255, 255, 255))
+        display.blit(display_size, (0, 75))
+
+        seed_label = font.render(f"Seed: {self.game_state.world.seed}", True, (0, 0, 0), (255, 255, 255))
+        display.blit(seed_label, (0, 100))
+
+        fps_font = font.render(f"FPS: {fps:.2f}", True, (0, 0, 0), (255, 255, 255))
+        display.blit(fps_font, (0, 125))
+
+        direction_label = font.render(f"Facing: {self.game_state.player.direction}", True, (0, 0, 0), (255, 255, 255))
+        display.blit(direction_label, (0, 150))
+
+        target_label = font.render(f"Target Tile: {self.game_state.player.target[0]}, {self.game_state.player.target[1]}", True, (0, 0, 0), (255, 255, 255))
+        display.blit(target_label, (0, 175))
+
+        coords_label = font.render(f"X: {self.game_state.player.x:.3f}, Y: {self.game_state.player.y:.3f}", True, (0, 0, 0), (255, 255, 255))
+        display.blit(coords_label, (0, 200))

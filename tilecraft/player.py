@@ -32,7 +32,6 @@ class Player:
         self.dimension = "Overworld"
         self.regenerate_val = False
         self.regenerate_start_time = 180
-        self.debug_menu = False
         self.direction = 'East'
         self.direction_list = ['North', 'East', 'South', 'West']
         self.target = [1, 0]
@@ -759,7 +758,7 @@ class Player:
                     self.inventory.add(Item("Bucket", 1, None, None))
                     self.world.UndergroundTiles[(self.target[0], self.target[1])] = Tile("Lava", self.target[0], self.target[1])
 
-    def render(self, context: Context, display: pygame.Surface, screen_width: int, screen_height: int, fps: float):
+    def render(self, display: pygame.Surface):
 
         if self.breaking_delay > 0:
             self.breaking_delay -= 1
@@ -779,26 +778,3 @@ class Player:
             pygame.draw.line(display, (0, 0, 0), (375, 375), (375, 391), width=4)
         elif self.direction == 'West':
             pygame.draw.line(display, (0, 0, 0), (375, 375), (359, 375), width=4)
-
-        # RENDER DEBUG MENU
-        if self.debug_menu:
-            font9 = pygame.font.Font(
-                str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 25)
-            version = font9.render(f"Tilecraft {VERSION}", True, (0, 0, 0), (255, 255, 255))
-            display.blit(version, (0, 0))
-            python_version = font9.render(f"Python {sys.version[0:6]}", True, (0, 0, 0), (255, 255, 255))
-            display.blit(python_version, (0, 25))
-            pygame_version = font9.render(f"Graphics: pygame {pygame.version.ver}", True, (0, 0, 0), (255, 255, 255))
-            display.blit(pygame_version, (0, 50))
-            display_size = font9.render(f"Display Size: {screen_width}x{screen_height}", True, (0, 0, 0), (255, 255, 255))
-            display.blit(display_size, (0, 75))
-            SEEDs = font9.render(f"Seed: {self.world.seed}", True, (0, 0, 0), (255, 255, 255))
-            display.blit(SEEDs, (0, 100))
-            fps_font = font9.render(f"FPS: {fps:.2f}", True, (0, 0, 0), (255, 255, 255))
-            display.blit(fps_font, (0, 125))
-            Direction = font9.render(f"Facing: {self.direction}", True, (0, 0, 0), (255, 255, 255))
-            display.blit(Direction, (0, 150))
-            Target = font9.render(f"Target Tile: {self.target[0]}, {self.target[1]}", True, (0, 0, 0), (255, 255, 255))
-            display.blit(Target, (0, 175))
-            Coords = font9.render(f"X: {round(self.x, 3)}, Y: {round(self.y, 3)}", True, (0, 0, 0), (255, 255, 255))
-            display.blit(Coords, (0, 200))

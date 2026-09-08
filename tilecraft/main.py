@@ -6,7 +6,7 @@ from typing import Optional
 import pygame
 
 from tilecraft import ASSETS_DIR, VERSION
-from .constants import RandomNumberGenerator, Context, create_context
+from .constants import RandomNumberGenerator, Context, create_context, SCREEN_WIDTH 
 from .game_state import GameState, advancements_update, Screen, SpeedrunTimer
 from .generation import UndergroundGeneratePortal
 from .player import Player
@@ -14,11 +14,9 @@ from .ui.text_input import TextInput
 from .ui.drop_down_menu import Dropdown
 from .ui.button import Button
 from .ui.scrollable_text_box import ScrollableTextBox
-from .widgets import InventoryWidget, ArmourWidget, SmallCraftingWidget, HotbarWidget, ExperienceBarWidget, HealthBarWidget, HungerBarWidget
+from .widgets import InventoryWidget, ArmourWidget, SmallCraftingWidget, HotbarWidget, ExperienceBarWidget, HealthBarWidget, HungerBarWidget, DebugWidget
 from .world import TilecraftWorld
 
-SCREEN_WIDTH = 750
-SCREEN_HEIGHT = 750
 
 
 # common screen interface
@@ -55,6 +53,8 @@ class GameScreen(Interface):
         self.hunger_bar_widget = HungerBarWidget(self.game_state.player.hunger)
         self.experience_bar_widget = ExperienceBarWidget(self.game_state.player.experience)
         self.hotbar_widget = HotbarWidget(self.game_state.player.inventory)
+        self.debug_widget = DebugWidget(self.game_state)
+
 
     def handle_event(self, event: pygame.event.Event) -> None:
         if not self.game_state.screen.isTyping:
@@ -100,7 +100,7 @@ class GameScreen(Interface):
                         return
 
                 if event.key == pygame.K_0: # debug key
-                    self.game_state.player.debug_menu = not self.game_state.player.debug_menu
+                    self.game_state.debug_mode = not self.game_state.debug_mode
 
                 if event.key == pygame.K_a:  # Turn Left
                     pos = self.game_state.player.direction_list.index(self.game_state.player.direction)
@@ -198,7 +198,10 @@ class GameScreen(Interface):
         self.game_state.world.generate_chunks(self.game_state.player.dimension)  # Generate Chunks that are loaded but have not been generated before
         self.game_state.world.render(world_map, self.context, self.game_state.player.dimension, self.game_state.player.left, self.game_state.player.top, self.game_state.player.rect, self.game_state.player.breaking_time, self.game_state.player.target)  # Render all world_map blocks to world_map
         self.game_state.player.remove_items() #Remove Items if their number is 0
-        self.game_state.player.render(self.context, world_map, SCREEN_WIDTH, SCREEN_HEIGHT, fps)  # Render self.game_state.player and self.game_state.player accessories to world_map
+        self.game_state.player.render(world_map)
+
+        if self.game_state.debug_mode:
+            self.debug_widget.render(world_map, self.context, fps)
 
         self.health_bar_widget.render(world_map, self.context)
         self.hunger_bar_widget.render(world_map, self.context)
@@ -983,6 +986,7 @@ def main() -> None:
             load=None,
             start_ticks=0,
             play_time_seconds=0.0,
+            debug_mode=False,
         )
     )
 
