@@ -1,4 +1,5 @@
 from typing import Optional
+from abc import ABC, abstractmethod 
 import math
 import sys
 import pygame
@@ -6,11 +7,11 @@ import pygame
 from tilecraft import ASSETS_DIR, VERSION
 from .constants import Context, Coordinate, Item, ITEM_IMAGE_MAPPING, SCREEN_WIDTH, SCREEN_HEIGHT
 from .player_info import Health, Hunger, Experience
-from .inventory import Inventory, HoldingItem, Armour, SmallCraftingInterface, CraftingTableInterface, RenderDurabilityBar, TextBox
+from .inventory import Inventory, HoldingItem, Armour, SmallCraftingInterface, CraftingTableInterface, FurnaceInterface, RenderDurabilityBar, TextBox
 from .game_state import GameState
 
 
-class Widget:
+class Widget(ABC):
     """
         Widget is a collection of images, rects, and text bundled together to be rendered on a Screen
     """
@@ -18,11 +19,13 @@ class Widget:
     def __init__(self) -> None:
         pass
 
+    @abstractmethod
     def handle_event(self, event: pygame.event.Event) -> None:
         """
             Handle an event
         """
 
+    @abstractmethod
     def render(self, display: pygame.Surface, context: Context) -> None:
         """
             Render the widget
@@ -590,6 +593,10 @@ class ExperienceBarWidget(Widget):
         self.__font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 45)
 
 
+    def handle_event(self, event):
+        pass
+
+
     def render(self, display: pygame.Surface, context: Context):
         levels = self.experience.levels
 
@@ -623,6 +630,10 @@ class HealthBarWidget(Widget):
             self.__coordinates.append(Coordinate(7 + 35*i, 592))
 
 
+    def handle_event(self, event):
+        pass
+
+
     def render(self, display: pygame.Surface, context: Context):
         curr = self.health.value 
         for coordinate in self.__coordinates:
@@ -650,6 +661,10 @@ class HungerBarWidget(Widget):
             self.__coordinates.append(Coordinate(715 - 34*i, 592))
 
 
+    def handle_event(self, event):
+        pass
+
+
     def render(self, display: pygame.Surface, context: Context):
         curr = self.hunger.value 
         for coordinate in self.__coordinates:
@@ -672,6 +687,10 @@ class DebugWidget(Widget):
 
     def __init__(self, game_state: GameState):
         self.game_state = game_state 
+
+
+    def handle_event(self, event):
+        pass
 
 
     def render(self, display: pygame.Surface, context: Context, fps: float):
@@ -844,3 +863,150 @@ class CraftingTableWidget(Widget):
         
         font = pygame.font.Font(str(ASSETS_DIR / "monofur/monof55.ttf"), 22)
         TextBox(display, self.crafting_grid.items[index], mouse[0], mouse[1], font) 
+
+
+class FurnaceWidget(Widget):
+    """
+        Widget for furnace smelting interface to be rendered in the inventory
+    """
+
+    CELL_SIZE = 82
+
+    def __init__(self, x: int, y: int, inventory: Inventory, furnace: FurnaceInterface, holding_item: HoldingItem):
+        self.x = x
+        self.y = y
+        self.inventory = inventory
+        self.furnace = furnace 
+        self.holding_item = holding_item
+
+        self.__font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 25)
+        self.__side_font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 36)
+        self.__arrow_font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftBold-nMK1.otf"), 45)
+        
+        # pygame.rects
+        self.__cells: list[pygame.Rect] = [
+            pygame.Rect((self.x, self.y), (self.CELL_SIZE, self.CELL_SIZE)),
+            pygame.Rect((self.x, self.y + 195), (self.CELL_SIZE, self.CELL_SIZE)),
+            pygame.Rect((self.x + 225, self.y + 105), (self.CELL_SIZE, self.CELL_SIZE))
+        ]
+
+        # number coordinates
+        self.__numbers: list[Coordinate] = []
+        for cell in self.__cells:
+            self.__numbers.append(Coordinate(cell.x + 52, cell.y + 52))
+
+
+    def handle_event(self, event: pygame.event.Event) -> None:
+        mouse = pygame.mouse.get_pos()
+
+        if event.type == pygame.MOUSEBUTTONDOWN: #Mouse Button Down Clicking Event
+            if pygame.mouse.get_pressed(3)[0]: #Left Click
+                self.__handle_left_click(mouse)
+
+            elif pygame.mouse.get_pressed(3)[2]: #Right Click
+                self.__handle_right_click(mouse)
+
+
+    def __get_hover_box(self, mouse: tuple[int, int]) -> Optional[int]:
+        for i, rect in enumerate(self.__cells):
+            if rect.collidepoint(mouse):
+                return i
+        return None
+
+
+    def __handle_left_click(self, mouse: tuple[int, int]) -> None:
+        if (index := self.__get_hover_box(mouse)) is None:
+            return
+
+        # main furnace cells
+        if index != 2:
+            if self.holding_item.item is not None and self.furnace.items[index] is not None: #Items can be combined
+                if self.holding_item.item.name == self.furnace.items[index].name and (self.furnace.items[index].number + self.holding_item.item.number <= self.holding_item.item.stackNum):
+                    self.furnace.items[index].number += self.holding_item.item.number
+                    self.holding_item.item = None
+                else:
+                    self.holding_item.item, self.furnace.items[index] = self.furnace.items[index], self.holding_item.item
+            else:
+                self.holding_item.item, self.furnace.items[index] = self.furnace.items[index], self.holding_item.item
+
+        # result cell
+        else:
+            self.inventory.add(self.furnace.items[2])
+            self.furnace.items[2] = None
+
+
+    def __handle_right_click(self, mouse: tuple[int, int]) -> None:
+        if (index := self.__get_hover_box(mouse)) is None:
+            return
+
+        if index == 2: # cannot right click on result box
+            return
+
+        if self.holding_item.item is None:
+            return
+            
+        if self.furnace.items[index] is None:
+            self.furnace.items[index] = Item(self.holding_item.item.name, 1, self.holding_item.item.enchantments, self.holding_item.item.durability)
+            self.holding_item.item.number -= 1
+        elif self.furnace.items[index] is not None and self.furnace.items[index].name == self.holding_item.item.name and (self.furnace.items[index].number + 1 <= self.furnace.items[index].stackNum):
+            self.furnace.items[index].number += 1
+            self.holding_item.item.number -= 1
+
+
+    def render(self, display: pygame.Surface, context: Context, fps: float):
+
+        mouse = pygame.mouse.get_pos()
+        is_holding = self.holding_item.item is not None
+
+        images = []
+        numbers = []
+
+        # Remove Value if Number is 0
+        for i in range(len(self.furnace.items)):
+            if self.furnace.items[i] is not None:
+                if self.furnace.items[i].number == 0:
+                    self.furnace.items[i] = None
+
+        # Convert List to Images and Numbers
+        for item in self.furnace.items:
+            if item is None:  # Set White Background for NONE Slots
+                images.append(context.ITEM_IMAGES["none_img"])
+                numbers.append('')
+            else:
+                images.append(context.ITEM_IMAGES[ITEM_IMAGE_MAPPING[item.name]])
+                numbers.append(str(item.number))
+
+        # Remove Value if Number is 1
+        for i in range(len(self.furnace.items)):
+            if self.furnace.items[i] is not None:
+                if self.furnace.items[i].number == 1:
+                    numbers[i] = ''
+
+        for i, cell in enumerate(self.__cells):
+            display.blit(images[i], (cell.x, cell.y))
+            pygame.draw.rect(display, (83, 83, 83), cell, 2)
+            if self.furnace.items[i] is not None:
+                if self.furnace.items[i].enchantments is not None:
+                    display.blit(context.TC_GLINTS[self.furnace.items[i].name], (cell.x, cell.y))
+                if self.furnace.items[i].durability is not None:
+                    RenderDurabilityBar(display, cell.x, cell.y, self.furnace.items[i].durability, self.furnace.items[i].max_durability)
+
+        for i, coordinate in enumerate(self.__numbers):
+            surface = self.__font.render(numbers[i], False, (255, 255, 255))
+            display.blit(surface, (coordinate.x, coordinate.y))
+
+        display.blit(self.furnace.fuel_img, (self.x, self.y + 105)) #Render Fire Image
+        display.blit(self.__side_font.render(str(self.furnace.fuel_val), False, (255, 0, 0)), (self.x - 38, self.y + 120)) #Render Power of Fuel Remaining
+        display.blit(self.__side_font.render(f"{int(self.furnace.smelting_time / fps)}", False, (255, 0, 0)), (self.x + 142, self.y + 90)) #Render Time to Smelt
+        display.blit(self.__arrow_font.render('-->', False, (0, 0, 0)), (self.x + 112, self.y + 120)) #Render Arrow
+
+        if not is_holding:
+            self.render_hovering_item(display, mouse)
+
+
+    def render_hovering_item(self, display: pygame.Surface, mouse: tuple[int, int]):
+        if (index := self.__get_hover_box(mouse)) is None:
+            return
+        
+        font = pygame.font.Font(str(ASSETS_DIR / "monofur/monof55.ttf"), 22)
+        TextBox(display, self.furnace.items[index], mouse[0], mouse[1], font) 

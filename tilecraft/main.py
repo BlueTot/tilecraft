@@ -14,7 +14,7 @@ from .ui.text_input import TextInput
 from .ui.drop_down_menu import Dropdown
 from .ui.button import Button
 from .ui.scrollable_text_box import ScrollableTextBox
-from .widgets import InventoryWidget, ArmourWidget, SmallCraftingWidget, HotbarWidget, ExperienceBarWidget, HealthBarWidget, HungerBarWidget, DebugWidget, CraftingTableWidget
+from .widgets import InventoryWidget, ArmourWidget, SmallCraftingWidget, HotbarWidget, ExperienceBarWidget, HealthBarWidget, HungerBarWidget, DebugWidget, CraftingTableWidget, FurnaceWidget 
 from .world import TilecraftWorld
 
 
@@ -329,36 +329,42 @@ class SmeltingScreen(Interface):
     def __init__(self, display, context, game_state):
         super().__init__(display, context, game_state)
         self.inventory_widget = InventoryWidget(0, 390, self.game_state.player.inventory, self.game_state.player.holding_item)
+        self.furnace_widget = FurnaceWidget(
+            225, 67,
+            self.game_state.player.inventory,
+            self.game_state.player.furnace,
+            self.game_state.player.holding_item
+        ) 
 
 
     def handle_event(self, event: pygame.event.Event) -> None:
-        mouse = pygame.mouse.get_pos()
 
         self.inventory_widget.handle_event(event)
+        self.furnace_widget.handle_event(event)
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_e: # Exit 
                 self.next_screen = GameScreen(self.display, self.context, self.game_state)
 
-        elif event.type == pygame.MOUSEBUTTONDOWN: #Mouse Button Down Clicking Event
-            if pygame.mouse.get_pressed(3)[0]: #Left Click
-                self.game_state.player.furnace.handle_left_click(mouse, self.game_state.player.holding_item, self.game_state.player.inventory) 
-
-            elif pygame.mouse.get_pressed(3)[2]: #Right Click
-                self.game_state.player.furnace.handle_right_click(mouse, self.game_state.player.holding_item) 
-
 
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> None:
-        mouse = pygame.mouse.get_pos()
         self.display.fill((0, 0, 0))
         world_map.fill((211, 211, 211))
 
-        is_holding = self.game_state.player.holding_item.item is not None
-        self.inventory_widget.render(world_map, self.context)
-        self.game_state.player.furnace.render(world_map, self.context, mouse, fps, is_holding) #Render Furnace Interface
+        # update logic
         self.game_state.player.furnace.smelt(self.context, fps, self.game_state.player.experience) #Furnace Smelting
-
         self.game_state.player.remove_items() #Remove all items with number of 0 or durability of 0
+
+        # render title
+        font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 40)
+        world_map.blit(font.render('Furnace', False, (0, 0, 0)), (300, 0))
+
+        # render inventory widget
+        self.inventory_widget.render(world_map, self.context)
+
+        # render furnace widget
+        self.furnace_widget.render(world_map, self.context, fps)
+
         self.game_state.player.holding_item.render(world_map, self.context) #Render the item the user is holding
 
         self.display.blit(world_map, (0, 0))  # Render map to self.display
@@ -772,7 +778,7 @@ class HowToPlayScreen(Interface):
 
         font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 18)
 
-        with open("docs/how_to_play.txt") as f:
+        with open("docs/how_to_play.txt", encoding="utf-8") as f:
             instructions = f.read()
 
         self.instructions = ScrollableTextBox(
@@ -826,7 +832,7 @@ class PatchNotesScreen(Interface):
 
         font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 18)
 
-        with open("docs/patch_notes.txt") as f:
+        with open("docs/patch_notes.txt", encoding="utf-8") as f:
             patch_notes = f.read()
 
         self.patch_notes = ScrollableTextBox(
@@ -880,7 +886,7 @@ class GameCreditsScreen(Interface):
 
         font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 18)
         
-        with open("docs/credits.txt") as f:
+        with open("docs/credits.txt", encoding="utf-8") as f:
             game_credits = f.read()
 
         self.game_credits = ScrollableTextBox(
