@@ -14,7 +14,7 @@ from .ui.text_input import TextInput
 from .ui.drop_down_menu import Dropdown
 from .ui.button import Button
 from .ui.scrollable_text_box import ScrollableTextBox
-from .widgets import InventoryWidget, ArmourWidget, SmallCraftingWidget, HotbarWidget, ExperienceBarWidget, HealthBarWidget, HungerBarWidget, DebugWidget
+from .widgets import InventoryWidget, ArmourWidget, SmallCraftingWidget, HotbarWidget, ExperienceBarWidget, HealthBarWidget, HungerBarWidget, DebugWidget, CraftingTableWidget
 from .world import TilecraftWorld
 
 
@@ -279,37 +279,44 @@ class CraftingScreen(Interface):
     def __init__(self, display, context, game_state):
         super().__init__(display, context, game_state)
         self.inventory_widget = InventoryWidget(0, 390, self.game_state.player.inventory, self.game_state.player.holding_item)
+        self.crafting_table_widget = CraftingTableWidget(
+            195, 75,
+            self.game_state.player.inventory,
+            self.game_state.player.crafting_grid,
+            self.game_state.player.holding_item
+        )
 
 
     def handle_event(self, event: pygame.event.Event) -> None:
-        mouse = pygame.mouse.get_pos()
 
         self.inventory_widget.handle_event(event)
+        self.crafting_table_widget.handle_event(event)
         
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_e: # Exit 
                 self.next_screen = GameScreen(self.display, self.context, self.game_state)
 
-        elif event.type == pygame.MOUSEBUTTONDOWN: #Mouse Button Down Clicking Event
-            if pygame.mouse.get_pressed(3)[0]: #Left Click
-                self.game_state.player.crafting_grid.handle_left_click(mouse, self.game_state.player.holding_item, self.game_state.player.inventory) 
-
-            elif pygame.mouse.get_pressed(3)[2]: #Right Click
-                self.game_state.player.crafting_grid.handle_right_click(mouse, self.game_state.player.holding_item) 
-
 
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> None:
-        mouse = pygame.mouse.get_pos()
         self.display.fill((0, 0, 0))
         world_map.fill((211, 211, 211))
 
-        is_holding = self.game_state.player.holding_item.item is not None
-        self.inventory_widget.render(world_map, self.context)
-        self.game_state.player.crafting_grid.render(world_map, self.context, mouse, is_holding) #Render 3x3 Crafting Grid
+        # update logic
         self.game_state.player.crafting_grid.update()  #Update 3x3 Crafting Grid
-
         self.game_state.player.remove_items() #Remove all items with number of 0 or durability of 0
-        self.game_state.player.holding_item.render(world_map, self.context) #Render the item the user is holding
+
+        # render title
+        title_font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 40)
+        world_map.blit(title_font.render("Crafting Table", False, (0, 0, 0)), (195, 0))
+
+        # render inventory widget
+        self.inventory_widget.render(world_map, self.context)
+
+        # render crafting grid widget
+        self.crafting_table_widget.render(world_map, self.context)
+
+        # render holding item
+        self.game_state.player.holding_item.render(world_map, self.context)
 
         self.display.blit(world_map, (0, 0))  # Render map to self.display
 
