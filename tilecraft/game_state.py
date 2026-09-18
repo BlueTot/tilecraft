@@ -275,6 +275,7 @@ class GameState:
     load: str
     start_ticks: int 
     play_time_seconds: float
+    debug_mode: bool
 
 
 def commands(number: int, val: str, game_state: GameState):

@@ -1,18 +1,21 @@
-import sys
 import math
 import pygame
 
-from tilecraft import ASSETS_DIR, VERSION
 from .constants import Context, RandomNumberGenerator, Item
 from .generation import Tile, UndergroundGeneratePortal, OverworldGeneratePortal
-from .inventory import Inventory, Hotbar, Armour, SmallCraftingInterface, CraftingTableInterface, FurnaceInterface, EnchantingTable, Compressor, Grindstone, HoldingItem
-from .player_info import HealthBar, HungerBar, Experience, ExperienceBar
+from .inventory import Inventory, Armour, SmallCraftingInterface, CraftingTableInterface, FurnaceInterface, EnchantingTable, Compressor, Grindstone, HoldingItem
+from .player_info import Health, Hunger, Experience
 from .world import TilecraftWorld
+
 
 HUNGER_DECREMENT = 512
 
-#Player Class and Methods
+
 class Player:
+    """
+        Player class and methods
+    """
+
     def __init__(self, context: Context, rng: RandomNumberGenerator, world: TilecraftWorld):
         self.world = world
 
@@ -27,7 +30,6 @@ class Player:
         self.dimension = "Overworld"
         self.regenerate_val = False
         self.regenerate_start_time = 180
-        self.debug_menu = False
         self.direction = 'East'
         self.direction_list = ['North', 'East', 'South', 'West']
         self.target = [1, 0]
@@ -48,14 +50,9 @@ class Player:
             else:
                 break #tile is air so the loop ends
 
-        self.health = 20
-        self.health_bar = HealthBar()
-        
-        self.hunger = 20
-        self.hunger_bar = HungerBar()
-
+        self.health = Health(20)
+        self.hunger = Hunger(20)
         self.experience = Experience()
-        self.experience_bar = ExperienceBar()
 
         self.distance = 0  # Set Distance Travelled
         self.dead = False
@@ -68,45 +65,80 @@ class Player:
         self.waiting_list = []
         self.selected_slot = 'slot1'
 
-        self.hotbar = Hotbar() # hotbar
         self.armour = Armour() # armour
         self.craft_interface = SmallCraftingInterface() # small crafting grid
         self.crafting_grid = CraftingTableInterface() # crafting table
         self.furnace = FurnaceInterface(context) # furnace interface
-        self.enchanting_table = EnchantingTable() # enchanting table interface
+        self.enchanting_table = EnchantingTable(self.rng, self.experience) # enchanting table interface
         self.compressor = Compressor() # compressor interface
-        self.grindstone = Grindstone() # grindstone interface
+        self.grindstone = Grindstone(self.experience) # grindstone interface
         self.holding_item = HoldingItem()
 
-    # set player hotbar index and item
-    def set_hotbar(self, index: int):
-        self.inventory.selected_hotbar = index
 
-    # Hunger mechanism to decrease hunger as distance travelled increases
+    def eat(self) -> bool:
+        """
+            Eat the food item in their hand
+            Returns true if okay, false otherwise
+        """
+
+        if self.hunger.value < 20:
+
+            if self.inventory.hotbar_item.name == 'Bread':
+                index = self.inventory.items.index(self.inventory.hotbar_item)
+                self.inventory.items[index].number -= 1
+                self.hunger.value += 5
+
+            elif self.inventory.hotbar_item.name == 'Golden Carrot':
+                index = self.inventory.items.index(self.inventory.hotbar_item)
+                self.inventory.items[index].number -= 1
+                self.hunger.value += 6
+
+            elif self.inventory.hotbar_item.name == 'Golden Apple':
+                index = self.inventory.items.index(self.inventory.hotbar_item)
+                self.inventory.items[index].number -= 1
+                self.hunger.value += 5
+                self.regenerate_start_time = 0
+                self.regenerate_val = True
+
+            else:
+                return False
+
+        return True
+
+
     def hunger_mechanism(self):
-        if self.hunger > 0 and self.distance != 0 and self.distance // HUNGER_DECREMENT != self.hunger_subtracted:
-            self.hunger -= 1
+        """
+            Hunger mechanism to decrease hunger as distance travelled increases
+        """
+        if self.hunger.value > 0 and self.distance != 0 and self.distance // HUNGER_DECREMENT != self.hunger_subtracted:
+            self.hunger.value -= 1
             self.hunger_subtracted += 1
 
-    #Update Health and Regeneration
+
     def health_update(self, frame_count: int):
-        if self.hunger >= 17 and self.health < 20 and frame_count % 16 == 0:
-            self.hunger -= 1
-            self.health += 1
-        if self.hunger == 0 and frame_count % 16 == 0:
-            self.health -= 1
-        if self.health == 0:
+        """
+            Update Health and Regeneration
+        """
+        if self.hunger.value >= 17 and self.health.value < 20 and frame_count % 16 == 0:
+            self.hunger.value -= 1
+            self.health.value += 1
+        if self.hunger.value == 0 and frame_count % 16 == 0:
+            self.health.value -= 1
+        if self.health.value == 0:
             self.dead = True
-        if self.regenerate_val and self.health < 20:
+        if self.regenerate_val and self.health.value < 20:
             if self.regenerate_start_time < 60:
                 if frame_count % 5 == 0:
-                    self.health += 1
+                    self.health.value += 1
                 self.regenerate_start_time += 1
             else:
                 self.regenerate_val = False
 
-    # remove items that shouldn't be there
+
     def remove_items(self):
+        """
+            Remove items that shouldn't be there
+        """
         all_lists = [self.enchanting_table.items, self.inventory.items, self.craft_interface.items,
                     self.crafting_grid.items, self.furnace.items, self.compressor.items, self.grindstone.items]
         for i in all_lists:
@@ -125,6 +157,7 @@ class Player:
             elif self.holding_item.item.durability is not None:
                 if self.holding_item.item.durability <= 0:
                     self.holding_item.item = None
+
 
     def collide(self): #Collisions with tiles
         self.canMove = True
@@ -723,7 +756,7 @@ class Player:
                     self.inventory.add(Item("Bucket", 1, None, None))
                     self.world.UndergroundTiles[(self.target[0], self.target[1])] = Tile("Lava", self.target[0], self.target[1])
 
-    def render(self, context: Context, display: pygame.Surface, screen_width: int, screen_height: int, fps: float):
+    def render(self, display: pygame.Surface):
 
         if self.breaking_delay > 0:
             self.breaking_delay -= 1
@@ -743,36 +776,3 @@ class Player:
             pygame.draw.line(display, (0, 0, 0), (375, 375), (375, 391), width=4)
         elif self.direction == 'West':
             pygame.draw.line(display, (0, 0, 0), (375, 375), (359, 375), width=4)
-
-        # render health and hunger bars
-        self.health_bar.render(display, context, self.health)
-        self.hunger_bar.render(display, context, self.hunger)
-
-        # render experience bar
-        self.experience_bar.render(display, self.experience.levels)
-
-        # render hotbar
-        self.hotbar.render(display, context, self.inventory.items[27:36], self.inventory.selected_hotbar)
-
-        # RENDER DEBUG MENU
-        if self.debug_menu:
-            font9 = pygame.font.Font(
-                str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 25)
-            version = font9.render(f"Tilecraft {VERSION}", True, (0, 0, 0), (255, 255, 255))
-            display.blit(version, (0, 0))
-            python_version = font9.render(f"Python {sys.version[0:6]}", True, (0, 0, 0), (255, 255, 255))
-            display.blit(python_version, (0, 25))
-            pygame_version = font9.render(f"Graphics: pygame {pygame.version.ver}", True, (0, 0, 0), (255, 255, 255))
-            display.blit(pygame_version, (0, 50))
-            display_size = font9.render(f"Display Size: {screen_width}x{screen_height}", True, (0, 0, 0), (255, 255, 255))
-            display.blit(display_size, (0, 75))
-            SEEDs = font9.render(f"Seed: {self.world.seed}", True, (0, 0, 0), (255, 255, 255))
-            display.blit(SEEDs, (0, 100))
-            fps_font = font9.render(f"FPS: {fps:.2f}", True, (0, 0, 0), (255, 255, 255))
-            display.blit(fps_font, (0, 125))
-            Direction = font9.render(f"Facing: {self.direction}", True, (0, 0, 0), (255, 255, 255))
-            display.blit(Direction, (0, 150))
-            Target = font9.render(f"Target Tile: {self.target[0]}, {self.target[1]}", True, (0, 0, 0), (255, 255, 255))
-            display.blit(Target, (0, 175))
-            Coords = font9.render(f"X: {round(self.x, 3)}, Y: {round(self.y, 3)}", True, (0, 0, 0), (255, 255, 255))
-            display.blit(Coords, (0, 200))
