@@ -5,7 +5,7 @@ import pygame
 import math
 
 from tilecraft import ASSETS_DIR
-from .constants import Coordinate, Item, Context, ITEM_IMAGE_MAPPING, CRAFTING_RECIPES, RandomNumberGenerator, Button
+from .constants import Coordinate, Item, Context, ITEM_IMAGE_MAPPING, CRAFTING_RECIPES, RandomNumberGenerator 
 from .player_info import Experience
 
 
@@ -260,7 +260,16 @@ class FurnaceInterface:
 
 
 class EnchantingTable:
-    def __init__(self):
+    """
+        Enchanting Table interface allows the player to enchant an item
+        Levels of the enchanting table go up to 5 and there are three options to enchant
+        Requires experience levels
+    """
+
+    def __init__(self, rng: RandomNumberGenerator, experience: Experience):
+        self.rng = rng
+        self.experience = experience
+
         self.items: list[Optional[Item]] = [None]*3
         self.option_list = ['', '', '']
         self.enchanting_level = 0
@@ -270,32 +279,11 @@ class EnchantingTable:
         self.optional_enchant2 = None
         self.optional_enchant3 = None
 
-        self.__font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 25)
 
-        self.upgrade = Button(82, 82, 112, 142, (158, 145, 115))
-        self.option1 = Button(487, 82, 255, 75, (158, 145, 115))
-        self.option2 = Button(487, 82, 255, 157, (158, 145, 115))
-        self.option3 = Button(487, 82, 255, 240, (158, 145, 115))
-
-        self.__CELLS: list[pygame.Rect] = [
-            pygame.Rect((30, 225), (82, 82)),
-            pygame.Rect((112, 225), (82, 82)),
-            pygame.Rect((30, 142), (82, 82))
-        ]
-
-        self.__NUMBERS: list[Coordinate] = [
-            Coordinate(82, 277),
-            Coordinate(165, 277),
-            Coordinate(82, 195)
-        ]
-
-        self.__RECTS: list[pygame.Rect] = [
-            self.__CELLS[0], self.__CELLS[1], self.__CELLS[2], 
-            self.upgrade.rect, self.option1.rect, self.option2.rect, self.option3.rect
-        ]
-
-
-    def enchant_set(self, rng: RandomNumberGenerator):
+    def enchant_set(self):
+        """
+            Set the options in the enchanting table
+        """
         if self.items[0] is not None:
             if self.items[0].enchantments is None:
                 self.level1 = 0
@@ -306,39 +294,39 @@ class EnchantingTable:
                 if self.enchanting_level == 0:  # LEVEL 0
                     self.level1 = 0
                     self.level2 = 0
-                    self.level3 = rng.next_random(0, 1)
+                    self.level3 = self.rng.next_random(0, 1)
                     self.optional_enchant2 = None
                     self.optional_enchant3 = None
                 elif self.enchanting_level == 1:  # LEVEL 1
                     self.level1 = 1
-                    self.level2 = rng.next_random(1, 2)
+                    self.level2 = self.rng.next_random(1, 2)
                     self.level3 = 2
                     self.optional_enchant2 = None
                     self.optional_enchant3 = None
                 elif self.enchanting_level == 2:  # LEVEL 2
                     self.level1 = 2
-                    self.level2 = rng.next_random(2, 3)
+                    self.level2 = self.rng.next_random(2, 3)
                     self.level3 = 3
                     self.optional_enchant2 = None
                     self.optional_enchant3 = None
                 elif self.enchanting_level == 3:  # LEVEL 3
                     self.level1 = 3
-                    self.level2 = rng.next_random(3, 4)
+                    self.level2 = self.rng.next_random(3, 4)
                     self.level3 = 4
                     self.optional_enchant2 = None
-                    self.optional_enchant3 = rng.next_random(0, 1)
+                    self.optional_enchant3 = self.rng.next_random(0, 1)
                 elif self.enchanting_level == 4:  # LEVEL 4
                     self.level1 = 4
-                    self.level2 = rng.next_random(4, 5)
+                    self.level2 = self.rng.next_random(4, 5)
                     self.level3 = 5
-                    self.optional_enchant2 = rng.next_random(0, 1)
-                    self.optional_enchant3 = rng.next_random(1, 2)
+                    self.optional_enchant2 = self.rng.next_random(0, 1)
+                    self.optional_enchant3 = self.rng.next_random(1, 2)
                 else:  # LEVEL 5
-                    self.level1 = rng.next_random(4, 5)
+                    self.level1 = self.rng.next_random(4, 5)
                     self.level2 = 5
                     self.level3 = 5
-                    self.optional_enchant2 = rng.next_random(1, 2)
-                    self.optional_enchant3 = rng.next_random(2, 3)
+                    self.optional_enchant2 = self.rng.next_random(1, 2)
+                    self.optional_enchant3 = self.rng.next_random(2, 3)
 
                 if self.items[0].itemType == 'Tier1' or self.items[0].itemType == 'Tier2' or self.items[0].itemType == 'Tier3':  # Armour
                     self.option_list[0] = f'Protection {self.level1}'
@@ -357,17 +345,23 @@ class EnchantingTable:
             self.option_list[0] = self.option_list[1] = self.option_list[2] = ''
 
 
-    def enchant_upgrade(self, rng: RandomNumberGenerator):
+    def enchant_upgrade(self):
+        """
+            Upgrade the level of the enchanting table
+        """
         if self.items[2] is not None and self.enchanting_level < 5:
             if self.items[2].name == 'Bookshelf' and self.items[2].number > 3:
                 self.items[2].number -= 4
                 self.enchanting_level += 1
-                self.enchant_set(rng)  # Set Enchants
+                self.enchant_set()  # Set Enchants
 
 
-    def enchant1(self, rng: RandomNumberGenerator, experience: Experience):  # First ENCHANTING BOX (Enchants start at LEVEL 1, MAX 5, no extras)
+    def enchant1(self):  # First ENCHANTING BOX (Enchants start at LEVEL 1, MAX 5, no extras)
+        """
+            Enchant using the first option box
+        """
         if self.items[1] is not None:
-            if self.items[1].number > 0 and experience.levels > 0:  # REQUIRE 1 Lapis + 1 Experience
+            if self.items[1].number > 0 and self.experience.levels > 0:  # REQUIRE 1 Lapis + 1 Experience
                 if self.option_list[0] != 'N/A' and self.items[0] is not None:
                     self.items[0] = Item(
                         self.items[0].name, 
@@ -378,13 +372,16 @@ class EnchantingTable:
                         self.items[0].number
                     )
                     self.items[1].number -= 1
-                    experience.subtract(1)
-                    self.enchant_set(rng)  # Remove Enchants
+                    self.experience.subtract(1)
+                    self.enchant_set()  # Remove Enchants
 
 
-    def enchant2(self, rng: RandomNumberGenerator, experience: Experience):  # Second ENCHANTING BOX (Enchants start at LEVEL 1, MAX 5, extras start LEVEL 4, MAX 2)
+    def enchant2(self):  # Second ENCHANTING BOX (Enchants start at LEVEL 1, MAX 5, extras start LEVEL 4, MAX 2)
+        """
+            Enchant using the second option box
+        """
         if self.items[1] is not None:
-            if self.items[1].number > 1 and experience.levels > 1:  # REQUIRE 2 Lapis + 2 Experience
+            if self.items[1].number > 1 and self.experience.levels > 1:  # REQUIRE 2 Lapis + 2 Experience
                 if self.option_list[1] != 'N/A' and self.items[0] is not None:  # Test for None
                     if self.optional_enchant2 is not None:  # Extra enchantment
                         if self.optional_enchant2 > 0:  # Enchantment level > 0
@@ -416,13 +413,16 @@ class EnchantingTable:
                             self.items[0].durability
                         )
                     self.items[1].number -= 2
-                    experience.subtract(2)
-                    self.enchant_set(rng)  # Remove Enchants
+                    self.experience.subtract(2)
+                    self.enchant_set()  # Remove Enchants
 
 
-    def enchant3(self, rng: RandomNumberGenerator, experience: Experience):  # Third ENCHANTING BOX (ENCHANTS start at LEVEL 0, MAX 5, extras start LEVEL 3, MAX 3)
+    def enchant3(self):  # Third ENCHANTING BOX (ENCHANTS start at LEVEL 0, MAX 5, extras start LEVEL 3, MAX 3)
+        """
+            Enchant using the third option box
+        """
         if self.items[1] is not None:
-            if self.items[1].number > 2 and experience.levels > 2:  # REQUIRE 3 Lapis + 3 Experience
+            if self.items[1].number > 2 and self.experience.levels > 2:  # REQUIRE 3 Lapis + 3 Experience
                 if self.option_list[2] != 'N/A' and self.items[0] is not None:  # Test for None
                     if self.optional_enchant3 is not None:  # Extra enchantment
                         if self.optional_enchant3 > 0:  # Enchantment level > 0
@@ -454,126 +454,8 @@ class EnchantingTable:
                             self.items[0].durability
                         )
                     self.items[1].number -= 3
-                    experience.subtract(3)
-                    self.enchant_set(rng)  # Remove Enchants
-
-    # interface method?
-    def get_hover_box(self, mouse: tuple[int, int]) -> Optional[int]:
-        for i, rect in enumerate(self.__RECTS):
-            if rect.collidepoint(mouse):
-                return i
-        return None
-
-    # interface method?
-    def handle_left_click(self, mouse: tuple[int, int], holding_item: HoldingItem, experience: Experience, rng: RandomNumberGenerator) -> None:
-        if (index := self.get_hover_box(mouse)) is None:
-            return
-
-        # regular cells
-        if index >= 0 and index < 3:
-            if holding_item.item is not None and self.items[index] is not None: #Items can be combined
-                if holding_item.item.name == self.items[index].name and (self.items[index].number + holding_item.item.number <= holding_item.item.stackNum):
-                    self.items[index].number += holding_item.item.number
-                    holding_item.item = None
-                else:
-                    holding_item.item, self.items[index] = self.items[index], holding_item.item
-            else:
-                holding_item.item, self.items[index] = self.items[index], holding_item.item
-            if index == 0:
-                self.enchant_set(rng)
-
-        # upgrade button
-        elif index == 3:
-            self.enchant_upgrade(rng)
-
-        # option 1
-        elif index == 4:
-            self.enchant1(rng, experience)
-
-        # option 2
-        elif index == 5:
-            self.enchant2(rng, experience)
-
-        # option 3
-        elif index == 6:
-            self.enchant3(rng, experience)
-
-    # interface method?
-    def handle_right_click(self, mouse: tuple[int, int], holding_item: HoldingItem) -> None:
-        if (index := self.get_hover_box(mouse)) is None:
-            return
-
-        if index >= 3: # cannot right click on buttons
-            return
-
-        if holding_item.item is None:
-            return
-
-        if self.items[index] is None:
-            self.items[index] = Item(holding_item.item.name, 1, holding_item.item.enchantments, holding_item.item.durability)
-            holding_item.item.number -= 1
-        elif self.items[index] is not None and self.items[index].name == holding_item.item.name and (self.items[index].number + 1 <= self.items[index].stackNum):
-            self.items[index].number += 1
-            holding_item.item.number -= 1
-
-    def render(self, display: pygame.Surface, context: Context, mouse: tuple[int, int], is_holding: bool):
-
-        images = []
-        numbers = []
-
-        # Remove Value if Number is 0
-        for i in range(len(self.items)):
-            if self.items[i] is not None:
-                if self.items[i].number == 0:
-                    self.items[i] = None
-
-        # Convert List to Images and Numbers
-        for item in self.items:
-            if item is None:  # Set White Background for NONE Slots
-                images.append(context.ITEM_IMAGES["none_img"])
-                numbers.append('')
-            else:
-                images.append(context.ITEM_IMAGES[ITEM_IMAGE_MAPPING[item.name]])
-                numbers.append(str(item.number))
-
-        # Remove Value if Number is 1
-        for i in range(len(self.items)):
-            if self.items[i] is not None:
-                if self.items[i].number == 1:
-                    numbers[i] = ''
-
-        for i, cell in enumerate(self.__CELLS):
-            display.blit(images[i], (cell.x, cell.y))
-            pygame.draw.rect(display, (83, 83, 83), cell, 2)
-            if self.items[i] is not None:
-                if self.items[i].enchantments is not None:
-                    display.blit(context.TC_GLINTS[self.items[i].name], (cell.x, cell.y))
-                if self.items[i].durability is not None:
-                    RenderDurabilityBar(display, cell.x, cell.y, self.items[i].durability, self.items[i].max_durability)
-
-        for i, coordinate in enumerate(self.__NUMBERS):
-            surface = self.__font.render(str(numbers[i]), False, (255, 255, 255))
-            display.blit(surface, (coordinate.x, coordinate.y))
-
-        display.blit(self.__font.render(f'Enchanting Table LEVEL {self.enchanting_level}', False, (0, 0, 0)), (0, 0))
-
-        self.upgrade.render(display, 'Upgrade', 21)
-        self.option1.render(display, self.option_list[0], 30)
-        self.option2.render(display, self.option_list[1], 30)
-        self.option3.render(display, self.option_list[2], 30)
-
-        if not is_holding:
-            self.render_hovering_label(display, mouse)
-
-    def render_hovering_label(self, display: pygame.Surface, mouse: tuple[int, int]):
-        if (index := self.get_hover_box(mouse)) is None:
-            return
-
-        if index >= 3: # buttons are out of bounds
-            return
-        
-        font = pygame.font.Font(str(ASSETS_DIR / "monofur/monof55.ttf"), 22)
-        TextBox(display, self.items[index], mouse[0], mouse[1], font) 
+                    self.experience.subtract(3)
+                    self.enchant_set()  # Remove Enchants
 
 
 class Compressor:

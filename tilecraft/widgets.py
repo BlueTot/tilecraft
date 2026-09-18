@@ -5,9 +5,9 @@ import sys
 import pygame
 
 from tilecraft import ASSETS_DIR, VERSION
-from .constants import Context, Coordinate, Item, ITEM_IMAGE_MAPPING, SCREEN_WIDTH, SCREEN_HEIGHT
+from .constants import Context, Coordinate, Item, ITEM_IMAGE_MAPPING, SCREEN_WIDTH, SCREEN_HEIGHT, Button
 from .player_info import Health, Hunger, Experience
-from .inventory import Inventory, HoldingItem, Armour, SmallCraftingInterface, CraftingTableInterface, FurnaceInterface, RenderDurabilityBar, TextBox
+from .inventory import Inventory, HoldingItem, Armour, SmallCraftingInterface, CraftingTableInterface, FurnaceInterface, EnchantingTable, RenderDurabilityBar, TextBox
 from .game_state import GameState
 
 
@@ -1010,3 +1010,173 @@ class FurnaceWidget(Widget):
         
         font = pygame.font.Font(str(ASSETS_DIR / "monofur/monof55.ttf"), 22)
         TextBox(display, self.furnace.items[index], mouse[0], mouse[1], font) 
+
+
+class EnchantingTableWidget(Widget):
+    """
+        Widget for enchanting table interface to be rendered on the screen
+    """
+
+    CELL_SIZE = 82
+
+    def __init__(self, x: int, y: int, inventory: Inventory, enchanting_table: EnchantingTable, holding_item: HoldingItem):
+        self.x = x
+        self.y = y
+        self.inventory = inventory
+        self.enchanting_table = enchanting_table
+        self.holding_item = holding_item
+
+        self.__font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 25)
+
+        self.upgrade = Button(self.CELL_SIZE, self.CELL_SIZE, self.x + 112, self.y + 142, (158, 145, 115))
+        self.option1 = Button(487, 82, self.x + 255, self.y + 75, (158, 145, 115))
+        self.option2 = Button(487, 82, self.x + 255, self.y + 157, (158, 145, 115))
+        self.option3 = Button(487, 82, self.x + 255, self.y + 240, (158, 145, 115))
+
+        self.__cells: list[pygame.Rect] = [
+            pygame.Rect((self.x + 30, self.y + 225), (self.CELL_SIZE, self.CELL_SIZE)),
+            pygame.Rect((self.x + 112, self.y + 225), (self.CELL_SIZE, self.CELL_SIZE)),
+            pygame.Rect((self.x + 30, self.y + 142), (self.CELL_SIZE, self.CELL_SIZE))
+        ]
+
+        self.__numbers: list[Coordinate] = []
+        for cell in self.__cells:
+            self.__numbers.append(Coordinate(cell.x + 52, cell.y + 52))
+
+        self.__rects: list[pygame.Rect] = [
+            self.__cells[0], self.__cells[1], self.__cells[2], 
+            self.upgrade.rect, self.option1.rect, self.option2.rect, self.option3.rect
+        ]
+
+
+    def handle_event(self, event):
+        mouse = pygame.mouse.get_pos()
+
+        if event.type == pygame.MOUSEBUTTONDOWN: #Mouse Button Down Clicking Event
+            if pygame.mouse.get_pressed(3)[0]: #Left Click
+                self.__handle_left_click(mouse)
+
+            elif pygame.mouse.get_pressed(3)[2]: #Right Click
+                self.__handle_right_click(mouse)
+
+
+    def __get_hover_box(self, mouse: tuple[int, int]) -> Optional[int]:
+        for i, rect in enumerate(self.__rects):
+            if rect.collidepoint(mouse):
+                return i
+        return None
+
+
+    def __handle_left_click(self, mouse: tuple[int, int]) -> None:
+        if (index := self.__get_hover_box(mouse)) is None:
+            return
+
+        # regular cells
+        if index >= 0 and index < 3:
+            if self.holding_item.item is not None and self.enchanting_table.items[index] is not None: #Items can be combined
+                if self.holding_item.item.name == self.enchanting_table.items[index].name and (self.enchanting_table.items[index].number + self.holding_item.item.number <= self.holding_item.item.stackNum):
+                    self.enchanting_table.items[index].number += self.holding_item.item.number
+                    self.holding_item.item = None
+                else:
+                    self.holding_item.item, self.enchanting_table.items[index] = self.enchanting_table.items[index], self.holding_item.item
+            else:
+                self.holding_item.item, self.enchanting_table.items[index] = self.enchanting_table.items[index], self.holding_item.item
+            if index == 0:
+                self.enchanting_table.enchant_set()
+
+        # upgrade button
+        elif index == 3:
+            self.enchanting_table.enchant_upgrade()
+
+        # option 1
+        elif index == 4:
+            self.enchanting_table.enchant1()
+
+        # option 2
+        elif index == 5:
+            self.enchanting_table.enchant2()
+
+        # option 3
+        elif index == 6:
+            self.enchanting_table.enchant3()
+
+
+    def __handle_right_click(self, mouse: tuple[int, int]) -> None:
+        if (index := self.__get_hover_box(mouse)) is None:
+            return
+
+        if index >= 3: # cannot right click on buttons
+            return
+
+        if self.holding_item.item is None:
+            return
+
+        if self.enchanting_table.items[index] is None:
+            self.enchanting_table.items[index] = Item(self.holding_item.item.name, 1, self.holding_item.item.enchantments, self.holding_item.item.durability)
+            self.holding_item.item.number -= 1
+        elif self.enchanting_table.items[index] is not None and self.enchanting_table.items[index].name == self.holding_item.item.name and (self.enchanting_table.items[index].number + 1 <= self.enchanting_table.items[index].stackNum):
+            self.enchanting_table.items[index].number += 1
+            self.holding_item.item.number -= 1
+
+
+    def render(self, display: pygame.Surface, context: Context) -> None:
+
+        mouse = pygame.mouse.get_pos()
+        is_holding = self.holding_item.item is not None
+
+        images = []
+        numbers = []
+
+        # Remove Value if Number is 0
+        for i in range(len(self.enchanting_table.items)):
+            if self.enchanting_table.items[i] is not None:
+                if self.enchanting_table.items[i].number == 0:
+                    self.enchanting_table.items[i] = None
+
+        # Convert List to Images and Numbers
+        for item in self.enchanting_table.items:
+            if item is None:  # Set White Background for NONE Slots
+                images.append(context.ITEM_IMAGES["none_img"])
+                numbers.append('')
+            else:
+                images.append(context.ITEM_IMAGES[ITEM_IMAGE_MAPPING[item.name]])
+                numbers.append(str(item.number))
+
+        # Remove Value if Number is 1
+        for i in range(len(self.enchanting_table.items)):
+            if self.enchanting_table.items[i] is not None:
+                if self.enchanting_table.items[i].number == 1:
+                    numbers[i] = ''
+
+        for i, cell in enumerate(self.__cells):
+            display.blit(images[i], (cell.x, cell.y))
+            pygame.draw.rect(display, (83, 83, 83), cell, 2)
+            if self.enchanting_table.items[i] is not None:
+                if self.enchanting_table.items[i].enchantments is not None:
+                    display.blit(context.TC_GLINTS[self.enchanting_table.items[i].name], (cell.x, cell.y))
+                if self.enchanting_table.items[i].durability is not None:
+                    RenderDurabilityBar(display, cell.x, cell.y, self.enchanting_table.items[i].durability, self.enchanting_table.items[i].max_durability)
+
+        for i, coordinate in enumerate(self.__numbers):
+            surface = self.__font.render(str(numbers[i]), False, (255, 255, 255))
+            display.blit(surface, (coordinate.x, coordinate.y))
+
+        display.blit(self.__font.render(f'Enchanting Table LEVEL {self.enchanting_table.enchanting_level}', False, (0, 0, 0)), (self.x, self.y))
+
+        self.upgrade.render(display, 'Upgrade', 21)
+        self.option1.render(display, self.enchanting_table.option_list[0], 30)
+        self.option2.render(display, self.enchanting_table.option_list[1], 30)
+        self.option3.render(display, self.enchanting_table.option_list[2], 30)
+
+        if not is_holding:
+            self.render_hovering_label(display, mouse)
+
+    def render_hovering_label(self, display: pygame.Surface, mouse: tuple[int, int]):
+        if (index := self.__get_hover_box(mouse)) is None:
+            return
+
+        if index >= 3: # buttons are out of bounds
+            return
+        
+        font = pygame.font.Font(str(ASSETS_DIR / "monofur/monof55.ttf"), 22)
+        TextBox(display, self.enchanting_table.items[index], mouse[0], mouse[1], font) 
