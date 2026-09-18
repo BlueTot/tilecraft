@@ -7,7 +7,7 @@ import pygame
 from tilecraft import ASSETS_DIR, VERSION
 from .constants import Context, Coordinate, Item, ITEM_IMAGE_MAPPING, SCREEN_WIDTH, SCREEN_HEIGHT, Button
 from .player_info import Health, Hunger, Experience
-from .inventory import Inventory, HoldingItem, Armour, SmallCraftingInterface, CraftingTableInterface, FurnaceInterface, EnchantingTable, Compressor, RenderDurabilityBar, TextBox
+from .inventory import Inventory, HoldingItem, Armour, SmallCraftingInterface, CraftingTableInterface, FurnaceInterface, EnchantingTable, Compressor, Grindstone, RenderDurabilityBar, TextBox
 from .game_state import GameState
 
 
@@ -1323,3 +1323,149 @@ class CompressorWidget(Widget):
         
         font = pygame.font.Font(str(ASSETS_DIR / "monofur/monof55.ttf"), 22)
         TextBox(display, self.compressor.items[index], mouse[0], mouse[1], font) 
+
+
+class GrindstoneWidget(Widget):
+    """
+        Repairing and disenchanting interface to be rendered on the screen
+    """
+
+    CELL_SIZE = 82
+
+    def __init__(self, x: int, y: int, inventory: Inventory, grindstone: Grindstone, holding_item: HoldingItem):
+        self.x = x
+        self.y = y
+        self.inventory = inventory
+        self.grindstone = grindstone
+        self.holding_item = holding_item
+
+        self.__font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 25)
+        self.__arrow_font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftBold-nMK1.otf"), 45)
+
+        self.__cells: list[pygame.Rect] = [
+            pygame.Rect((self.x, self.y), (self.CELL_SIZE, self.CELL_SIZE)),
+            pygame.Rect((self.x, self.y + 90), (self.CELL_SIZE, self.CELL_SIZE)),
+            pygame.Rect((self.x + 250, self.y + 46), (self.CELL_SIZE, self.CELL_SIZE))
+        ]
+
+        self.__numbers: list[Coordinate] = []
+        for cell in self.__cells:
+            self.__numbers.append(Coordinate(cell.x, cell.y))
+
+
+    def handle_event(self, event: pygame.event.Event) -> None:
+        mouse = pygame.mouse.get_pos()
+
+        if event.type == pygame.MOUSEBUTTONDOWN: #Mouse Button Down Clicking Event
+            if pygame.mouse.get_pressed(3)[0]: #Left Click
+                self.__handle_left_click(mouse)
+
+            elif pygame.mouse.get_pressed(3)[2]: #Right Click
+                self.__handle_right_click(mouse)
+
+
+    def __get_hover_box(self, mouse: tuple[int, int]) -> Optional[int]:
+        for i, rect in enumerate(self.__cells):
+            if rect.collidepoint(mouse):
+                return i
+        return None
+
+
+    def __handle_left_click(self, mouse: tuple[int, int]) -> None:
+        if (index := self.__get_hover_box(mouse)) is None:
+            return
+
+        # input boxes
+        if index != 2:
+            if self.holding_item.item is not None and self.grindstone.items[index] is not None:  # Items can be combined
+                if self.holding_item.item.name == self.grindstone.items[index].name and (self.grindstone.items[index].number + self.holding_item.item.number <= self.holding_item.item.stackNum):
+                    self.grindstone.items[index].number += self.holding_item.item.number
+                    self.holding_item.item = None
+                else:
+                    self.holding_item.item, self.grindstone.items[index] = self.grindstone.items[index], self.holding_item.item
+            else:
+                self.holding_item.item, self.grindstone.items[index] = self.grindstone.items[index], self.holding_item.item
+
+        # result index
+        else:
+            self.inventory.add(self.grindstone.items[2])
+            if self.grindstone.items[0] is not None and self.grindstone.items[1] is None:
+                if self.grindstone.items[0].enchantments is not None:
+                    self.grindstone.disenchant()
+            self.grindstone.items[0], self.grindstone.items[1], self.grindstone.items[2] = None, None, None
+
+
+    def __handle_right_click(self, mouse: tuple[int, int]) -> None:
+        if (index := self.__get_hover_box(mouse)) is None:
+            return
+
+        if index == 2: # cannot right click on results box
+            return
+
+        if self.holding_item.item is None:
+            return
+
+        if self.grindstone.items[index] is None:
+            self.grindstone.items[index] = Item(self.holding_item.item.name, 1, self.holding_item.item.enchantments, self.holding_item.item.durability)
+            self.holding_item.item.number -= 1
+        elif self.grindstone.items[index] is not None and self.grindstone.items[index].name == self.holding_item.item.name and (self.grindstone.items[index].number + 1 <= self.grindstone.items[index].stackNum):
+            self.grindstone.items[index].number += 1
+            self.holding_item.item.number -= 1
+
+
+    def render(self, display: pygame.Surface, context: Context):
+
+        mouse = pygame.mouse.get_pos()
+        is_holding = self.holding_item.item is not None
+
+        images = []
+        numbers = []
+
+        # Remove Value if Number is 0
+        for i in range(len(self.grindstone.items)):
+            if self.grindstone.items[i] is not None:
+                if self.grindstone.items[i].number == 0:
+                    self.grindstone.items[i] = None
+
+        for item in self.grindstone.items:
+            if item is None:  # Set Background for NONE Slots
+                images.append(context.ITEM_IMAGES["none_img"])
+                numbers.append('')
+            else:
+                images.append(context.ITEM_IMAGES[ITEM_IMAGE_MAPPING[item.name]])
+                numbers.append(str(item.number))
+
+        # Remove Value if Number is 1
+        for i in range(len(self.grindstone.items)):
+            if self.grindstone.items[i] is not None:
+                if self.grindstone.items[i].number == 1:
+                    numbers[i] = ''
+
+        for i, cell in enumerate(self.__cells):
+            display.blit(images[i], (cell.x, cell.y))
+            pygame.draw.rect(display, (83, 83, 83), cell, 2)
+            if self.grindstone.items[i] is not None:
+                if self.grindstone.items[i].enchantments is not None:
+                    display.blit(context.TC_GLINTS[self.grindstone.items[i].name], (cell.x, cell.y))
+                if self.grindstone.items[i].durability is not None:
+                    RenderDurabilityBar(display, cell.x, cell.y, self.grindstone.items[i].durability, self.grindstone.items[i].max_durability)
+
+        for i, coordinate in enumerate(self.__numbers):
+            surface = self.__font.render(numbers[i], False, (255, 255, 255))
+            display.blit(surface, (coordinate.x, coordinate.y))
+
+        pygame.draw.rect(display, (0, 0, 0), (self.x - 10, self.y - 10, 102, 194), 2)
+        pygame.draw.rect(display, (0, 0, 0), (self.x - 40, self.y + 10, 30, 194), 2)
+        pygame.draw.rect(display, (0, 0, 0), (self.x + 92, self.y + 10, 30, 194), 2)
+        display.blit(self.__arrow_font.render('-->', False, (0, 0, 0)), (self.x + 142, self.y + 65))  # Render Arrow
+
+        if not is_holding:
+            self.render_hovering_item(display, mouse)
+
+
+    def render_hovering_item(self, display: pygame.Surface, mouse: tuple[int, int]):
+        if (index := self.__get_hover_box(mouse)) is None:
+            return
+        
+        font = pygame.font.Font(str(ASSETS_DIR / "monofur/monof55.ttf"), 22)
+        TextBox(display, self.grindstone.items[index], mouse[0], mouse[1], font) 

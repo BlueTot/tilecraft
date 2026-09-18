@@ -510,27 +510,20 @@ class Compressor:
 
 
 class Grindstone:
-    def __init__(self):
+    """
+        Grindstone interface for player to repair and disenchant 
+        Consists of two input slots and one output slot
+    """
+
+    def __init__(self, experience: Experience):
+        self.experience = experience
         self.items: list[Optional[Item]] = [None, None, None]
-
-        self.__font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 25)
-        self.__title_font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 35)
-        self.__arrow_font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftBold-nMK1.otf"), 45)
-
-        self.__CELLS: list[pygame.Rect] = [
-            pygame.Rect((225, 87), (82, 82)),
-            pygame.Rect((225, 177), (82, 82)),
-            pygame.Rect((475, 133), (82, 82))
-        ]
-
-        self.__NUMBERS: list[Coordinate] = [
-            Coordinate(277, 139),
-            Coordinate(277, 229),
-            Coordinate(527, 185)
-        ]
 
 
     def repair_and_disenchant(self):
+        """
+            Update the result slot's information
+        """
         if self.items[0] is not None and self.items[1] is None:
             if self.items[0].enchantments is not None:
                 self.items[2] = Item(self.items[0].name, self.items[0].number, None, self.items[0].durability)
@@ -546,118 +539,13 @@ class Grindstone:
         self.items[2] = None
 
 
-    def disenchant(self, experience: Experience):
+    def disenchant(self):
+        """
+            Add experience to player
+        """
         enchantments = self.items[0].enchantments
         for i in enchantments:
-            experience.add_points(int(i[1]) * 8)
-
-
-    # interface method?
-    def get_hover_box(self, mouse: tuple[int, int]) -> Optional[int]:
-        for i, rect in enumerate(self.__CELLS):
-            if rect.collidepoint(mouse):
-                return i
-        return None
-
-
-    # interface method?
-    def handle_left_click(self, mouse: tuple[int, int], holding_item: HoldingItem, inventory: Inventory, experience: Experience) -> None:
-        if (index := self.get_hover_box(mouse)) is None:
-            return
-
-        # input boxes
-        if index != 2:
-            if holding_item.item is not None and self.items[index] is not None:  # Items can be combined
-                if holding_item.item.name == self.items[index].name and (self.items[index].number + holding_item.item.number <= holding_item.item.stackNum):
-                    self.items[index].number += holding_item.item.number
-                    holding_item.item = None
-                else:
-                    holding_item.item, self.items[index] = self.items[index], holding_item.item
-            else:
-                holding_item.item, self.items[index] = self.items[index], holding_item.item
-
-        # result index
-        else:
-            inventory.add(self.items[2])
-            if self.items[0] is not None and self.items[1] is None:
-                if self.items[0].enchantments is not None:
-                    self.disenchant(experience)
-            self.items[0], self.items[1], self.items[2] = None, None, None
-
-
-    # interface method?
-    def handle_right_click(self, mouse: tuple[int, int], holding_item: HoldingItem) -> None:
-        if (index := self.get_hover_box(mouse)) is None:
-            return
-
-        if index == 2: # cannot right click on results box
-            return
-
-        if holding_item.item is None:
-            return
-
-        if self.items[index] is None:
-            self.items[index] = Item(holding_item.item.name, 1, holding_item.item.enchantments, holding_item.item.durability)
-            holding_item.item.number -= 1
-        elif self.items[index] is not None and self.items[index].name == holding_item.item.name and (self.items[index].number + 1 <= self.items[index].stackNum):
-            self.items[index].number += 1
-            holding_item.item.number -= 1
-
-
-    def render(self, display: pygame.Surface, context: Context, mouse: tuple[int, int], is_holding: bool):
-
-        images = []
-        numbers = []
-
-        # Remove Value if Number is 0
-        for i in range(len(self.items)):
-            if self.items[i] is not None:
-                if self.items[i].number == 0:
-                    self.items[i] = None
-
-        for item in self.items:
-            if item is None:  # Set Background for NONE Slots
-                images.append(context.ITEM_IMAGES["none_img"])
-                numbers.append('')
-            else:
-                images.append(context.ITEM_IMAGES[ITEM_IMAGE_MAPPING[item.name]])
-                numbers.append(str(item.number))
-
-        # Remove Value if Number is 1
-        for i in range(len(self.items)):
-            if self.items[i] is not None:
-                if self.items[i].number == 1:
-                    numbers[i] = ''
-
-        display.blit(self.__title_font.render("Repair & Disenchant", False, (0, 0, 0)), (90, 0))
-
-        for i, cell in enumerate(self.__CELLS):
-            display.blit(images[i], (cell.x, cell.y))
-            pygame.draw.rect(display, (83, 83, 83), cell, 2)
-            if self.items[i] is not None:
-                if self.items[i].enchantments is not None:
-                    display.blit(context.TC_GLINTS[self.items[i].name], (cell.x, cell.y))
-                if self.items[i].durability is not None:
-                    RenderDurabilityBar(display, cell.x, cell.y, self.items[i].durability, self.items[i].max_durability)
-
-        for i, coordinate in enumerate(self.__NUMBERS):
-            surface = self.__font.render(numbers[i], False, (255, 255, 255))
-            display.blit(surface, (coordinate.x, coordinate.y))
-
-        pygame.draw.rect(display, (0, 0, 0), (215, 77, 102, 194), 2)
-        pygame.draw.rect(display, (0, 0, 0), (185, 97, 30, 194), 2)
-        pygame.draw.rect(display, (0, 0, 0), (317, 97, 30, 194), 2)
-        display.blit(self.__arrow_font.render('-->', False, (0, 0, 0)), (367, 152))  # Render Arrow
-
-        if not is_holding:
-            self.render_hovering_item(display, mouse)
-
-    def render_hovering_item(self, display: pygame.Surface, mouse: tuple[int, int]):
-        if (index := self.get_hover_box(mouse)) is None:
-            return
-        
-        font = pygame.font.Font(str(ASSETS_DIR / "monofur/monof55.ttf"), 22)
-        TextBox(display, self.items[index], mouse[0], mouse[1], font) 
+            self.experience.add_points(int(i[1]) * 8)
 
 
 #Convert Numbers to Roman Numerals

@@ -71,7 +71,7 @@ class Player:
         self.furnace = FurnaceInterface(context) # furnace interface
         self.enchanting_table = EnchantingTable(self.rng, self.experience) # enchanting table interface
         self.compressor = Compressor() # compressor interface
-        self.grindstone = Grindstone() # grindstone interface
+        self.grindstone = Grindstone(self.experience) # grindstone interface
         self.holding_item = HoldingItem()
 
 

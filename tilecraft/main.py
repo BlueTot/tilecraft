@@ -14,7 +14,7 @@ from .ui.text_input import TextInput
 from .ui.drop_down_menu import Dropdown
 from .ui.button import Button
 from .ui.scrollable_text_box import ScrollableTextBox
-from .widgets import InventoryWidget, ArmourWidget, SmallCraftingWidget, HotbarWidget, ExperienceBarWidget, HealthBarWidget, HungerBarWidget, DebugWidget, CraftingTableWidget, FurnaceWidget, EnchantingTableWidget, CompressorWidget
+from .widgets import InventoryWidget, ArmourWidget, SmallCraftingWidget, HotbarWidget, ExperienceBarWidget, HealthBarWidget, HungerBarWidget, DebugWidget, CraftingTableWidget, FurnaceWidget, EnchantingTableWidget, CompressorWidget, GrindstoneWidget
 from .world import TilecraftWorld
 
 
@@ -469,38 +469,45 @@ class GrindstoneScreen(Interface):
     def __init__(self, display, context, game_state):
         super().__init__(display, context, game_state)
         self.inventory_widget = InventoryWidget(0, 390, self.game_state.player.inventory, self.game_state.player.holding_item)
+        self.grindstone_widget = GrindstoneWidget(
+            225, 87,
+            self.game_state.player.inventory,
+            self.game_state.player.grindstone,
+            self.game_state.player.holding_item
+        )
 
 
     def handle_event(self, event: pygame.event.Event) -> None:
-        mouse = pygame.mouse.get_pos()
 
         self.inventory_widget.handle_event(event)
+        self.grindstone_widget.handle_event(event)
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_e: # Exit 
                 self.next_screen = GameScreen(self.display, self.context, self.game_state)
 
-        elif event.type == pygame.MOUSEBUTTONDOWN: #Mouse Button Down Clicking Event
-            
-            if pygame.mouse.get_pressed(3)[0]: #Left Click
-                self.game_state.player.grindstone.handle_left_click(mouse, self.game_state.player.holding_item, self.game_state.player.inventory, self.game_state.player.experience)
-
-            elif pygame.mouse.get_pressed(3)[2]: #Right Click
-                self.game_state.player.grindstone.handle_right_click(mouse, self.game_state.player.holding_item)
-
-        return
 
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> None:
-        mouse = pygame.mouse.get_pos()
         self.display.fill((0, 0, 0))
         world_map.fill((211, 211, 211))
 
-        is_holding = self.game_state.player.holding_item.item is not None
-        self.inventory_widget.render(world_map, self.context)
-        self.game_state.player.grindstone.render(world_map, self.context, mouse, is_holding) #Render Grindstone Interface
+        # update logic
         self.game_state.player.grindstone.repair_and_disenchant() #Update repaired/disenchanted item
-
         self.game_state.player.remove_items() #Remove all items with number of 0 or durability of 0
+
+        # render title centered 
+        font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 35)
+        surface = font.render("Repair & Disenchant", False, (0, 0, 0))
+        rect = surface.get_rect(center=(SCREEN_WIDTH // 2, 35))
+        world_map.blit(surface, (rect.x, rect.y))
+
+        # render inventory widget
+        self.inventory_widget.render(world_map, self.context)
+
+        # render grindstone widget
+        self.grindstone_widget.render(world_map, self.context)
+
+        # render holding item
         self.game_state.player.holding_item.render(world_map, self.context) #Render the item the user is holding
 
         self.display.blit(world_map, (0, 0))  # Render map to self.display
