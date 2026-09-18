@@ -14,7 +14,7 @@ from .ui.text_input import TextInput
 from .ui.drop_down_menu import Dropdown
 from .ui.button import Button
 from .ui.scrollable_text_box import ScrollableTextBox
-from .widgets import InventoryWidget, ArmourWidget, SmallCraftingWidget, HotbarWidget, ExperienceBarWidget, HealthBarWidget, HungerBarWidget, DebugWidget, CraftingTableWidget, FurnaceWidget, EnchantingTableWidget, CompressorWidget, GrindstoneWidget
+from .widgets import InventoryWidget, ArmourWidget, SmallCraftingWidget, HotbarWidget, ExperienceBarWidget, HealthBarWidget, HungerBarWidget, DebugWidget, CraftingTableWidget, FurnaceWidget, EnchantingTableWidget, CompressorWidget, GrindstoneWidget, HoldingItemWidget
 from .world import TilecraftWorld
 
 
@@ -240,6 +240,7 @@ class InventoryScreen(Interface):
             self.game_state.player.craft_interface, 
             self.game_state.player.holding_item
         )
+        self.holding_item_widget = HoldingItemWidget(self.game_state.player.holding_item)
 
 
     def handle_event(self, event: pygame.event.Event) -> None:
@@ -247,6 +248,7 @@ class InventoryScreen(Interface):
         self.inventory_widget.handle_event(event)
         self.armour_widget.handle_event(event)
         self.small_crafting_widget.handle_event(event)
+        self.holding_item_widget.handle_event(event)
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_e: # Exit 
@@ -266,7 +268,7 @@ class InventoryScreen(Interface):
         self.inventory_widget.render(world_map, self.context)
         self.armour_widget.render(world_map, self.context)
         self.small_crafting_widget.render(world_map, self.context)
-        self.game_state.player.holding_item.render(world_map, self.context)
+        self.holding_item_widget.render(world_map, self.context)
 
         self.display.blit(world_map, (0, 0))  # Render map to self.display
 
@@ -285,12 +287,14 @@ class CraftingScreen(Interface):
             self.game_state.player.crafting_grid,
             self.game_state.player.holding_item
         )
+        self.holding_item_widget = HoldingItemWidget(self.game_state.player.holding_item)
 
 
     def handle_event(self, event: pygame.event.Event) -> None:
 
         self.inventory_widget.handle_event(event)
         self.crafting_table_widget.handle_event(event)
+        self.holding_item_widget.handle_event(event)
         
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_e: # Exit 
@@ -316,7 +320,7 @@ class CraftingScreen(Interface):
         self.crafting_table_widget.render(world_map, self.context)
 
         # render holding item
-        self.game_state.player.holding_item.render(world_map, self.context)
+        self.holding_item_widget.render(world_map, self.context)
 
         self.display.blit(world_map, (0, 0))  # Render map to self.display
 
@@ -335,12 +339,14 @@ class SmeltingScreen(Interface):
             self.game_state.player.furnace,
             self.game_state.player.holding_item
         ) 
+        self.holding_item_widget = HoldingItemWidget(self.game_state.player.holding_item)
 
 
     def handle_event(self, event: pygame.event.Event) -> None:
 
         self.inventory_widget.handle_event(event)
         self.furnace_widget.handle_event(event)
+        self.holding_item_widget.handle_event(event)
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_e: # Exit 
@@ -365,7 +371,8 @@ class SmeltingScreen(Interface):
         # render furnace widget
         self.furnace_widget.render(world_map, self.context, fps)
 
-        self.game_state.player.holding_item.render(world_map, self.context) #Render the item the user is holding
+        # render holding item
+        self.holding_item_widget.render(world_map, self.context)
 
         self.display.blit(world_map, (0, 0))  # Render map to self.display
 
@@ -384,12 +391,14 @@ class EnchantingScreen(Interface):
             self.game_state.player.enchanting_table,
             self.game_state.player.holding_item
         )
+        self.holding_item_widget = HoldingItemWidget(self.game_state.player.holding_item)
 
 
     def handle_event(self, event: pygame.event.Event) -> None:
 
         self.inventory_widget.handle_event(event)
         self.enchanting_widget.handle_event(event)
+        self.holding_item_widget.handle_event(event)
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_e: # Exit 
@@ -406,7 +415,7 @@ class EnchantingScreen(Interface):
         # render logic
         self.inventory_widget.render(world_map, self.context)
         self.enchanting_widget.render(world_map, self.context)
-        self.game_state.player.holding_item.render(world_map, self.context) #Render the item the user is holding
+        self.holding_item_widget.render(world_map, self.context)
 
         self.display.blit(world_map, (0, 0))  # Render map to self.display
 
@@ -425,12 +434,14 @@ class CompressingScreen(Interface):
             self.game_state.player.compressor,
             self.game_state.player.holding_item
         )
+        self.holding_item_widget = HoldingItemWidget(self.game_state.player.holding_item)
 
 
     def handle_event(self, event: pygame.event.Event) -> None:
 
         self.inventory_widget.handle_event(event)
         self.compressing_widget.handle_event(event)
+        self.holding_item_widget.handle_event(event)
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_e: # Exit 
@@ -456,7 +467,7 @@ class CompressingScreen(Interface):
         self.compressing_widget.render(world_map, self.context, fps)
 
         # render holding item
-        self.game_state.player.holding_item.render(world_map, self.context) #Render the item the user is holding
+        self.holding_item_widget.render(world_map, self.context)
 
         self.display.blit(world_map, (0, 0))  # Render map to self.display
 
@@ -475,12 +486,14 @@ class GrindstoneScreen(Interface):
             self.game_state.player.grindstone,
             self.game_state.player.holding_item
         )
+        self.holding_item_widget = HoldingItemWidget(self.game_state.player.holding_item)
 
 
     def handle_event(self, event: pygame.event.Event) -> None:
 
         self.inventory_widget.handle_event(event)
         self.grindstone_widget.handle_event(event)
+        self.holding_item_widget.handle_event(event)
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_e: # Exit 
@@ -508,7 +521,7 @@ class GrindstoneScreen(Interface):
         self.grindstone_widget.render(world_map, self.context)
 
         # render holding item
-        self.game_state.player.holding_item.render(world_map, self.context) #Render the item the user is holding
+        self.holding_item_widget.render(world_map, self.context)
 
         self.display.blit(world_map, (0, 0))  # Render map to self.display
 

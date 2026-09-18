@@ -1,63 +1,18 @@
 from __future__ import annotations
 
 from typing import Optional
-import pygame
-import math
 
-from tilecraft import ASSETS_DIR
-from .constants import Coordinate, Item, Context, ITEM_IMAGE_MAPPING, CRAFTING_RECIPES, RandomNumberGenerator 
+from .constants import Item, Context, CRAFTING_RECIPES, RandomNumberGenerator 
 from .player_info import Experience
 
 
-def DurabilityBar(durability, max_durability):
-    durabilityPercent = math.floor((durability / max_durability) * 100)
-    if durabilityPercent == 100:
-        return None
-    elif 75 < durabilityPercent <= 99:
-        return "#00ff00"
-    elif 50 < durabilityPercent <= 75:
-        return "#ffff00"
-    elif 25 < durabilityPercent <= 50:
-        return "#ff8000"
-    elif 5 < durabilityPercent <= 25:
-        return "#ff0000"
-    elif 0 < durabilityPercent <= 5:
-        return "#000000"
-
-def RenderDurabilityBar(display, x, y, durability, max_durability):
-    colour = DurabilityBar(durability, max_durability)
-    if colour is not None:
-        pygame.draw.rect(display, (0, 0, 0), (x + 5, y + 72, 72, 5))
-        pygame.draw.rect(display, colour, (x + 5, y + 72, math.floor(72 * durability / max_durability), 5))
-
-
 class HoldingItem:
+    """
+        Item that the user is holding in the inventory menus
+        Can be an item or nothing.
+    """
     def __init__(self):
         self.item: Optional[Item] = None
-        self.__font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 25)
-
-    def render(self, display: pygame.Surface, context: Context):
-
-        if self.item is None:
-            image = context.ITEM_IMAGES["none_img"]
-            number = ''
-        else:
-            image = context.ITEM_IMAGES[ITEM_IMAGE_MAPPING[self.item.name]]
-            number = str(self.item.number)
-
-        if self.item is not None:
-            if self.item.number == 1:
-                number = ''
-
-        x, y = pygame.mouse.get_pos()
-
-        if self.item is not None:
-            display.blit(image, (x, y))
-            display.blit(self.__font.render(number, False, (255, 255, 255)), (x + 52, y + 52))
-            if self.item.enchantments is not None:
-                display.blit(context.TC_GLINTS[self.item.name], (x, y))
-            if self.item.durability is not None:
-                RenderDurabilityBar(display, x, y, self.item.durability, self.item.max_durability)
 
 
 class Inventory:
@@ -546,55 +501,3 @@ class Grindstone:
         enchantments = self.items[0].enchantments
         for i in enchantments:
             self.experience.add_points(int(i[1]) * 8)
-
-
-#Convert Numbers to Roman Numerals
-def DecimalToRoman(num):
-    num = int(num)
-    nums = [1, 4, 5, 9, 10, 40, 50, 90, 100, 400, 500, 900, 1000]
-    symbols = ["I", "IV", "V", "IX", "X", "XL", "L", "XC", "C", "CD", "D", "CM", "M"]
-    i = 12
-    roman_value = ""
-    while num:
-        div = num // nums[i]
-        num %= nums[i]
-        while div:
-            roman_value += symbols[i]
-            div -= 1
-        i -= 1
-    return roman_value
-
-
-#Info Box for Items (with and without enchantments)
-def TextBox(display: pygame.Surface, item: Item, x: int, y: int, font: pygame.font.Font):
-    try:
-        if item is not None: #Check to prevent crashes
-            length_list = [len(item.name * 15)]
-            if item.enchantments is not None:
-                width = (1 + len(item.enchantments)) * 37
-                for i in item.enchantments:
-                    length_list.append(len(str(i[0]) + DecimalToRoman(str(i[1]))) * 15)
-            else:
-                width = 37
-            if item.durability is not None:
-                width += 22
-                length_list.append(len(f"Durability: {item.durability}/{item.max_durability}") * 15)
-            length = max(length_list)
-            if x + length > 750:
-                x -= length
-            if y + width > 750:
-                y -= width
-            pygame.draw.rect(display, (0, 0, 0), (x, y, length, width))
-            display.blit(font.render(item.name, False, item.colour), (x + 15, y + 15))
-            if item.durability is not None: #WITH DURABILITY
-                if item.enchantments is not None:
-                    for i in range(len(item.enchantments)):
-                        display.blit(font.render(f'{item.enchantments[i][0]} {DecimalToRoman(item.enchantments[i][1])}', False, (175, 175, 175)), (x + 15, y + 15 + (i + 1) * 22))
-                display.blit(font.render(f"Durability: {item.durability}/{item.max_durability}", False, (175, 175, 175)), (x + 15, y + width - 20))
-            else: #EVERYTHING ELSE
-                if item.enchantments is not None:
-                    for i in range(len(item.enchantments)):
-                        display.blit(font.render(f'{item.enchantments[i][0]} {DecimalToRoman(item.enchantments[i][1])}', False, (175, 175, 175)), (x + 15, y + 15 + (i + 1) * 22))
-    except IndexError:
-        pass
-
