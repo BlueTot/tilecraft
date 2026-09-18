@@ -14,7 +14,7 @@ from .ui.text_input import TextInput
 from .ui.drop_down_menu import Dropdown
 from .ui.button import Button
 from .ui.scrollable_text_box import ScrollableTextBox
-from .widgets import InventoryWidget, ArmourWidget, SmallCraftingWidget, HotbarWidget, ExperienceBarWidget, HealthBarWidget, HungerBarWidget, DebugWidget, CraftingTableWidget, FurnaceWidget, EnchantingTableWidget
+from .widgets import InventoryWidget, ArmourWidget, SmallCraftingWidget, HotbarWidget, ExperienceBarWidget, HealthBarWidget, HungerBarWidget, DebugWidget, CraftingTableWidget, FurnaceWidget, EnchantingTableWidget, CompressorWidget
 from .world import TilecraftWorld
 
 
@@ -419,38 +419,43 @@ class CompressingScreen(Interface):
     def __init__(self, display, context, game_state):
         super().__init__(display, context, game_state)
         self.inventory_widget = InventoryWidget(0, 390, self.game_state.player.inventory, self.game_state.player.holding_item)
+        self.compressing_widget = CompressorWidget(
+            225, 142,
+            self.game_state.player.inventory,
+            self.game_state.player.compressor,
+            self.game_state.player.holding_item
+        )
 
 
     def handle_event(self, event: pygame.event.Event) -> None:
-        mouse = pygame.mouse.get_pos()
 
         self.inventory_widget.handle_event(event)
+        self.compressing_widget.handle_event(event)
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_e: # Exit 
                 self.next_screen = GameScreen(self.display, self.context, self.game_state)
 
-        elif event.type == pygame.MOUSEBUTTONDOWN: #Mouse Button Down Clicking Event
-            
-            if pygame.mouse.get_pressed(3)[0]: #Left Click
-                self.game_state.player.compressor.handle_left_click(mouse, self.game_state.player.holding_item, self.game_state.player.inventory)
-
-            elif pygame.mouse.get_pressed(3)[2]: #Right Click
-                self.game_state.player.compressor.handle_right_click(mouse, self.game_state.player.holding_item)
-
-        return
 
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> None:
-        mouse = pygame.mouse.get_pos()
         self.display.fill((0, 0, 0))
         world_map.fill((211, 211, 211))
 
-        is_holding = self.game_state.player.holding_item.item is not None
-        self.inventory_widget.render(world_map, self.context)
-        self.game_state.player.compressor.render(world_map, self.context, mouse, fps, is_holding) #Render Compressor Interface
+        # update logic
         self.game_state.player.compressor.compress(fps) #Compressing Process
-
         self.game_state.player.remove_items() #Remove all items with number of 0 or durability of 0
+
+        # render title
+        font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 40)
+        world_map.blit(font.render('Compressor', False, (0, 0, 0)), (262, 0))
+
+        # render inventory widget
+        self.inventory_widget.render(world_map, self.context)
+
+        # render compressor widget
+        self.compressing_widget.render(world_map, self.context, fps)
+
+        # render holding item
         self.game_state.player.holding_item.render(world_map, self.context) #Render the item the user is holding
 
         self.display.blit(world_map, (0, 0))  # Render map to self.display

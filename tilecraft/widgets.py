@@ -7,7 +7,7 @@ import pygame
 from tilecraft import ASSETS_DIR, VERSION
 from .constants import Context, Coordinate, Item, ITEM_IMAGE_MAPPING, SCREEN_WIDTH, SCREEN_HEIGHT, Button
 from .player_info import Health, Hunger, Experience
-from .inventory import Inventory, HoldingItem, Armour, SmallCraftingInterface, CraftingTableInterface, FurnaceInterface, EnchantingTable, RenderDurabilityBar, TextBox
+from .inventory import Inventory, HoldingItem, Armour, SmallCraftingInterface, CraftingTableInterface, FurnaceInterface, EnchantingTable, Compressor, RenderDurabilityBar, TextBox
 from .game_state import GameState
 
 
@@ -1180,3 +1180,146 @@ class EnchantingTableWidget(Widget):
         
         font = pygame.font.Font(str(ASSETS_DIR / "monofur/monof55.ttf"), 22)
         TextBox(display, self.enchanting_table.items[index], mouse[0], mouse[1], font) 
+
+
+class CompressorWidget(Widget):
+    """
+        Widget to show the compressing interface on the screen
+    """
+
+    X = 225 
+    Y = 142
+    CELL_SIZE = 82
+
+    def __init__(self, x: int, y: int, inventory: Inventory, compressor: Compressor, holding_item: HoldingItem):
+        self.x = x
+        self.y = y
+        self.inventory = inventory
+        self.compressor = compressor
+        self.holding_item = holding_item
+
+        self.__font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 25)
+        self.__arrow_font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftBold-nMK1.otf"), 45)
+        self.__side_font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 36)
+
+        self.__cells: list[pygame.Rect] = [
+            pygame.Rect((self.x, self.y), (self.CELL_SIZE, self.CELL_SIZE)),
+            pygame.Rect((self.x + 225, self.y), (self.CELL_SIZE, self.CELL_SIZE))
+        ]
+
+        self.__numbers: list[Coordinate] = []
+        for cell in self.__cells:
+            self.__numbers.append(Coordinate(cell.x + 52, cell.y + 52))
+
+
+    def handle_event(self, event):
+        mouse = pygame.mouse.get_pos()
+
+        if event.type == pygame.MOUSEBUTTONDOWN: #Mouse Button Down Clicking Event
+            if pygame.mouse.get_pressed(3)[0]: #Left Click
+                self.__handle_left_click(mouse)
+
+            elif pygame.mouse.get_pressed(3)[2]: #Right Click
+                self.__handle_right_click(mouse)
+
+
+    def __get_hover_box(self, mouse: tuple[int, int]) -> Optional[int]:
+        for i, rect in enumerate(self.__cells):
+            if rect.collidepoint(mouse):
+                return i
+        return None
+
+
+    def __handle_left_click(self, mouse: tuple[int, int]) -> None:
+        if (index := self.__get_hover_box(mouse)) is None:
+            return
+
+        # input box
+        if index != 1:
+            if self.holding_item.item is not None and self.compressor.items[index] is not None: #Items can be combined
+                if self.holding_item.item.name == self.compressor.items[index].name and (self.compressor.items[index].number + self.holding_item.item.number <= self.holding_item.item.stackNum):
+                    self.compressor.items[index].number += self.holding_item.item.number
+                    self.holding_item.item = None
+                else:
+                    self.holding_item.item, self.compressor.items[index] = self.compressor.items[index], self.holding_item.item
+            else:
+                self.holding_item.item, self.compressor.items[index] = self.compressor.items[index], self.holding_item.item
+
+        # result index
+        else:
+            self.inventory.add(self.compressor.items[1])
+            self.compressor.items[1] = None
+
+
+    def __handle_right_click(self, mouse: tuple[int, int]) -> None:
+        if (index := self.__get_hover_box(mouse)) is None:
+            return
+
+        if index == 1: # cannot right click on result box
+            return
+
+        if self.holding_item.item is None:
+            return
+
+        if self.compressor.items[index] is None:
+            self.compressor.items[index] = Item(self.holding_item.item.name, 1, self.holding_item.item.enchantments, self.holding_item.item.durability)
+            self.holding_item.item.number -= 1
+        elif self.compressor.items[index] is not None and self.compressor.items[index].name == self.holding_item.item.name and (self.compressor.items[index].number + 1 <= self.compressor.items[index].stackNum):
+            self.compressor.items[index].number += 1
+            self.holding_item.item.number -= 1
+
+
+    def render(self, display: pygame.Surface, context: Context, fps: float):
+
+        mouse = pygame.mouse.get_pos()
+        is_holding = self.holding_item.item is not None
+
+        images = []
+        numbers = []
+
+        # Remove Value if Number is 0
+        for i in range(len(self.compressor.items)):
+            if self.compressor.items[i] is not None:
+                if self.compressor.items[i].number == 0:
+                    self.compressor.items[i] = None
+
+        for item in self.compressor.items:
+            if item is None: #Set Background for NONE Slots
+                images.append(context.ITEM_IMAGES["none_img"])
+                numbers.append('')
+            else:
+                images.append(context.ITEM_IMAGES[ITEM_IMAGE_MAPPING[item.name]])
+                numbers.append(str(item.number))
+
+        # Remove Value if Number is 1
+        for i in range(len(self.compressor.items)):
+            if self.compressor.items[i] is not None:
+                if self.compressor.items[i].number == 1:
+                    numbers[i] = ''
+
+        
+        for i, cell in enumerate(self.__cells):
+            display.blit(images[i], (cell.x, cell.y))
+            pygame.draw.rect(display, (83, 83, 83), cell, 2)
+            if self.compressor.items[i] is not None:
+                if self.compressor.items[i].enchantments is not None:
+                    display.blit(context.TC_GLINTS[self.compressor.items[i].name], (cell.x, cell.y))
+                if self.compressor.items[i].durability is not None:
+                    RenderDurabilityBar(display, cell.x, cell.y, self.compressor.items[i].durability, self.compressor.items[i].max_durability)
+        
+        for i, coordinate in enumerate(self.__numbers):
+            surface = self.__font.render(numbers[i], False, (255, 255, 255))
+            display.blit(surface, (coordinate.x, coordinate.y))
+
+        display.blit(self.__arrow_font.render('-->', False, (0, 0, 0)), (self.x + 112, self.y + 30))  # Render Arrow
+        display.blit(self.__side_font.render(f"{int(self.compressor.compressing_time / fps)}", False, (255, 0, 0)), (self.x + 135, self.y))  # Render Time to Compress
+
+        if not is_holding:
+            self.render_hovering_item(display, mouse)
+
+    def render_hovering_item(self, display: pygame.Surface, mouse: tuple[int, int]):
+        if (index := self.__get_hover_box(mouse)) is None:
+            return
+        
+        font = pygame.font.Font(str(ASSETS_DIR / "monofur/monof55.ttf"), 22)
+        TextBox(display, self.compressor.items[index], mouse[0], mouse[1], font) 
