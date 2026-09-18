@@ -5,6 +5,9 @@ import os
 
 from tilecraft import ASSETS_DIR
 
+SCREEN_WIDTH = 750
+SCREEN_HEIGHT = 750
+
 class Button:
     def __init__(self, length, width, x, y, colour):
         self.length = length
