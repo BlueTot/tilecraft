@@ -14,6 +14,7 @@ from .player import Player
 from .ui.text_input import TextInput
 from .ui.drop_down_menu import Dropdown
 from .ui.button import Button
+from .ui.widget import Widget
 from .ui.scrollable_text_box import ScrollableTextBox
 from .widgets import InventoryWidget, ArmourWidget, SmallCraftingWidget, HotbarWidget, ExperienceBarWidget, HealthBarWidget, HungerBarWidget, DebugWidget, CraftingTableWidget, FurnaceWidget, EnchantingTableWidget, CompressorWidget, GrindstoneWidget, HoldingItemWidget
 from .world import TilecraftWorld
@@ -69,6 +70,7 @@ class GameScreen(GameRunningScreen):
 
     def __init__(self, display, context, game_state):
         super().__init__(display, context, game_state)
+
         self.health_bar_widget = HealthBarWidget(self.game_state.player.health)
         self.hunger_bar_widget = HungerBarWidget(self.game_state.player.hunger)
         self.experience_bar_widget = ExperienceBarWidget(self.game_state.player.experience)
@@ -183,7 +185,10 @@ class GameScreen(GameRunningScreen):
 
     def update(self, fps: float) -> None:
         super().update(fps)
-        self.game_state.play_time_seconds = (pygame.time.get_ticks() - self.game_state.start_ticks) / 1000.0
+        self.debug_widget.update(fps)
+        self.game_state.play_time_seconds = (
+            pygame.time.get_ticks() - self.game_state.start_ticks
+        ) / 1000.0
 
 
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> None:
@@ -224,7 +229,7 @@ class GameScreen(GameRunningScreen):
         self.game_state.player.render(world_map)
 
         if self.game_state.debug_mode:
-            self.debug_widget.render(world_map, self.context, fps)
+            self.debug_widget.render(world_map, self.context)
 
         self.health_bar_widget.render(world_map, self.context)
         self.hunger_bar_widget.render(world_map, self.context)
@@ -247,36 +252,43 @@ class InventoryScreen(GameRunningScreen):
 
     def __init__(self, display, context, game_state):
         super().__init__(display, context, game_state)
-        self.inventory_widget = InventoryWidget(
-            0, 390, 
-            self.game_state.player.inventory, 
-            self.game_state.player.holding_item
-        )
-        self.armour_widget = ArmourWidget(
-            0, 0, 
-            self.game_state.player.armour, 
-            self.game_state.player.holding_item
-        )
-        self.small_crafting_widget = SmallCraftingWidget(
-            390, 75, 
-            self.game_state.player.inventory, 
-            self.game_state.player.craft_interface, 
-            self.game_state.player.holding_item
-        )
-        self.holding_item_widget = HoldingItemWidget(self.game_state.player.holding_item)
+
+        self.__widgets: list[Widget] = [
+            InventoryWidget(
+                0, 390, 
+                self.game_state.player.inventory, 
+                self.game_state.player.holding_item
+            ),
+            ArmourWidget(
+                0, 0, 
+                self.game_state.player.armour, 
+                self.game_state.player.holding_item
+            ),
+            SmallCraftingWidget(
+                390, 75, 
+                self.game_state.player.inventory, 
+                self.game_state.player.craft_interface, 
+                self.game_state.player.holding_item
+            ),
+            HoldingItemWidget(self.game_state.player.holding_item),
+        ]
 
 
     def update(self, fps: float):
-        self.game_state.player.craft_interface.update() # update 2x2 small craft interfacd
+
+        # update backend
+        self.game_state.player.craft_interface.update()
+
+        # update frontend
         super().update(fps)
+        for widget in self.__widgets:
+            widget.update(fps)
 
 
     def handle_event(self, event: pygame.event.Event) -> None:
 
-        self.inventory_widget.handle_event(event)
-        self.armour_widget.handle_event(event)
-        self.small_crafting_widget.handle_event(event)
-        self.holding_item_widget.handle_event(event)
+        for widget in self.__widgets:
+            widget.handle_event(event)
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_e: # Exit 
@@ -287,10 +299,8 @@ class InventoryScreen(GameRunningScreen):
         self.display.fill((0, 0, 0))
         world_map.fill((211, 211, 211))
 
-        self.inventory_widget.render(world_map, self.context)
-        self.armour_widget.render(world_map, self.context)
-        self.small_crafting_widget.render(world_map, self.context)
-        self.holding_item_widget.render(world_map, self.context)
+        for widget in self.__widgets:
+            widget.render(world_map, self.context)
 
         self.display.blit(world_map, (0, 0))  # Render map to self.display
 
@@ -302,21 +312,26 @@ class CraftingScreen(GameRunningScreen):
 
     def __init__(self, display, context, game_state):
         super().__init__(display, context, game_state)
-        self.inventory_widget = InventoryWidget(0, 390, self.game_state.player.inventory, self.game_state.player.holding_item)
-        self.crafting_table_widget = CraftingTableWidget(
-            195, 75,
-            self.game_state.player.inventory,
-            self.game_state.player.crafting_grid,
-            self.game_state.player.holding_item
-        )
-        self.holding_item_widget = HoldingItemWidget(self.game_state.player.holding_item)
+        self.__widgets: list[Widget] = [
+            InventoryWidget(
+                0, 390, 
+                self.game_state.player.inventory, 
+                self.game_state.player.holding_item
+            ),
+            CraftingTableWidget(
+                195, 75,
+                self.game_state.player.inventory,
+                self.game_state.player.crafting_grid,
+                self.game_state.player.holding_item
+            ),
+            HoldingItemWidget(self.game_state.player.holding_item),
+        ]
 
 
     def handle_event(self, event: pygame.event.Event) -> None:
 
-        self.inventory_widget.handle_event(event)
-        self.crafting_table_widget.handle_event(event)
-        self.holding_item_widget.handle_event(event)
+        for widget in self.__widgets:
+            widget.handle_event(event)
         
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_e: # Exit 
@@ -324,8 +339,15 @@ class CraftingScreen(GameRunningScreen):
 
 
     def update(self, fps: float) -> None:
-        self.game_state.player.crafting_grid.update()  #Update 3x3 Crafting Grid
+
+        # update backend
+        self.game_state.player.crafting_grid.update()
+
+        # update frontend
         super().update(fps)
+        for widget in self.__widgets:
+            widget.update(fps)
+        
 
 
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> None:
@@ -336,14 +358,8 @@ class CraftingScreen(GameRunningScreen):
         title_font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 40)
         world_map.blit(title_font.render("Crafting Table", False, (0, 0, 0)), (195, 0))
 
-        # render inventory widget
-        self.inventory_widget.render(world_map, self.context)
-
-        # render crafting grid widget
-        self.crafting_table_widget.render(world_map, self.context)
-
-        # render holding item
-        self.holding_item_widget.render(world_map, self.context)
+        for widget in self.__widgets:
+            widget.render(world_map, self.context)
 
         self.display.blit(world_map, (0, 0))  # Render map to self.display
 
@@ -355,25 +371,36 @@ class SmeltingScreen(GameRunningScreen):
 
     def __init__(self, display, context, game_state):
         super().__init__(display, context, game_state)
-        self.inventory_widget = InventoryWidget(0, 390, self.game_state.player.inventory, self.game_state.player.holding_item)
-        self.furnace_widget = FurnaceWidget(
-            225, 67,
-            self.game_state.player.inventory,
-            self.game_state.player.furnace,
-            self.game_state.player.holding_item
-        ) 
-        self.holding_item_widget = HoldingItemWidget(self.game_state.player.holding_item)
+        self.__widgets: list[Widget] = [
+            InventoryWidget(
+                0, 390, 
+                self.game_state.player.inventory, 
+                self.game_state.player.holding_item
+            ),
+            FurnaceWidget(
+                225, 67,
+                self.game_state.player.inventory,
+                self.game_state.player.furnace,
+                self.game_state.player.holding_item
+            ) ,
+            HoldingItemWidget(self.game_state.player.holding_item),
+        ]
 
 
     def handle_event(self, event: pygame.event.Event) -> None:
 
-        self.inventory_widget.handle_event(event)
-        self.furnace_widget.handle_event(event)
-        self.holding_item_widget.handle_event(event)
+        for widget in self.__widgets:
+            widget.handle_event(event)
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_e: # Exit 
                 self.next_screen = GameScreen(self.display, self.context, self.game_state)
+
+
+    def update(self, fps: float) -> None:
+        super().update(fps)
+        for widget in self.__widgets:
+            widget.update(fps)
 
 
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> None:
@@ -384,14 +411,8 @@ class SmeltingScreen(GameRunningScreen):
         font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 40)
         world_map.blit(font.render('Furnace', False, (0, 0, 0)), (300, 0))
 
-        # render inventory widget
-        self.inventory_widget.render(world_map, self.context)
-
-        # render furnace widget
-        self.furnace_widget.render(world_map, self.context, fps)
-
-        # render holding item
-        self.holding_item_widget.render(world_map, self.context)
+        for widget in self.__widgets:
+            widget.render(world_map, self.context)
 
         self.display.blit(world_map, (0, 0))  # Render map to self.display
 
@@ -403,35 +424,44 @@ class EnchantingScreen(GameRunningScreen):
 
     def __init__(self, display, context, game_state):
         super().__init__(display, context, game_state)
-        self.inventory_widget = InventoryWidget(0, 390, self.game_state.player.inventory, self.game_state.player.holding_item)
-        self.enchanting_widget = EnchantingTableWidget(
-            0, 0,
-            self.game_state.player.inventory,
-            self.game_state.player.enchanting_table,
-            self.game_state.player.holding_item
-        )
-        self.holding_item_widget = HoldingItemWidget(self.game_state.player.holding_item)
+        self.__widgets: list[Widget] = [
+            InventoryWidget(
+                0, 390, 
+                self.game_state.player.inventory, 
+                self.game_state.player.holding_item
+            ),
+            EnchantingTableWidget(
+                0, 0,
+                self.game_state.player.inventory,
+                self.game_state.player.enchanting_table,
+                self.game_state.player.holding_item
+            ),
+            HoldingItemWidget(self.game_state.player.holding_item),
+        ]
 
 
     def handle_event(self, event: pygame.event.Event) -> None:
 
-        self.inventory_widget.handle_event(event)
-        self.enchanting_widget.handle_event(event)
-        self.holding_item_widget.handle_event(event)
+        for widget in self.__widgets:
+            widget.handle_event(event)
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_e: # Exit 
                 self.next_screen = GameScreen(self.display, self.context, self.game_state)
 
 
+    def update(self, fps: float) -> None:
+        super().update(fps)
+        for widget in self.__widgets:
+            widget.update(fps)
+
+
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> None:
         self.display.fill((0, 0, 0))
         world_map.fill((211, 211, 211))
 
-        # render logic
-        self.inventory_widget.render(world_map, self.context)
-        self.enchanting_widget.render(world_map, self.context)
-        self.holding_item_widget.render(world_map, self.context)
+        for widget in self.__widgets:
+            widget.render(world_map, self.context)
 
         self.display.blit(world_map, (0, 0))  # Render map to self.display
 
@@ -443,25 +473,36 @@ class CompressingScreen(GameRunningScreen):
 
     def __init__(self, display, context, game_state):
         super().__init__(display, context, game_state)
-        self.inventory_widget = InventoryWidget(0, 390, self.game_state.player.inventory, self.game_state.player.holding_item)
-        self.compressing_widget = CompressorWidget(
-            225, 142,
-            self.game_state.player.inventory,
-            self.game_state.player.compressor,
-            self.game_state.player.holding_item
-        )
-        self.holding_item_widget = HoldingItemWidget(self.game_state.player.holding_item)
+        self.__widgets: list[Widget] = [
+            InventoryWidget(
+                0, 390, 
+                self.game_state.player.inventory, 
+                self.game_state.player.holding_item
+            ),
+            CompressorWidget(
+                225, 142,
+                self.game_state.player.inventory,
+                self.game_state.player.compressor,
+                self.game_state.player.holding_item
+            ),
+            HoldingItemWidget(self.game_state.player.holding_item),
+        ]
 
 
     def handle_event(self, event: pygame.event.Event) -> None:
 
-        self.inventory_widget.handle_event(event)
-        self.compressing_widget.handle_event(event)
-        self.holding_item_widget.handle_event(event)
+        for widget in self.__widgets:
+            widget.handle_event(event)
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_e: # Exit 
                 self.next_screen = GameScreen(self.display, self.context, self.game_state)
+
+
+    def update(self, fps: float) -> None:
+        super().update(fps)
+        for widget in self.__widgets:
+            widget.update(fps)
 
 
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> None:
@@ -472,14 +513,8 @@ class CompressingScreen(GameRunningScreen):
         font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 40)
         world_map.blit(font.render('Compressor', False, (0, 0, 0)), (262, 0))
 
-        # render inventory widget
-        self.inventory_widget.render(world_map, self.context)
-
-        # render compressor widget
-        self.compressing_widget.render(world_map, self.context, fps)
-
-        # render holding item
-        self.holding_item_widget.render(world_map, self.context)
+        for widget in self.__widgets:
+            widget.render(world_map, self.context)
 
         self.display.blit(world_map, (0, 0))  # Render map to self.display
 
@@ -491,21 +526,26 @@ class GrindstoneScreen(GameRunningScreen):
 
     def __init__(self, display, context, game_state):
         super().__init__(display, context, game_state)
-        self.inventory_widget = InventoryWidget(0, 390, self.game_state.player.inventory, self.game_state.player.holding_item)
-        self.grindstone_widget = GrindstoneWidget(
-            225, 87,
-            self.game_state.player.inventory,
-            self.game_state.player.grindstone,
-            self.game_state.player.holding_item
-        )
-        self.holding_item_widget = HoldingItemWidget(self.game_state.player.holding_item)
+        self.__widgets: list[Widget] = [
+            InventoryWidget(
+                0, 390, 
+                self.game_state.player.inventory, 
+                self.game_state.player.holding_item
+            ),
+            GrindstoneWidget(
+                225, 87,
+                self.game_state.player.inventory,
+                self.game_state.player.grindstone,
+                self.game_state.player.holding_item
+            ),
+            HoldingItemWidget(self.game_state.player.holding_item),
+        ]
 
 
     def handle_event(self, event: pygame.event.Event) -> None:
 
-        self.inventory_widget.handle_event(event)
-        self.grindstone_widget.handle_event(event)
-        self.holding_item_widget.handle_event(event)
+        for widget in self.__widgets:
+            widget.handle_event(event)
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_e: # Exit 
@@ -513,8 +553,14 @@ class GrindstoneScreen(GameRunningScreen):
 
 
     def update(self, fps: float) -> None:
-        self.game_state.player.grindstone.repair_and_disenchant() #Update repaired/disenchanted item
+
+        # update backend
+        self.game_state.player.grindstone.repair_and_disenchant()
+
+        # update frontend
         super().update(fps)
+        for widget in self.__widgets:
+            widget.update(fps)
 
 
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> None:
@@ -527,14 +573,8 @@ class GrindstoneScreen(GameRunningScreen):
         rect = surface.get_rect(center=(SCREEN_WIDTH // 2, 35))
         world_map.blit(surface, (rect.x, rect.y))
 
-        # render inventory widget
-        self.inventory_widget.render(world_map, self.context)
-
-        # render grindstone widget
-        self.grindstone_widget.render(world_map, self.context)
-
-        # render holding item
-        self.holding_item_widget.render(world_map, self.context)
+        for widget in self.__widgets:
+            widget.render(world_map, self.context)
 
         self.display.blit(world_map, (0, 0))  # Render map to self.display
 
@@ -631,6 +671,8 @@ class TitleScreen(Interface):
         super().__init__(display, context, game_state)
 
         text_input_font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 20)
+        button_font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 30)
+
         self.text_input = TextInput(
             rect = pygame.Rect(
                 (SCREEN_WIDTH - self.TEXT_INPUT_WIDTH) // 2, 225, 
@@ -649,8 +691,6 @@ class TitleScreen(Interface):
             font = text_input_font, 
            starting_option = "None" 
         )
-
-        button_font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 30)
 
         self.play_button = Button(
             rect = pygame.Rect(
@@ -774,13 +814,13 @@ class TitleScreen(Interface):
 
 
     def update(self, fps: float) -> None:
-        self.text_input.update()
-        self.play_button.update()
-        self.how_to_play_button.update()
-        self.patch_notes_button.update()
-        self.credits_button.update()
-        self.credits_button.update()
-        self.drop_down.update()
+        self.text_input.update(fps)
+        self.play_button.update(fps)
+        self.how_to_play_button.update(fps)
+        self.patch_notes_button.update(fps)
+        self.credits_button.update(fps)
+        self.quit_button.update(fps)
+        self.drop_down.update(fps)
 
 
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> None:
@@ -800,13 +840,13 @@ class TitleScreen(Interface):
         text_rect = game_version_surface.get_rect(center=(SCREEN_WIDTH // 2, 140))
         self.display.blit(game_version_surface, (text_rect.x, text_rect.y))
         
-        self.text_input.render(self.display)
-        self.play_button.render(self.display)
-        self.how_to_play_button.render(self.display)
-        self.patch_notes_button.render(self.display)
-        self.credits_button.render(self.display)
-        self.quit_button.render(self.display)
-        self.drop_down.render(self.display)
+        self.text_input.render(self.display, self.context)
+        self.play_button.render(self.display, self.context)
+        self.how_to_play_button.render(self.display, self.context)
+        self.patch_notes_button.render(self.display, self.context)
+        self.credits_button.render(self.display, self.context)
+        self.quit_button.render(self.display, self.context)
+        self.drop_down.render(self.display, self.context)
 
 
 class HowToPlayScreen(Interface):
@@ -850,7 +890,7 @@ class HowToPlayScreen(Interface):
 
 
     def update(self, fps: float) -> None:
-        self.instructions.update()
+        self.instructions.update(fps)
 
 
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> None:
@@ -865,7 +905,7 @@ class HowToPlayScreen(Interface):
         self.display.blit(title_screen_surface, (text_rect.x, text_rect.y))
         
         # render game instructions scrollable text box
-        self.instructions.render(self.display)
+        self.instructions.render(self.display, self.context)
 
 
 class PatchNotesScreen(Interface):
@@ -909,7 +949,7 @@ class PatchNotesScreen(Interface):
 
 
     def update(self, fps: float) -> None:
-        self.patch_notes.update()
+        self.patch_notes.update(fps)
 
 
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> None:
@@ -924,7 +964,7 @@ class PatchNotesScreen(Interface):
         self.display.blit(title_screen_surface, (text_rect.x, text_rect.y))
         
         # render patch notes scrollable text box
-        self.patch_notes.render(self.display)
+        self.patch_notes.render(self.display, self.context)
 
 
 class GameCreditsScreen(Interface):
@@ -968,7 +1008,7 @@ class GameCreditsScreen(Interface):
 
 
     def update(self, fps: float) -> None:
-        self.game_credits.update()
+        self.game_credits.update(fps)
 
 
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> None:
@@ -983,7 +1023,7 @@ class GameCreditsScreen(Interface):
         self.display.blit(title_screen_surface, (text_rect.x, text_rect.y))
         
         # render game credits scrollable text box
-        self.game_credits.render(self.display)
+        self.game_credits.render(self.display, self.context)
 
 
 class DeathScreen(Interface):

@@ -1,7 +1,10 @@
 import pygame
 
+from tilecraft.ui.widget import Widget
+from tilecraft.constants import Context
 
-class ScrollableTextBox:
+
+class ScrollableTextBox(Widget):
     """
         Scrollable text box UI element
         Provide a multi line string and the user can read the text whilst scrolling
@@ -103,7 +106,7 @@ class ScrollableTextBox:
 
             self._clamp_scroll()
 
-    def update(self) -> None:
+    def update(self, fps: float) -> None:
         """Update hover state."""
 
         mouse_position = pygame.mouse.get_pos()
@@ -113,7 +116,7 @@ class ScrollableTextBox:
         thumb_rect = self._get_scrollbar_thumb_rect()
         self.scrollbar_hovered = thumb_rect is not None and thumb_rect.collidepoint(mouse_position)
 
-    def render(self, surface: pygame.Surface) -> None:
+    def render(self, surface: pygame.Surface, context: Context) -> None:
         """Render the text box, visible text and scrollbar."""
 
         pygame.draw.rect(

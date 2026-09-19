@@ -1,5 +1,4 @@
 from typing import Optional
-from abc import ABC, abstractmethod 
 import math
 import sys
 import pygame
@@ -9,6 +8,7 @@ from .constants import Context, Coordinate, Item, ITEM_IMAGE_MAPPING, SCREEN_WID
 from .player_info import Health, Hunger, Experience
 from .inventory import Inventory, HoldingItem, Armour, SmallCraftingInterface, CraftingTableInterface, FurnaceInterface, EnchantingTable, Compressor, Grindstone 
 from .game_state import GameState
+from .ui.widget import Widget
 
 
 def DurabilityBar(durability, max_durability):
@@ -82,28 +82,6 @@ def TextBox(display: pygame.Surface, item: Item, x: int, y: int, font: pygame.fo
                         display.blit(font.render(f'{item.enchantments[i][0]} {DecimalToRoman(item.enchantments[i][1])}', False, (175, 175, 175)), (x + 15, y + 15 + (i + 1) * 22))
     except IndexError:
         pass
-
-
-
-class Widget(ABC):
-    """
-        Widget is a collection of images, rects, and text bundled together to be rendered on a Screen
-    """
-
-    def __init__(self) -> None:
-        pass
-
-    @abstractmethod
-    def handle_event(self, event: pygame.event.Event) -> None:
-        """
-            Handle an event
-        """
-
-    @abstractmethod
-    def render(self, display: pygame.Surface, context: Context) -> None:
-        """
-            Render the widget
-        """
 
 
 class InventoryWidget(Widget):
@@ -219,7 +197,7 @@ class InventoryWidget(Widget):
             self.holding_item.item.number -= 1
 
 
-    def render(self, display: pygame.Surface, context: Context):
+    def render(self, surface: pygame.Surface, context: Context):
         """
             Render inventory widget to screen
         """
@@ -252,22 +230,22 @@ class InventoryWidget(Widget):
 
         # draw images
         for i, cell in enumerate(self.__inventory_slots):
-            display.blit(images[i], (cell.x, cell.y))
-            pygame.draw.rect(display, self.COLOUR, cell, self.WIDTH)
+            surface.blit(images[i], (cell.x, cell.y))
+            pygame.draw.rect(surface, self.COLOUR, cell, self.WIDTH)
             if self.inventory.items[i] is not None:
                 if self.inventory.items[i].enchantments is not None:
-                    display.blit(context.TC_GLINTS[self.inventory.items[i].name], (cell.x, cell.y))
+                    surface.blit(context.TC_GLINTS[self.inventory.items[i].name], (cell.x, cell.y))
                 if self.inventory.items[i].durability is not None:
-                    RenderDurabilityBar(display, cell.x, cell.y, self.inventory.items[i].durability, self.inventory.items[i].max_durability)
+                    RenderDurabilityBar(surface, cell.x, cell.y, self.inventory.items[i].durability, self.inventory.items[i].max_durability)
 
         # draw numbers
         for i, coordinate in enumerate(self.__number_coordinates):
-            surface = self.__font.render(numbers[i], False, (255, 255, 255))
-            display.blit(surface, (coordinate.x, coordinate.y))
+            text = self.__font.render(numbers[i], False, (255, 255, 255))
+            surface.blit(text, (coordinate.x, coordinate.y))
 
         is_holding = self.holding_item.item is not None
         if not is_holding:
-            self.render_hovering_item(display, mouse)
+            self.render_hovering_item(surface, mouse)
 
 
     def render_hovering_item(self, display: pygame.Surface, mouse: tuple[int, int]):
@@ -356,7 +334,7 @@ class ArmourWidget(Widget):
                 self.holding_item.item, self.armour.items[index] = self.armour.items[index], self.holding_item.item
 
 
-    def render(self, display: pygame.Surface, context: Context):
+    def render(self, surface: pygame.Surface, context: Context):
         mouse = pygame.mouse.get_pos()
         is_holding = self.holding_item.item is not None
 
@@ -388,28 +366,28 @@ class ArmourWidget(Widget):
                 layer_list.append(None)
 
         for i, cell in enumerate(self.__cells):
-            display.blit(images[i], (cell.x, cell.y))
-            pygame.draw.rect(display, (83, 83, 83), cell, 2)
+            surface.blit(images[i], (cell.x, cell.y))
+            pygame.draw.rect(surface, (83, 83, 83), cell, 2)
             if self.armour.items[i] is not None:
                 if self.armour.items[i].enchantments is not None:
-                    display.blit(context.TC_GLINTS[self.armour.items[i].name], (cell.x, cell.y))
+                    surface.blit(context.TC_GLINTS[self.armour.items[i].name], (cell.x, cell.y))
                 if self.armour.items[i].durability is not None:
-                    RenderDurabilityBar(display, cell.x, cell.y, self.armour.items[i].durability, self.armour.items[i].max_durability)
+                    RenderDurabilityBar(surface, cell.x, cell.y, self.armour.items[i].durability, self.armour.items[i].max_durability)
 
-        pygame.draw.rect(display, (0, 0, 0), (self.x, self.y, 330, 240)) #Draw Black Background
-        pygame.draw.rect(display, (255, 0, 0), (self.x + 127, self.y + 82, 75, 75)) #Draw Player Icon
+        pygame.draw.rect(surface, (0, 0, 0), (self.x, self.y, 330, 240)) #Draw Black Background
+        pygame.draw.rect(surface, (255, 0, 0), (self.x + 127, self.y + 82, 75, 75)) #Draw Player Icon
 
         for item in layer_list: #Draw Armour Layers
             if item is not None:
                 if item[1] == 1: #Tier 1
-                    pygame.draw.rect(display, item[0], (self.x + 112, self.y + 67, 105, 105), 12)
+                    pygame.draw.rect(surface, item[0], (self.x + 112, self.y + 67, 105, 105), 12)
                 elif item[1] == 2: #Tier 2
-                    pygame.draw.rect(display, item[0], (self.x + 99, self.y + 54, 133, 133), 12)
+                    pygame.draw.rect(surface, item[0], (self.x + 99, self.y + 54, 133, 133), 12)
                 elif item[1] == 3: #Tier 3
-                    pygame.draw.rect(display, item[0], (self.x + 84, self.y + 39, 165, 165), 12)
+                    pygame.draw.rect(surface, item[0], (self.x + 84, self.y + 39, 165, 165), 12)
 
         if not is_holding:
-            self.render_hovering_item(display, mouse)
+            self.render_hovering_item(surface, mouse)
 
 
     def render_hovering_item(self, display: pygame.Surface, mouse: tuple[int, int]):
@@ -461,7 +439,7 @@ class HotbarWidget(Widget):
                 self.inventory.selected_hotbar = 8
 
 
-    def render(self, display: pygame.Surface, context: Context):
+    def render(self, surface: pygame.Surface, context: Context):
 
         images = [None]*9
         numbers = ['']*9
@@ -477,27 +455,27 @@ class HotbarWidget(Widget):
 
         # draw images
         for i, coordinate in enumerate(self.__coordinates):
-            display.blit(context.INFOBAR_IMAGES["slot"], (coordinate.x, coordinate.y)) # background
-            display.blit(images[i], (coordinate.x, coordinate.y))
+            surface.blit(context.INFOBAR_IMAGES["slot"], (coordinate.x, coordinate.y)) # background
+            surface.blit(images[i], (coordinate.x, coordinate.y))
             if self.inventory.items[i+27] is not None:
                 if self.inventory.items[i+27].enchantments is not None:
-                    display.blit(context.TC_GLINTS[self.inventory.items[i+27].name], (coordinate.x, coordinate.y))
+                    surface.blit(context.TC_GLINTS[self.inventory.items[i+27].name], (coordinate.x, coordinate.y))
                 if self.inventory.items[i+27].durability is not None:
-                    RenderDurabilityBar(display, coordinate.x, coordinate.y, self.inventory.items[i+27].durability, self.inventory.items[i+27].max_durability)
+                    RenderDurabilityBar(surface, coordinate.x, coordinate.y, self.inventory.items[i+27].durability, self.inventory.items[i+27].max_durability)
 
         # draw background rects based on selected hotbar value
         for i in range(9):
             if self.inventory.selected_hotbar == i:
-                pygame.draw.rect(display, (255, 255, 255), self.__hotbar_backgrounds[i], 3)
+                pygame.draw.rect(surface, (255, 255, 255), self.__hotbar_backgrounds[i], 3)
             else:
-                pygame.draw.rect(display, (83, 83, 83), self.__hotbar_backgrounds[i], 2)
+                pygame.draw.rect(surface, (83, 83, 83), self.__hotbar_backgrounds[i], 2)
 
         # draw numbers
         for i in range(9):
             surface = self.__font.render(numbers[i], True, (255, 0, 0), (255, 255, 255))
             x = 60 + 82*i
             y = 720
-            display.blit(surface, (x, y))
+            surface.blit(surface, (x, y))
 
 
 class SmallCraftingWidget(Widget):
@@ -609,7 +587,7 @@ class SmallCraftingWidget(Widget):
             self.holding_item.item.number -= 1
 
 
-    def render(self, display: pygame.Surface, context: Context) -> None:
+    def render(self, surface: pygame.Surface, context: Context) -> None:
         mouse = pygame.mouse.get_pos()
         is_holding = self.holding_item.item is not None
 
@@ -631,22 +609,22 @@ class SmallCraftingWidget(Widget):
                     numbers[j] = ''
 
         for i, cell in enumerate(self.__cells):
-            display.blit(images[i], (cell.x, cell.y))
-            pygame.draw.rect(display, (83, 83,83), cell, 2)
+            surface.blit(images[i], (cell.x, cell.y))
+            pygame.draw.rect(surface, (83, 83,83), cell, 2)
             if self.small_crafting_grid.items[i] is not None:
                 if self.small_crafting_grid.items[i].enchantments is not None:
-                    display.blit(context.TC_GLINTS[self.small_crafting_grid.items[i].name], (cell.x, cell.y))
+                    surface.blit(context.TC_GLINTS[self.small_crafting_grid.items[i].name], (cell.x, cell.y))
                 if self.small_crafting_grid.items[i].durability is not None:
-                    RenderDurabilityBar(display, cell.x, cell.y, self.small_crafting_grid.items[i].durability, self.small_crafting_grid.items[i].max_durability)
+                    RenderDurabilityBar(surface, cell.x, cell.y, self.small_crafting_grid.items[i].durability, self.small_crafting_grid.items[i].max_durability)
 
         for i, coordinate in enumerate(self.__numbers):
-            surface = self.__font.render(numbers[i], False, (255, 255, 255))
-            display.blit(surface, (coordinate.x, coordinate.y))
+            text = self.__font.render(numbers[i], False, (255, 255, 255))
+            surface.blit(text, (coordinate.x, coordinate.y))
 
-        display.blit(self.__arrow_font.render('-->', False, (0, 0, 0)), (self.x + 172, self.y + 67))
+        surface.blit(self.__arrow_font.render('-->', False, (0, 0, 0)), (self.x + 172, self.y + 67))
 
         if not is_holding:
-            self.render_hovering_item(display, mouse)
+            self.render_hovering_item(surface, mouse)
 
 
     def render_hovering_item(self, display: pygame.Surface, mouse: tuple[int, int]):
@@ -667,11 +645,11 @@ class ExperienceBarWidget(Widget):
         self.__font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 45)
 
 
-    def handle_event(self, event):
+    def handle_event(self, event: pygame.event.Event) -> None:
         pass
 
 
-    def render(self, display: pygame.Surface, context: Context):
+    def render(self, surface: pygame.Surface, context: Context) -> None:
         levels = self.experience.levels
 
         try:
@@ -679,16 +657,16 @@ class ExperienceBarWidget(Widget):
         except ZeroDivisionError:
             percent_xp_to_next_level = 0
 
-        pygame.draw.rect(display, "#72a34c", (5, 630, round(percent_xp_to_next_level * 738), 30))
-        pygame.draw.rect(display, "#424d42", (round(percent_xp_to_next_level * 738) + 5, 630, round((1 - percent_xp_to_next_level) * 738), 30))
+        pygame.draw.rect(surface, "#72a34c", (5, 630, round(percent_xp_to_next_level * 738), 30))
+        pygame.draw.rect(surface, "#424d42", (round(percent_xp_to_next_level * 738) + 5, 630, round((1 - percent_xp_to_next_level) * 738), 30))
 
         for i in range(18):
-            pygame.draw.rect(display, (0, 0, 0), (i * 41 + 5, 630, 41, 30), 2)
+            pygame.draw.rect(surface, (0, 0, 0), (i * 41 + 5, 630, 41, 30), 2)
 
         experience_number = self.__font.render(str(math.floor(levels)), True, '#82b054', (255, 255, 255))
         experience_number_r = experience_number.get_rect()
         experience_number_r.center = (378, 615)
-        display.blit(experience_number, experience_number_r)  # Experience Number
+        surface.blit(experience_number, experience_number_r)  # Experience Number
 
 
 class HealthBarWidget(Widget):
@@ -704,11 +682,11 @@ class HealthBarWidget(Widget):
             self.__coordinates.append(Coordinate(7 + 35*i, 592))
 
 
-    def handle_event(self, event):
-        pass
+    def handle_event(self, event) -> bool:
+        return False
 
 
-    def render(self, display: pygame.Surface, context: Context):
+    def render(self, surface: pygame.Surface, context: Context) -> None:
         curr = self.health.value 
         for coordinate in self.__coordinates:
             if curr >= 2:
@@ -719,7 +697,7 @@ class HealthBarWidget(Widget):
                 curr -= 1
             else:
                 image = context.INFOBAR_IMAGES["empty_heart"] 
-            display.blit(image, (coordinate.x, coordinate.y))
+            surface.blit(image, (coordinate.x, coordinate.y))
 
 
 class HungerBarWidget(Widget):
@@ -739,7 +717,7 @@ class HungerBarWidget(Widget):
         pass
 
 
-    def render(self, display: pygame.Surface, context: Context):
+    def render(self, surface: pygame.Surface, context: Context):
         curr = self.hunger.value 
         for coordinate in self.__coordinates:
             if curr >= 2:
@@ -750,7 +728,7 @@ class HungerBarWidget(Widget):
                 curr -= 1
             else:
                 image = context.INFOBAR_IMAGES["empty_hunger"] 
-            display.blit(image, (coordinate.x, coordinate.y))
+            surface.blit(image, (coordinate.x, coordinate.y))
 
 
 class DebugWidget(Widget):
@@ -761,42 +739,47 @@ class DebugWidget(Widget):
 
     def __init__(self, game_state: GameState):
         self.game_state = game_state 
+        self.fps = 0
 
 
-    def handle_event(self, event):
+    def handle_event(self, event: pygame.event.Event) -> None:
         pass
 
+    
+    def update(self, fps: float) -> None:
+        self.fps = fps
 
-    def render(self, display: pygame.Surface, context: Context, fps: float):
+
+    def render(self, surface: pygame.Surface, context: Context):
 
         font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 25)
 
         version = font.render(f"Tilecraft {VERSION}", True, (0, 0, 0), (255, 255, 255))
-        display.blit(version, (0, 0))
+        surface.blit(version, (0, 0))
 
         python_version = font.render(f"Python {sys.version[0:6]}", True, (0, 0, 0), (255, 255, 255))
-        display.blit(python_version, (0, 25))
+        surface.blit(python_version, (0, 25))
 
         pygame_version = font.render(f"Graphics: pygame {pygame.version.ver}", True, (0, 0, 0), (255, 255, 255))
-        display.blit(pygame_version, (0, 50))
+        surface.blit(pygame_version, (0, 50))
 
-        display_size = font.render(f"Display Size: {SCREEN_WIDTH}x{SCREEN_HEIGHT}", True, (0, 0, 0), (255, 255, 255))
-        display.blit(display_size, (0, 75))
+        surface_size = font.render(f"Display Size: {SCREEN_WIDTH}x{SCREEN_HEIGHT}", True, (0, 0, 0), (255, 255, 255))
+        surface.blit(surface_size, (0, 75))
 
         seed_label = font.render(f"Seed: {self.game_state.world.seed}", True, (0, 0, 0), (255, 255, 255))
-        display.blit(seed_label, (0, 100))
+        surface.blit(seed_label, (0, 100))
 
-        fps_font = font.render(f"FPS: {fps:.2f}", True, (0, 0, 0), (255, 255, 255))
-        display.blit(fps_font, (0, 125))
+        fps_font = font.render(f"FPS: {self.fps:.2f}", True, (0, 0, 0), (255, 255, 255))
+        surface.blit(fps_font, (0, 125))
 
         direction_label = font.render(f"Facing: {self.game_state.player.direction}", True, (0, 0, 0), (255, 255, 255))
-        display.blit(direction_label, (0, 150))
+        surface.blit(direction_label, (0, 150))
 
         target_label = font.render(f"Target Tile: {self.game_state.player.target[0]}, {self.game_state.player.target[1]}", True, (0, 0, 0), (255, 255, 255))
-        display.blit(target_label, (0, 175))
+        surface.blit(target_label, (0, 175))
 
         coords_label = font.render(f"X: {self.game_state.player.x:.3f}, Y: {self.game_state.player.y:.3f}", True, (0, 0, 0), (255, 255, 255))
-        display.blit(coords_label, (0, 200))
+        surface.blit(coords_label, (0, 200))
 
 
 class CraftingTableWidget(Widget):
@@ -891,7 +874,7 @@ class CraftingTableWidget(Widget):
             self.holding_item.item.number -= 1
 
 
-    def render(self, display: pygame.Surface, context: Context) -> None:
+    def render(self, surface: pygame.Surface, context: Context) -> None:
         mouse = pygame.mouse.get_pos()
         is_holding = self.holding_item.item is not None
 
@@ -913,22 +896,22 @@ class CraftingTableWidget(Widget):
                     numbers[i] = ''
 
         for i, cell in enumerate(self.__cells):
-            display.blit(images[i], (cell.x, cell.y))
-            pygame.draw.rect(display, (83, 83, 83), cell, 2)
+            surface.blit(images[i], (cell.x, cell.y))
+            pygame.draw.rect(surface, (83, 83, 83), cell, 2)
             if self.crafting_grid.items[i] is not None:
                 if self.crafting_grid.items[i].enchantments is not None:
-                    display.blit(context.TC_GLINTS[self.crafting_grid.items[i].name], (cell.x, cell.y))
+                    surface.blit(context.TC_GLINTS[self.crafting_grid.items[i].name], (cell.x, cell.y))
                 if self.crafting_grid.items[i].durability is not None:
-                    RenderDurabilityBar(display, cell.x, cell.y, self.crafting_grid.items[i].durability, self.crafting_grid.items[i].max_durability)
+                    RenderDurabilityBar(surface, cell.x, cell.y, self.crafting_grid.items[i].durability, self.crafting_grid.items[i].max_durability)
 
         for i, coordinate in enumerate(self.__numbers):
-            surface = self.__font.render(numbers[i], False, (255, 255, 255))
-            display.blit(surface, (coordinate.x, coordinate.y))
+            text = self.__font.render(numbers[i], False, (255, 255, 255))
+            surface.blit(text, (coordinate.x, coordinate.y))
 
-        display.blit(self.__arrow_font.render('-->', False, (0, 0, 0)), (self.x + 270, self.y + 105))
+        surface.blit(self.__arrow_font.render('-->', False, (0, 0, 0)), (self.x + 270, self.y + 105))
 
         if not is_holding:
-            self.render_hovering_item(display, mouse)
+            self.render_hovering_item(surface, mouse)
 
 
     def render_hovering_item(self, display: pygame.Surface, mouse: tuple[int, int]):
@@ -952,6 +935,7 @@ class FurnaceWidget(Widget):
         self.inventory = inventory
         self.furnace = furnace 
         self.holding_item = holding_item
+        self.fps = 0
 
         self.__font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 25)
         self.__side_font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 36)
@@ -1027,7 +1011,11 @@ class FurnaceWidget(Widget):
             self.holding_item.item.number -= 1
 
 
-    def render(self, display: pygame.Surface, context: Context, fps: float):
+    def update(self, fps: float) -> None:
+        self.fps = fps
+
+
+    def render(self, surface: pygame.Surface, context: Context):
 
         mouse = pygame.mouse.get_pos()
         is_holding = self.holding_item.item is not None
@@ -1057,25 +1045,25 @@ class FurnaceWidget(Widget):
                     numbers[i] = ''
 
         for i, cell in enumerate(self.__cells):
-            display.blit(images[i], (cell.x, cell.y))
-            pygame.draw.rect(display, (83, 83, 83), cell, 2)
+            surface.blit(images[i], (cell.x, cell.y))
+            pygame.draw.rect(surface, (83, 83, 83), cell, 2)
             if self.furnace.items[i] is not None:
                 if self.furnace.items[i].enchantments is not None:
-                    display.blit(context.TC_GLINTS[self.furnace.items[i].name], (cell.x, cell.y))
+                    surface.blit(context.TC_GLINTS[self.furnace.items[i].name], (cell.x, cell.y))
                 if self.furnace.items[i].durability is not None:
-                    RenderDurabilityBar(display, cell.x, cell.y, self.furnace.items[i].durability, self.furnace.items[i].max_durability)
+                    RenderDurabilityBar(surface, cell.x, cell.y, self.furnace.items[i].durability, self.furnace.items[i].max_durability)
 
         for i, coordinate in enumerate(self.__numbers):
-            surface = self.__font.render(numbers[i], False, (255, 255, 255))
-            display.blit(surface, (coordinate.x, coordinate.y))
+            text = self.__font.render(numbers[i], False, (255, 255, 255))
+            surface.blit(text, (coordinate.x, coordinate.y))
 
-        display.blit(self.furnace.fuel_img, (self.x, self.y + 105)) #Render Fire Image
-        display.blit(self.__side_font.render(str(self.furnace.fuel_val), False, (255, 0, 0)), (self.x - 38, self.y + 120)) #Render Power of Fuel Remaining
-        display.blit(self.__side_font.render(f"{int(self.furnace.smelting_time / fps)}", False, (255, 0, 0)), (self.x + 142, self.y + 90)) #Render Time to Smelt
-        display.blit(self.__arrow_font.render('-->', False, (0, 0, 0)), (self.x + 112, self.y + 120)) #Render Arrow
+        surface.blit(self.furnace.fuel_img, (self.x, self.y + 105)) #Render Fire Image
+        surface.blit(self.__side_font.render(str(self.furnace.fuel_val), False, (255, 0, 0)), (self.x - 38, self.y + 120)) #Render Power of Fuel Remaining
+        surface.blit(self.__side_font.render(f"{int(self.furnace.smelting_time / self.fps)}", False, (255, 0, 0)), (self.x + 142, self.y + 90)) #Render Time to Smelt
+        surface.blit(self.__arrow_font.render('-->', False, (0, 0, 0)), (self.x + 112, self.y + 120)) #Render Arrow
 
         if not is_holding:
-            self.render_hovering_item(display, mouse)
+            self.render_hovering_item(surface, mouse)
 
 
     def render_hovering_item(self, display: pygame.Surface, mouse: tuple[int, int]):
@@ -1193,7 +1181,7 @@ class EnchantingTableWidget(Widget):
             self.holding_item.item.number -= 1
 
 
-    def render(self, display: pygame.Surface, context: Context) -> None:
+    def render(self, surface: pygame.Surface, context: Context) -> None:
 
         mouse = pygame.mouse.get_pos()
         is_holding = self.holding_item.item is not None
@@ -1223,27 +1211,27 @@ class EnchantingTableWidget(Widget):
                     numbers[i] = ''
 
         for i, cell in enumerate(self.__cells):
-            display.blit(images[i], (cell.x, cell.y))
-            pygame.draw.rect(display, (83, 83, 83), cell, 2)
+            surface.blit(images[i], (cell.x, cell.y))
+            pygame.draw.rect(surface, (83, 83, 83), cell, 2)
             if self.enchanting_table.items[i] is not None:
                 if self.enchanting_table.items[i].enchantments is not None:
-                    display.blit(context.TC_GLINTS[self.enchanting_table.items[i].name], (cell.x, cell.y))
+                    surface.blit(context.TC_GLINTS[self.enchanting_table.items[i].name], (cell.x, cell.y))
                 if self.enchanting_table.items[i].durability is not None:
-                    RenderDurabilityBar(display, cell.x, cell.y, self.enchanting_table.items[i].durability, self.enchanting_table.items[i].max_durability)
+                    RenderDurabilityBar(surface, cell.x, cell.y, self.enchanting_table.items[i].durability, self.enchanting_table.items[i].max_durability)
 
         for i, coordinate in enumerate(self.__numbers):
-            surface = self.__font.render(str(numbers[i]), False, (255, 255, 255))
-            display.blit(surface, (coordinate.x, coordinate.y))
+            text = self.__font.render(str(numbers[i]), False, (255, 255, 255))
+            surface.blit(text, (coordinate.x, coordinate.y))
 
-        display.blit(self.__font.render(f'Enchanting Table LEVEL {self.enchanting_table.enchanting_level}', False, (0, 0, 0)), (self.x, self.y))
+        surface.blit(self.__font.render(f'Enchanting Table LEVEL {self.enchanting_table.enchanting_level}', False, (0, 0, 0)), (self.x, self.y))
 
-        self.upgrade.render(display, 'Upgrade', 21)
-        self.option1.render(display, self.enchanting_table.option_list[0], 30)
-        self.option2.render(display, self.enchanting_table.option_list[1], 30)
-        self.option3.render(display, self.enchanting_table.option_list[2], 30)
+        self.upgrade.render(surface, 'Upgrade', 21)
+        self.option1.render(surface, self.enchanting_table.option_list[0], 30)
+        self.option2.render(surface, self.enchanting_table.option_list[1], 30)
+        self.option3.render(surface, self.enchanting_table.option_list[2], 30)
 
         if not is_holding:
-            self.render_hovering_label(display, mouse)
+            self.render_hovering_label(surface, mouse)
 
     def render_hovering_label(self, display: pygame.Surface, mouse: tuple[int, int]):
         if (index := self.__get_hover_box(mouse)) is None:
@@ -1271,6 +1259,7 @@ class CompressorWidget(Widget):
         self.inventory = inventory
         self.compressor = compressor
         self.holding_item = holding_item
+        self.fps = 0
 
         self.__font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 25)
         self.__arrow_font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftBold-nMK1.otf"), 45)
@@ -1343,7 +1332,11 @@ class CompressorWidget(Widget):
             self.holding_item.item.number -= 1
 
 
-    def render(self, display: pygame.Surface, context: Context, fps: float):
+    def update(self, fps: float) -> None:
+        self.fps = fps
+
+
+    def render(self, surface: pygame.Surface, context: Context):
 
         mouse = pygame.mouse.get_pos()
         is_holding = self.holding_item.item is not None
@@ -1373,23 +1366,24 @@ class CompressorWidget(Widget):
 
         
         for i, cell in enumerate(self.__cells):
-            display.blit(images[i], (cell.x, cell.y))
-            pygame.draw.rect(display, (83, 83, 83), cell, 2)
+            surface.blit(images[i], (cell.x, cell.y))
+            pygame.draw.rect(surface, (83, 83, 83), cell, 2)
             if self.compressor.items[i] is not None:
                 if self.compressor.items[i].enchantments is not None:
-                    display.blit(context.TC_GLINTS[self.compressor.items[i].name], (cell.x, cell.y))
+                    surface.blit(context.TC_GLINTS[self.compressor.items[i].name], (cell.x, cell.y))
                 if self.compressor.items[i].durability is not None:
-                    RenderDurabilityBar(display, cell.x, cell.y, self.compressor.items[i].durability, self.compressor.items[i].max_durability)
+                    RenderDurabilityBar(surface, cell.x, cell.y, self.compressor.items[i].durability, self.compressor.items[i].max_durability)
         
         for i, coordinate in enumerate(self.__numbers):
-            surface = self.__font.render(numbers[i], False, (255, 255, 255))
-            display.blit(surface, (coordinate.x, coordinate.y))
+            text = self.__font.render(numbers[i], False, (255, 255, 255))
+            surface.blit(text, (coordinate.x, coordinate.y))
 
-        display.blit(self.__arrow_font.render('-->', False, (0, 0, 0)), (self.x + 112, self.y + 30))  # Render Arrow
-        display.blit(self.__side_font.render(f"{int(self.compressor.compressing_time / fps)}", False, (255, 0, 0)), (self.x + 135, self.y))  # Render Time to Compress
+        surface.blit(self.__arrow_font.render('-->', False, (0, 0, 0)), (self.x + 112, self.y + 30))  # Render Arrow
+        surface.blit(self.__side_font.render(f"{int(self.compressor.compressing_time / self.fps)}", False, (255, 0, 0)), (self.x + 135, self.y))  # Render Time to Compress
 
         if not is_holding:
-            self.render_hovering_item(display, mouse)
+            self.render_hovering_item(surface, mouse)
+
 
     def render_hovering_item(self, display: pygame.Surface, mouse: tuple[int, int]):
         if (index := self.__get_hover_box(mouse)) is None:
@@ -1487,7 +1481,7 @@ class GrindstoneWidget(Widget):
             self.holding_item.item.number -= 1
 
 
-    def render(self, display: pygame.Surface, context: Context):
+    def render(self, surface: pygame.Surface, context: Context):
 
         mouse = pygame.mouse.get_pos()
         is_holding = self.holding_item.item is not None
@@ -1516,25 +1510,25 @@ class GrindstoneWidget(Widget):
                     numbers[i] = ''
 
         for i, cell in enumerate(self.__cells):
-            display.blit(images[i], (cell.x, cell.y))
-            pygame.draw.rect(display, (83, 83, 83), cell, 2)
+            surface.blit(images[i], (cell.x, cell.y))
+            pygame.draw.rect(surface, (83, 83, 83), cell, 2)
             if self.grindstone.items[i] is not None:
                 if self.grindstone.items[i].enchantments is not None:
-                    display.blit(context.TC_GLINTS[self.grindstone.items[i].name], (cell.x, cell.y))
+                    surface.blit(context.TC_GLINTS[self.grindstone.items[i].name], (cell.x, cell.y))
                 if self.grindstone.items[i].durability is not None:
-                    RenderDurabilityBar(display, cell.x, cell.y, self.grindstone.items[i].durability, self.grindstone.items[i].max_durability)
+                    RenderDurabilityBar(surface, cell.x, cell.y, self.grindstone.items[i].durability, self.grindstone.items[i].max_durability)
 
         for i, coordinate in enumerate(self.__numbers):
-            surface = self.__font.render(numbers[i], False, (255, 255, 255))
-            display.blit(surface, (coordinate.x, coordinate.y))
+            text = self.__font.render(numbers[i], False, (255, 255, 255))
+            surface.blit(text, (coordinate.x, coordinate.y))
 
-        pygame.draw.rect(display, (0, 0, 0), (self.x - 10, self.y - 10, 102, 194), 2)
-        pygame.draw.rect(display, (0, 0, 0), (self.x - 40, self.y + 10, 30, 194), 2)
-        pygame.draw.rect(display, (0, 0, 0), (self.x + 92, self.y + 10, 30, 194), 2)
-        display.blit(self.__arrow_font.render('-->', False, (0, 0, 0)), (self.x + 142, self.y + 65))  # Render Arrow
+        pygame.draw.rect(surface, (0, 0, 0), (self.x - 10, self.y - 10, 102, 194), 2)
+        pygame.draw.rect(surface, (0, 0, 0), (self.x - 40, self.y + 10, 30, 194), 2)
+        pygame.draw.rect(surface, (0, 0, 0), (self.x + 92, self.y + 10, 30, 194), 2)
+        surface.blit(self.__arrow_font.render('-->', False, (0, 0, 0)), (self.x + 142, self.y + 65))  # Render Arrow
 
         if not is_holding:
-            self.render_hovering_item(display, mouse)
+            self.render_hovering_item(surface, mouse)
 
 
     def render_hovering_item(self, display: pygame.Surface, mouse: tuple[int, int]):
@@ -1559,7 +1553,7 @@ class HoldingItemWidget(Widget):
         pass
 
 
-    def render(self, display: pygame.Surface, context: Context):
+    def render(self, surface: pygame.Surface, context: Context):
 
         if self.holding_item.item is None:
             image = context.ITEM_IMAGES["none_img"]
@@ -1575,9 +1569,9 @@ class HoldingItemWidget(Widget):
         x, y = pygame.mouse.get_pos()
 
         if self.holding_item.item is not None:
-            display.blit(image, (x, y))
-            display.blit(self.__font.render(number, False, (255, 255, 255)), (x + 52, y + 52))
+            surface.blit(image, (x, y))
+            surface.blit(self.__font.render(number, False, (255, 255, 255)), (x + 52, y + 52))
             if self.holding_item.item.enchantments is not None:
-                display.blit(context.TC_GLINTS[self.holding_item.item.name], (x, y))
+                surface.blit(context.TC_GLINTS[self.holding_item.item.name], (x, y))
             if self.holding_item.item.durability is not None:
-                RenderDurabilityBar(display, x, y, self.holding_item.item.durability, self.holding_item.item.max_durability)
+                RenderDurabilityBar(surface, x, y, self.holding_item.item.durability, self.holding_item.item.max_durability)
