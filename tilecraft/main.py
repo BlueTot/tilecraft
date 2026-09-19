@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import random
+from abc import ABC, abstractmethod
 from typing import Optional
 
 import pygame
@@ -18,9 +19,8 @@ from .widgets import InventoryWidget, ArmourWidget, SmallCraftingWidget, HotbarW
 from .world import TilecraftWorld
 
 
-
 # common screen interface
-class Interface:
+class Interface(ABC):
     """
         Interface is a screen to be rendered onto the pygame display
     """
@@ -31,18 +31,38 @@ class Interface:
         self.game_state: GameState = game_state
         self.next_screen: Optional[Interface] = self
 
+    @abstractmethod
     def handle_event(self, event: pygame.event.Event) -> None:
         """
-            Handle an event, returning an optional signal to the title screen
+            Handle an event
         """
 
+    @abstractmethod
+    def update(self, fps: float) -> None:
+        """
+            One frame update of the interface 
+        """
+
+    @abstractmethod
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> None:
         """
-            Render the screen, returning an optional signal to the title screen
+            Render the screen to its display
         """
 
 
-class GameScreen(Interface):
+class GameRunningScreen(Interface):
+    """
+        GameRunningScreen is an interface that is running while the player's game is active
+    """
+
+    def update(self, fps: float) -> None:
+        # In all game screens, furnace and compressor run in the background even when the interface isn't open
+        self.game_state.player.furnace.smelt(self.context, fps, self.game_state.player.experience)
+        self.game_state.player.compressor.compress(fps)
+        self.game_state.player.remove_items() #Remove all items with number of 0 or durability of 0
+
+
+class GameScreen(GameRunningScreen):
     """
         Main game window
     """
@@ -161,10 +181,13 @@ class GameScreen(Interface):
         return
 
 
+    def update(self, fps: float) -> None:
+        super().update(fps)
+        self.game_state.play_time_seconds = (pygame.time.get_ticks() - self.game_state.start_ticks) / 1000.0
+
+
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> None:
 
-        # update play time
-        self.game_state.play_time_seconds = (pygame.time.get_ticks() - self.game_state.start_ticks) / 1000.0
 
         if self.game_state.player.dimension == "Underground" and not self.game_state.world.is_underground_generated:
             self.next_screen = UndergroundGeneratingScreen(self.display, self.context, self.game_state)
@@ -217,7 +240,7 @@ class GameScreen(Interface):
         return
 
 
-class InventoryScreen(Interface):
+class InventoryScreen(GameRunningScreen):
     """
         Screen containing the inventory, armour, and small crafting grid widgets
     """
@@ -243,6 +266,11 @@ class InventoryScreen(Interface):
         self.holding_item_widget = HoldingItemWidget(self.game_state.player.holding_item)
 
 
+    def update(self, fps: float):
+        self.game_state.player.craft_interface.update() # update 2x2 small craft interfacd
+        super().update(fps)
+
+
     def handle_event(self, event: pygame.event.Event) -> None:
 
         self.inventory_widget.handle_event(event)
@@ -256,12 +284,6 @@ class InventoryScreen(Interface):
 
 
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> None:
-
-        # update logic
-        self.game_state.player.craft_interface.update() #Update Small 2x2 Crafting Grid
-        self.game_state.player.remove_items() #Remove all items with number of 0 or durability of 0
-
-        # render logic
         self.display.fill((0, 0, 0))
         world_map.fill((211, 211, 211))
 
@@ -273,7 +295,7 @@ class InventoryScreen(Interface):
         self.display.blit(world_map, (0, 0))  # Render map to self.display
 
 
-class CraftingScreen(Interface):
+class CraftingScreen(GameRunningScreen):
     """
         Screen showing the 3x3 crafting grid and the inventory
     """
@@ -301,13 +323,14 @@ class CraftingScreen(Interface):
                 self.next_screen = GameScreen(self.display, self.context, self.game_state)
 
 
+    def update(self, fps: float) -> None:
+        self.game_state.player.crafting_grid.update()  #Update 3x3 Crafting Grid
+        super().update(fps)
+
+
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> None:
         self.display.fill((0, 0, 0))
         world_map.fill((211, 211, 211))
-
-        # update logic
-        self.game_state.player.crafting_grid.update()  #Update 3x3 Crafting Grid
-        self.game_state.player.remove_items() #Remove all items with number of 0 or durability of 0
 
         # render title
         title_font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 40)
@@ -325,7 +348,7 @@ class CraftingScreen(Interface):
         self.display.blit(world_map, (0, 0))  # Render map to self.display
 
 
-class SmeltingScreen(Interface):
+class SmeltingScreen(GameRunningScreen):
     """
         Screen showing the furance interface and the inventory
     """
@@ -357,10 +380,6 @@ class SmeltingScreen(Interface):
         self.display.fill((0, 0, 0))
         world_map.fill((211, 211, 211))
 
-        # update logic
-        self.game_state.player.furnace.smelt(self.context, fps, self.game_state.player.experience) #Furnace Smelting
-        self.game_state.player.remove_items() #Remove all items with number of 0 or durability of 0
-
         # render title
         font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 40)
         world_map.blit(font.render('Furnace', False, (0, 0, 0)), (300, 0))
@@ -377,7 +396,7 @@ class SmeltingScreen(Interface):
         self.display.blit(world_map, (0, 0))  # Render map to self.display
 
 
-class EnchantingScreen(Interface):
+class EnchantingScreen(GameRunningScreen):
     """
         Screen showing the enchanting table interface and the inventory
     """
@@ -409,9 +428,6 @@ class EnchantingScreen(Interface):
         self.display.fill((0, 0, 0))
         world_map.fill((211, 211, 211))
 
-        # update logic
-        self.game_state.player.remove_items() #Remove all items with number of 0 or durability of 0
-
         # render logic
         self.inventory_widget.render(world_map, self.context)
         self.enchanting_widget.render(world_map, self.context)
@@ -420,7 +436,7 @@ class EnchantingScreen(Interface):
         self.display.blit(world_map, (0, 0))  # Render map to self.display
 
 
-class CompressingScreen(Interface):
+class CompressingScreen(GameRunningScreen):
     """
         Screen showing the compressor interface and the inventory
     """
@@ -452,10 +468,6 @@ class CompressingScreen(Interface):
         self.display.fill((0, 0, 0))
         world_map.fill((211, 211, 211))
 
-        # update logic
-        self.game_state.player.compressor.compress(fps) #Compressing Process
-        self.game_state.player.remove_items() #Remove all items with number of 0 or durability of 0
-
         # render title
         font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 40)
         world_map.blit(font.render('Compressor', False, (0, 0, 0)), (262, 0))
@@ -472,7 +484,7 @@ class CompressingScreen(Interface):
         self.display.blit(world_map, (0, 0))  # Render map to self.display
 
 
-class GrindstoneScreen(Interface):
+class GrindstoneScreen(GameRunningScreen):
     """
         Screen showing the grindstone interface and the inventory
     """
@@ -500,13 +512,14 @@ class GrindstoneScreen(Interface):
                 self.next_screen = GameScreen(self.display, self.context, self.game_state)
 
 
+    def update(self, fps: float) -> None:
+        self.game_state.player.grindstone.repair_and_disenchant() #Update repaired/disenchanted item
+        super().update(fps)
+
+
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> None:
         self.display.fill((0, 0, 0))
         world_map.fill((211, 211, 211))
-
-        # update logic
-        self.game_state.player.grindstone.repair_and_disenchant() #Update repaired/disenchanted item
-        self.game_state.player.remove_items() #Remove all items with number of 0 or durability of 0
 
         # render title centered 
         font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 35)
@@ -530,6 +543,15 @@ class OverworldGeneratingScreen(Interface):
     """
         Screen shown when the overworld is first generated upon world startup
     """
+
+
+    def handle_event(self, event: pygame.event.Event) -> None:
+        pass
+
+
+    def update(self, fps: float) -> None:
+        pass
+
 
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> None:
 
@@ -563,6 +585,14 @@ class UndergroundGeneratingScreen(Interface):
     """
         Screen shown when user first enters the underground dimension
     """
+
+    def handle_event(self, event: pygame.event.Event) -> None:
+        pass
+
+
+    def update(self, fps: float) -> None:
+        pass
+
 
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> None:
 
@@ -742,6 +772,17 @@ class TitleScreen(Interface):
             self.next_screen = None # stop the loop
             return
 
+
+    def update(self, fps: float) -> None:
+        self.text_input.update()
+        self.play_button.update()
+        self.how_to_play_button.update()
+        self.patch_notes_button.update()
+        self.credits_button.update()
+        self.credits_button.update()
+        self.drop_down.update()
+
+
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> None:
 
         # render background
@@ -759,32 +800,12 @@ class TitleScreen(Interface):
         text_rect = game_version_surface.get_rect(center=(SCREEN_WIDTH // 2, 140))
         self.display.blit(game_version_surface, (text_rect.x, text_rect.y))
         
-        # update and render text input box
-        self.text_input.update()
         self.text_input.render(self.display)
-
-        # update and render play button
-        self.play_button.update()
         self.play_button.render(self.display)
-
-        # update and render how to play button
-        self.how_to_play_button.update()
         self.how_to_play_button.render(self.display)
-
-        # update and render patch notes button
-        self.patch_notes_button.update()
         self.patch_notes_button.render(self.display)
-
-        # update and render credits button
-        self.credits_button.update()
         self.credits_button.render(self.display)
-
-        # update and render quit button
-        self.quit_button.update()
         self.quit_button.render(self.display)
-
-        # update and render drop down box
-        self.drop_down.update()
         self.drop_down.render(self.display)
 
 
@@ -813,6 +834,7 @@ class HowToPlayScreen(Interface):
             font=font,
         )
 
+
     def handle_event(self, event: pygame.event.Event) -> None:
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -826,6 +848,11 @@ class HowToPlayScreen(Interface):
 
         self.instructions.handle_event(event)
 
+
+    def update(self, fps: float) -> None:
+        self.instructions.update()
+
+
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> None:
 
         # render background
@@ -838,7 +865,6 @@ class HowToPlayScreen(Interface):
         self.display.blit(title_screen_surface, (text_rect.x, text_rect.y))
         
         # render game instructions scrollable text box
-        self.instructions.update()
         self.instructions.render(self.display)
 
 
@@ -867,6 +893,7 @@ class PatchNotesScreen(Interface):
             font=font,
         )
 
+
     def handle_event(self, event: pygame.event.Event) -> None:
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -880,6 +907,11 @@ class PatchNotesScreen(Interface):
 
         self.patch_notes.handle_event(event)
 
+
+    def update(self, fps: float) -> None:
+        self.patch_notes.update()
+
+
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> None:
 
         # render background
@@ -892,7 +924,6 @@ class PatchNotesScreen(Interface):
         self.display.blit(title_screen_surface, (text_rect.x, text_rect.y))
         
         # render patch notes scrollable text box
-        self.patch_notes.update()
         self.patch_notes.render(self.display)
 
 
@@ -921,6 +952,7 @@ class GameCreditsScreen(Interface):
             font=font,
         )
 
+
     def handle_event(self, event: pygame.event.Event) -> None:
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -934,6 +966,11 @@ class GameCreditsScreen(Interface):
 
         self.game_credits.handle_event(event)
 
+
+    def update(self, fps: float) -> None:
+        self.game_credits.update()
+
+
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> None:
 
         # render background
@@ -946,7 +983,6 @@ class GameCreditsScreen(Interface):
         self.display.blit(title_screen_surface, (text_rect.x, text_rect.y))
         
         # render game credits scrollable text box
-        self.game_credits.update()
         self.game_credits.render(self.display)
 
 
@@ -962,6 +998,7 @@ class DeathScreen(Interface):
         seconds = int(round(self.game_state.play_time_seconds % 60))
         self.true_play_time = "Time Played:   " + str(minute) + "m " + str(seconds) + "s"
 
+
     def handle_event(self, event: pygame.event.Event) -> None:
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -972,6 +1009,11 @@ class DeathScreen(Interface):
             if event.key == pygame.K_ESCAPE:
                 self.next_screen = TitleScreen(self.display, self.context, self.game_state) # go back to title screen
                 return
+
+
+    def update(self, fps: float) -> None:
+        pass
+
 
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> None:
 
@@ -1032,21 +1074,18 @@ def main() -> None:
         frame_count += 1 # increment no. of frames
         fps = clock.get_fps()
 
-        # TODO:
-        # furnace and compressor now do not update when user is not on the screen
-        # separate update logic to rendering logic and make update a player method
-
         # event loop
         for event in pygame.event.get():
             current_screen.handle_event(event)
 
-        # screen transition
+        # screen transition and exit loop if pygame is quit
         if current_screen.next_screen is not current_screen:
             current_screen = current_screen.next_screen
-
-        # exit loop if pygame is quit
         if current_screen is None:
             return
+
+        # update screen
+        current_screen.update(fps)
 
         # render screen
         current_screen.render(world, fps, frame_count)
