@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import random
+from collections.abc import Callable
 from abc import ABC, abstractmethod
+from enum import Enum, auto
 from typing import Optional
 
 import pygame
@@ -32,6 +34,27 @@ from .ui.game import (
 from .world import TilecraftWorld
 
 
+class ScreenID(Enum):
+    """
+        Identifiers for all the different screens
+    """
+    TITLE = auto()
+    GAME = auto()
+    INVENTORY = auto()
+    CRAFTING = auto()
+    SMELTING = auto()
+    ENCHANTING = auto()
+    COMPRESSING = auto()
+    GRINDSTONE = auto()
+    OVERWORLD_GENERATING = auto()
+    UNDERGROUND_GENERATING = auto()
+    HOW_TO_PLAY = auto()
+    PATCH_NOTES = auto()
+    CREDITS = auto()
+    DEATH = auto()
+    QUIT = auto()
+
+
 # common screen interface
 class Interface(ABC):
     """
@@ -42,7 +65,15 @@ class Interface(ABC):
         self.display = display
         self.context = context
         self.game_state: GameState = game_state
-        self.next_screen: Optional[Interface] = self
+
+        # None means that no transition has been requested
+        self.next_screen_id: Optional[ScreenID] = None
+
+    def request_screen(self, screen_id: ScreenID) -> None:
+        """
+            Request a screen transition to screen_id
+        """
+        self.next_screen_id = screen_id
 
     @abstractmethod
     def handle_event(self, event: pygame.event.Event) -> None:
@@ -94,7 +125,7 @@ class GameScreen(GameRunningScreen):
         if not self.game_state.screen.isTyping:
 
             if event.type == pygame.QUIT:
-                self.next_screen = TitleScreen(self.display, self.context, self.game_state)
+                self.request_screen(ScreenID.TITLE)
                 return
 
             elif event.type == pygame.KEYDOWN:
@@ -103,11 +134,11 @@ class GameScreen(GameRunningScreen):
                 self.hotbar_widget.handle_event(event)
 
                 if event.key == pygame.K_ESCAPE: # escape key (quit)
-                    self.next_screen = TitleScreen(self.display, self.context, self.game_state)
+                    self.request_screen(ScreenID.TITLE)
                     return
 
                 if event.key == pygame.K_e: # inventory key
-                    self.next_screen = InventoryScreen(self.display, self.context, self.game_state)
+                    self.request_screen(ScreenID.INVENTORY)
 
                 if event.key == pygame.K_f: # advancements key
                     if not self.game_state.player.advancements:
@@ -153,15 +184,15 @@ class GameScreen(GameRunningScreen):
                     self.game_state.player.mouse_button = 2
                     if self.game_state.player.inventory.hotbar_item is not None:
                         if self.game_state.player.inventory.hotbar_item.name == 'Crafting Table': #Crafting Key
-                            self.next_screen = CraftingScreen(self.display, self.context, self.game_state)
+                            self.request_screen(ScreenID.CRAFTING)
                         elif self.game_state.player.inventory.hotbar_item.name == 'Furnace': #Smelting Key
-                            self.next_screen = SmeltingScreen(self.display, self.context, self.game_state)
+                            self.request_screen(ScreenID.SMELTING)
                         elif self.game_state.player.inventory.hotbar_item.name == 'Enchanting Table': #Enchanting Key
-                            self.next_screen = EnchantingScreen(self.display, self.context, self.game_state)
+                            self.request_screen(ScreenID.ENCHANTING)
                         elif self.game_state.player.inventory.hotbar_item.name == 'Compressor': #Compressing Key
-                            self.next_screen = CompressingScreen(self.display, self.context, self.game_state)
+                            self.request_screen(ScreenID.COMPRESSING)
                         elif self.game_state.player.inventory.hotbar_item.name == "Grindstone": #Repairing and Disenchanting Key
-                            self.next_screen = GrindstoneScreen(self.display, self.context, self.game_state)
+                            self.request_screen(ScreenID.GRINDSTONE)
                         elif self.game_state.player.inventory.hotbar_item.name == "Bucket": #Picking up liquids
                             self.game_state.player.pick_up_liquid()
                         elif self.game_state.player.inventory.hotbar_item.name == "Water Bucket" or \
@@ -207,13 +238,13 @@ class GameScreen(GameRunningScreen):
 
 
         if self.game_state.player.dimension == "Underground" and not self.game_state.world.is_underground_generated:
-            self.next_screen = UndergroundGeneratingScreen(self.display, self.context, self.game_state)
+            self.request_screen(ScreenID.UNDERGROUND_GENERATING)
             return
 
         if not self.game_state.screen.isTyping:
 
             if self.game_state.player.dead: # kill player
-                self.next_screen = DeathScreen(self.display, self.context, self.game_state) # go to death screen
+                self.request_screen(ScreenID.DEATH)
                 return
 
             if self.game_state.player.isBreaking:
@@ -304,7 +335,7 @@ class InventoryScreen(GameRunningScreen):
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_e: # Exit 
-                self.next_screen = GameScreen(self.display, self.context, self.game_state)
+                self.request_screen(ScreenID.GAME)
 
 
     def render(self, world_map: pygame.Surface, fps: float, frame_count: int) -> None:
@@ -347,7 +378,7 @@ class CraftingScreen(GameRunningScreen):
         
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_e: # Exit 
-                self.next_screen = GameScreen(self.display, self.context, self.game_state)
+                self.request_screen(ScreenID.GAME)
 
 
     def update(self, fps: float) -> None:
@@ -406,7 +437,7 @@ class SmeltingScreen(GameRunningScreen):
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_e: # Exit 
-                self.next_screen = GameScreen(self.display, self.context, self.game_state)
+                self.request_screen(ScreenID.GAME)
 
 
     def update(self, fps: float) -> None:
@@ -459,7 +490,7 @@ class EnchantingScreen(GameRunningScreen):
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_e: # Exit 
-                self.next_screen = GameScreen(self.display, self.context, self.game_state)
+                self.request_screen(ScreenID.GAME)
 
 
     def update(self, fps: float) -> None:
@@ -508,7 +539,7 @@ class CompressingScreen(GameRunningScreen):
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_e: # Exit 
-                self.next_screen = GameScreen(self.display, self.context, self.game_state)
+                self.request_screen(ScreenID.GAME)
 
 
     def update(self, fps: float) -> None:
@@ -561,7 +592,7 @@ class GrindstoneScreen(GameRunningScreen):
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_e: # Exit 
-                self.next_screen = GameScreen(self.display, self.context, self.game_state)
+                self.request_screen(ScreenID.GAME)
 
 
     def update(self, fps: float) -> None:
@@ -629,7 +660,7 @@ class OverworldGeneratingScreen(Interface):
         self.game_state.start_ticks = pygame.time.get_ticks()
 
         # go to game screen
-        self.next_screen = GameScreen(self.display, self.context, self.game_state)
+        self.request_screen(ScreenID.GAME)
         return
 
 
@@ -664,7 +695,7 @@ class UndergroundGeneratingScreen(Interface):
         self.game_state.world.is_underground_generated = True
 
         # go to game screen
-        self.next_screen = GameScreen(self.display, self.context, self.game_state)
+        self.request_screen(ScreenID.GAME)
         return
 
 
@@ -782,14 +813,12 @@ class TitleScreen(Interface):
     def handle_event(self, event: pygame.event.Event) -> None:
 
         if event.type == pygame.QUIT:
-            pygame.quit()
-            self.next_screen = None # stop the loop
+            self.request_screen(ScreenID.QUIT)
             return
 
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
-                pygame.quit()
-                self.next_screen = None # stop the loop
+                self.request_screen(ScreenID.QUIT)
                 return
 
         self.text_input.handle_event(event)
@@ -804,24 +833,23 @@ class TitleScreen(Interface):
             self.game_state.rng = RandomNumberGenerator(self.game_state.seed)
             self.game_state.timer = SpeedrunTimer(self.game_state.load)
 
-            self.next_screen = OverworldGeneratingScreen(self.display, self.context, self.game_state)
+            self.request_screen(ScreenID.OVERWORLD_GENERATING)
             return
 
         if self.how_to_play_button.handle_event(event): # go to how to play screen
-            self.next_screen = HowToPlayScreen(self.display, self.context, self.game_state)
+            self.request_screen(ScreenID.HOW_TO_PLAY)
             return
 
         if self.patch_notes_button.handle_event(event): # go to patch notes screen
-            self.next_screen = PatchNotesScreen(self.display, self.context, self.game_state)
+            self.request_screen(ScreenID.PATCH_NOTES)
             return
 
         if self.credits_button.handle_event(event): # go to credits screen
-            self.next_screen = GameCreditsScreen(self.display, self.context, self.game_state)
+            self.request_screen(ScreenID.CREDITS)
             return
 
         if self.quit_button.handle_event(event): # quit the game
-            pygame.quit()
-            self.next_screen = None # stop the loop
+            self.request_screen(ScreenID.QUIT)
             return
 
 
@@ -889,13 +917,12 @@ class HowToPlayScreen(Interface):
 
     def handle_event(self, event: pygame.event.Event) -> None:
         if event.type == pygame.QUIT:
-            pygame.quit()
-            self.next_screen = None # stop the loop
+            self.request_screen(ScreenID.QUIT)
             return
 
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
-                self.next_screen = TitleScreen(self.display, self.context, self.game_state) # go back to title screen
+                self.request_screen(ScreenID.TITLE)
                 return
 
         self.instructions.handle_event(event)
@@ -948,13 +975,12 @@ class PatchNotesScreen(Interface):
 
     def handle_event(self, event: pygame.event.Event) -> None:
         if event.type == pygame.QUIT:
-            pygame.quit()
-            self.next_screen = None # stop the loop
+            self.request_screen(ScreenID.QUIT)
             return
 
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
-                self.next_screen = TitleScreen(self.display, self.context, self.game_state) # go back to title screen
+                self.request_screen(ScreenID.TITLE)
                 return
 
         self.patch_notes.handle_event(event)
@@ -1007,13 +1033,12 @@ class GameCreditsScreen(Interface):
 
     def handle_event(self, event: pygame.event.Event) -> None:
         if event.type == pygame.QUIT:
-            pygame.quit()
-            self.next_screen = None # stop the loop
+            self.request_screen(ScreenID.QUIT)
             return
 
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
-                self.next_screen = TitleScreen(self.display, self.context, self.game_state) # go back to title screen
+                self.request_screen(ScreenID.TITLE)
                 return
 
         self.game_credits.handle_event(event)
@@ -1053,13 +1078,12 @@ class DeathScreen(Interface):
 
     def handle_event(self, event: pygame.event.Event) -> None:
         if event.type == pygame.QUIT:
-            pygame.quit()
-            self.next_screen = None # stop the loop
+            self.request_screen(ScreenID.QUIT)
             return
 
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:
-                self.next_screen = TitleScreen(self.display, self.context, self.game_state) # go back to title screen
+                self.request_screen(ScreenID.TITLE)
                 return
 
 
@@ -1084,6 +1108,40 @@ class DeathScreen(Interface):
         self.display.blit(surface, (rect.x, rect.y))
 
 
+# type definition for interface constructor
+ScreenConstructor = Callable[[pygame.Surface, Context, GameState], Interface]
+
+# mapping of screen ID to screen constructor
+SCREEN_TYPES: dict[ScreenID, ScreenConstructor] = {
+    ScreenID.GAME: GameScreen, 
+    ScreenID.INVENTORY: InventoryScreen,
+    ScreenID.CRAFTING: CraftingScreen,
+    ScreenID.SMELTING: SmeltingScreen,
+    ScreenID.ENCHANTING: EnchantingScreen,
+    ScreenID.COMPRESSING: CompressingScreen,
+    ScreenID.GRINDSTONE: GrindstoneScreen,
+    ScreenID.OVERWORLD_GENERATING: OverworldGeneratingScreen,
+    ScreenID.UNDERGROUND_GENERATING: UndergroundGeneratingScreen,
+    ScreenID.TITLE: TitleScreen,
+    ScreenID.HOW_TO_PLAY: HowToPlayScreen,
+    ScreenID.PATCH_NOTES: PatchNotesScreen,
+    ScreenID.CREDITS: GameCreditsScreen,
+    ScreenID.DEATH: DeathScreen,
+}
+
+
+def create_screen(screen_id: ScreenID, display: pygame.Surface, context: Context, game_state: GameState) -> Interface:
+    """
+        Creates a new screen for screen_id passing the parameters
+    """
+    try:
+        screen_type = SCREEN_TYPES[screen_id]
+    except KeyError:
+        raise ValueError(f"Cannot create screen for {screen_id!r}") from None
+    
+    return screen_type(display, context, game_state)
+
+
 def main() -> None:
     """
         Main event loop for the game, also the entry point for the program
@@ -1101,26 +1159,26 @@ def main() -> None:
     world.fill((0, 0, 0))  # Fill Map Surface Black
     frame_count = 0
 
-    # start by generating the overworld
-    current_screen: Interface = TitleScreen(
-        display = display,
-        context = context,
-        game_state = GameState(
-            screen=None, 
-            player=None, 
-            world=None, 
-            timer=None, 
-            rng=None, 
-            seed=None, 
-            background=(255, 255, 255), 
-            load=None,
-            start_ticks=0,
-            play_time_seconds=0.0,
-            debug_mode=False,
-        )
+    game_state = GameState(
+        screen=None, 
+        player=None, 
+        world=None, 
+        timer=None, 
+        rng=None, 
+        seed=None, 
+        background=(255, 255, 255), 
+        load=None,
+        start_ticks=0,
+        play_time_seconds=0.0,
+        debug_mode=False,
     )
 
-    while current_screen is not None:
+    # start at the title screen
+    current_screen: Interface = create_screen(ScreenID.TITLE, display, context, game_state)
+
+    running = True
+
+    while running:
 
         clock.tick(60) # maximum FPS of 60
         frame_count += 1 # increment no. of frames
@@ -1130,11 +1188,19 @@ def main() -> None:
         for event in pygame.event.get():
             current_screen.handle_event(event)
 
-        # screen transition and exit loop if pygame is quit
-        if current_screen.next_screen is not current_screen:
-            current_screen = current_screen.next_screen
-        if current_screen is None:
-            return
+        # exit loop if pygame is quit
+        if current_screen.next_screen_id is ScreenID.QUIT:
+            running = False
+            continue
+
+        # transition to next screen
+        if current_screen.next_screen_id is not None:
+            current_screen = create_screen(
+                current_screen.next_screen_id,
+                current_screen.display,
+                current_screen.context,
+                current_screen.game_state
+            )
 
         # update screen
         current_screen.update(fps)
@@ -1147,3 +1213,5 @@ def main() -> None:
             if current_screen.game_state.rng.next_random(1, 500) == 1:
                 pygame.mixer.music.load(str(ASSETS_DIR / "music/song") + str(random.choice([3, 5, 7, 11, 12, 13, 14, 18])) + ".mp3")
                 pygame.mixer.music.play()
+
+    pygame.quit()
