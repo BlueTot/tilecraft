@@ -11,12 +11,24 @@ from .constants import RandomNumberGenerator, Context, create_context, SCREEN_WI
 from .game_state import GameState, advancements_update, Screen, SpeedrunTimer
 from .generation import UndergroundGeneratePortal
 from .player import Player
-from .ui.text_input import TextInput
-from .ui.drop_down_menu import Dropdown
-from .ui.button import Button
 from .ui.widget import Widget
-from .ui.scrollable_text_box import ScrollableTextBox
-from .widgets import InventoryWidget, ArmourWidget, SmallCraftingWidget, HotbarWidget, ExperienceBarWidget, HealthBarWidget, HungerBarWidget, DebugWidget, CraftingTableWidget, FurnaceWidget, EnchantingTableWidget, CompressorWidget, GrindstoneWidget, HoldingItemWidget
+from .ui.general import Button, Dropdown, ScrollableTextBox, TextInput
+from .ui.game import (
+    ArmourWidget,
+    CompressorWidget,
+    CraftingTableWidget,
+    DebugWidget,
+    EnchantingTableWidget,
+    ExperienceBarWidget,
+    FurnaceWidget,
+    GrindstoneWidget,
+    HealthBarWidget,
+    HoldingItemWidget,
+    HotbarWidget,
+    HungerBarWidget,
+    InventoryWidget,
+    SmallCraftingWidget
+)
 from .world import TilecraftWorld
 
 
