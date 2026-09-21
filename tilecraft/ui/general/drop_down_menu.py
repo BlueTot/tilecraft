@@ -1,7 +1,10 @@
 import pygame
 
+from tilecraft.ui.widget import Widget
+from tilecraft.constants import Context
 
-class Dropdown:
+
+class Dropdown(Widget):
     """
         Drop down menu UI element
     """
@@ -82,7 +85,7 @@ class Dropdown:
         self.open = False
         return False
 
-    def update(self) -> None:
+    def update(self, fps: float) -> None:
         """Update hover state."""
 
         mouse_position = pygame.mouse.get_pos()
@@ -96,7 +99,7 @@ class Dropdown:
                     self.hovered_index = index
                     break
 
-    def render(self, surface: pygame.Surface) -> None:
+    def render(self, surface: pygame.Surface, context: Context) -> None:
         """Draw the dropdown."""
 
         main_colour = (
