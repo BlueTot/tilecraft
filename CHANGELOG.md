@@ -517,3 +517,37 @@ All notable changes to this project will be documented in this file.
 
 * Overworld structures get cut off by new generated chunks
 * Datapacks drop-down menu options jumbled up every time game is launched
+
+## [0.9.0a4] - 2026-09-21
+
+### Added
+
+* Added package metadata and entry points to run the game with `tilecraft` or `python -m tilecraft`
+* Added `GameState` and `Context` containers for shared game state and Pygame assets
+* Added reusable UI components for buttons, drop-down menus, text inputs, and scrollable text boxes
+* Added shared `Widget` and `Interface` abstractions with event handling, updating, and rendering lifecycles
+
+### Changed
+
+* Replaced the single-file codebase with an installable `tilecraft` package split into focused modules
+* Moved game assets into the package and declared them as package data
+* Reorganised screens under `interfaces/` and widgets under `ui/`
+* Refactored the main loop into screen classes and changed screen transitions to use IDs and a factory
+* Replaced global player, world, and runtime state with state passed through `GameState`
+* Separated inventory, crafting, and processing state from their frontend widgets
+* Converted gameplay UI, including the inventory, hotbar, armour, status bars, and debug display, to widgets
+* Moved hover detection and input handling into the widgets that own each UI component
+* Separated state updates from rendering across screens and widgets
+* Migrated the title, death, How to Play, Patch Notes, and Credits screens from Tkinter to Pygame
+* Capped the main loop at 60 FPS and replaced the custom FPS calculation with `clock.get_fps()`
+* Moved dependency and Python version requirements from `requirements.txt` to `pyproject.toml`
+* Added type annotations throughout the codebase
+* Replaced legacy current-version labels with the centralised `v0.9.0a4` version
+
+### Removed
+
+* Removed the Tkinter dependency
+
+### Fixed
+
+* The debug menu now reports the installed Pygame version instead of a hard-coded version
