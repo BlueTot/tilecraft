@@ -1,7 +1,10 @@
 import pygame
 
+from tilecraft.ui.widget import Widget
+from tilecraft.constants import Context
 
-class TextInput:
+
+class TextInput(Widget):
     """
         Typing input box UI element
     """
@@ -44,7 +47,7 @@ class TextInput:
             self.cursor_visible = True
             self.last_cursor_toggle = pygame.time.get_ticks()
 
-    def update(self) -> None:
+    def update(self, fps: float) -> None:
         if not self.active:
             self.cursor_visible = False
             return
@@ -55,7 +58,7 @@ class TextInput:
             self.cursor_visible = not self.cursor_visible
             self.last_cursor_toggle = current_time
 
-    def render(self, surface: pygame.Surface) -> None:
+    def render(self, surface: pygame.Surface, context: Context) -> None:
         background = "#202732"
         border = "#FFFFFF" if self.active else "#77818C"
 

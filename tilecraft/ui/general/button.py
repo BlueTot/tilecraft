@@ -1,7 +1,10 @@
 import pygame
 
+from tilecraft.ui.widget import Widget
+from tilecraft.constants import Context
 
-class Button:
+
+class Button(Widget):
     """
         Button UI element 
     """
@@ -45,7 +48,7 @@ class Button:
 
         return False
 
-    def update(self) -> None:
+    def update(self, fps: float) -> None:
         """Update the hover state."""
 
         self.hovered = self.enabled and self.rect.collidepoint(pygame.mouse.get_pos())
@@ -54,7 +57,7 @@ class Button:
         if self.pressed and not pygame.mouse.get_pressed()[0]:
             self.pressed = False
 
-    def render(self, surface: pygame.Surface) -> None:
+    def render(self, surface: pygame.Surface, context: Context) -> None:
         """Draw the button."""
 
         if not self.enabled:
