@@ -15,3 +15,30 @@ tilecraft = "tilecraft.main:main"
 tilecraft = [
     "assets/**/*",
 ]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-cov",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = [
+    "--cov=tilecraft",
+    "--cov-branch",
+    "--cov-report=term-missing",
+]
+
+[tool.coverage.run]
+source = ["tilecraft"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+exclude_also = [
+    "if TYPE_CHECKING:",
+    "if __name__ == .__main__.:",
+    "@abstractmethod",
+]
