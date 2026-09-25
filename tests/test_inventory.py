@@ -1,7 +1,12 @@
-from typing import Optional
+import pytest
 
 from tilecraft.constants import Item
 from tilecraft.inventory import Inventory
+
+
+##################################
+#         TEST HELPERS           #
+##################################
 
 
 def inventory_contains_item(inventory: Inventory, name: str, number: int) -> bool:
@@ -34,6 +39,11 @@ def count_number_of_slots(inventory: Inventory, name: str) -> int:
         for item in inventory.items
         if item is not None and item.name == name
     )
+
+
+##################################
+#             TESTS              #
+##################################
 
 
 def test_inventory_starts_with_36_slots():
@@ -75,15 +85,47 @@ def test_add_item_to_partial_stack_adds_to_it():
     assert inventory_contains_item(inventory, "Dirt", base_number + new_number)
 
 
-def test_add_item_more_than_64_splits_to_different_stack():
+@pytest.mark.parametrize(
+    ("quantity", "expected_stacks"),
+    [
+        (1, [1]),
+        (63, [63]),
+        (64, [64]),
+        (65, [1, 64]),
+        (128, [64, 64]),
+        (129, [1, 64, 64]),
+    ]
+)
+def test_stackable_items_are_split_correctly(quantity: int, expected_stacks: list[int]):
     """
-        Test that adding an item > 64 amount splits into multiple stacks
+        Test that adding an item with any amount splits into
+        multiple stacks correctly
     """
-    inventory = Inventory()
 
-    count = 100
-    item = Item(name="Dirt", number=count, enchantments=None, durability=None)
-    inventory.add(item)
+    inventory = Inventory() 
+
+    inventory.add(Item("Dirt", quantity, None, None))
+
+    actual_stacks = sorted(
+        item.number
+        for item in inventory.items
+        if item is not None and item.name == "Dirt"
+    )
+
+    assert actual_stacks == expected_stacks
+
+
+def test_add_fills_existing_partial_stacks_before_empty_slots():
+    """
+        Test that, if there are two partial stacks, adding the same item
+        type fills up existing partial stacks first
+    """
+
+    inventory = Inventory()
+    inventory.items[0] = Item("Dirt", 60, None, None)
+    inventory.items[1] = Item("Dirt", 50, None, None)
+
+    inventory.add(Item("Dirt", 10, None, None))
 
     stacks = sorted(
         item.number
@@ -91,7 +133,7 @@ def test_add_item_more_than_64_splits_to_different_stack():
         if item is not None and item.name == "Dirt"
     )
 
-    assert stacks == [36, 64]
+    assert stacks == [56, 64]
 
 
 def test_adding_items_preserves_total_quantity():
@@ -132,6 +174,22 @@ def test_add_non_stackable_items_uses_separate_slots():
     assert count_number_of_slots(inventory, "Wooden Pickaxe") == 10
 
 
+def test_different_item_types_do_not_combine():
+    """
+        Test that different item names don't combine into the same slot
+    """
+
+    inventory = Inventory()
+
+    inventory.add(Item("Dirt", 10, None, None))
+    inventory.add(Item("Sand", 12, None, None))
+
+    assert count_items(inventory, "Dirt") == 10
+    assert count_items(inventory, "Sand") == 12
+    assert count_number_of_slots(inventory, "Dirt") == 1
+    assert count_number_of_slots(inventory, "Sand") == 1
+
+
 def test_select_hotbar_returns_correct_item():
     """
         Test that selecting hotbar index returns the item at index+27
@@ -145,3 +203,17 @@ def test_select_hotbar_returns_correct_item():
 
         assert inventory.hotbar_item is not None
         assert inventory.hotbar_item.number == index + 1
+
+
+def test_setting_hotbar_item_updates_selected_slot():
+    """
+        Test that setting hotbar item through setter updates correct inventory slot
+    """
+    inventory = Inventory()
+    inventory.selected_hotbar = 3
+    item = Item("Dirt", 10, None, None)
+
+    inventory.hotbar_item = item
+
+    assert inventory.items[27+3] is item
+    assert inventory.hotbar_item is item
