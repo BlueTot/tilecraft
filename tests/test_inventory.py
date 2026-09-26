@@ -85,6 +85,33 @@ def test_add_item_to_partial_stack_adds_to_it():
     assert inventory_contains_item(inventory, "Dirt", base_number + new_number)
 
 
+def test_add_items_with_total_count_64_uses_one_slot():
+    """
+        Test that adding items that total to 64 in multiple runs
+        uses one slot in the inventory
+    """
+    inventory = Inventory()
+    inventory.add(Item("Dirt", 40, None, None))
+    inventory.add(Item("Dirt", 24, None, None))
+
+    assert count_number_of_slots(inventory, "Dirt") == 1
+    assert count_items(inventory, "Dirt") == 64
+
+
+def test_adding_items_preserves_total_quantity():
+    """
+        Test that adding items of the same type preserves total quantity when inventory isn't full
+    """
+    inventory = Inventory()
+    inventory.add(Item("Dirt", 60, None, None))
+
+    before = count_items(inventory, "Dirt")
+    inventory.add(Item("Dirt", 10, None, None))
+    after = count_items(inventory, "Dirt")
+
+    assert after == before + 10
+
+
 @pytest.mark.parametrize(
     ("quantity", "expected_stacks"),
     [
@@ -134,33 +161,6 @@ def test_add_fills_existing_partial_stacks_before_empty_slots():
     )
 
     assert stacks == [56, 64]
-
-
-def test_adding_items_preserves_total_quantity():
-    """
-        Test that adding items of the same type preserves total quantity when inventory isn't full
-    """
-    inventory = Inventory()
-    inventory.add(Item("Dirt", 60, None, None))
-
-    before = count_items(inventory, "Dirt")
-    inventory.add(Item("Dirt", 10, None, None))
-    after = count_items(inventory, "Dirt")
-
-    assert after == before + 10
-
-
-def test_add_items_with_total_count_64_uses_one_slot():
-    """
-        Test that adding items that total to 64 in multiple runs
-        uses one slot in the inventory
-    """
-    inventory = Inventory()
-    inventory.add(Item("Dirt", 40, None, None))
-    inventory.add(Item("Dirt", 24, None, None))
-
-    assert count_number_of_slots(inventory, "Dirt") == 1
-    assert count_items(inventory, "Dirt") == 64
 
 
 def test_add_non_stackable_items_uses_separate_slots():
