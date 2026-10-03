@@ -21,80 +21,75 @@ class Inventory:
     """
 
     def __init__(self):
-        self.items = [None]*36
-        self.full = False
-        self.__selected_hotbar = 0
+        self.items: list[Optional[Item]] = [None]*36
+        self.__selected_hotbar: int = 0
     
     @property
     def selected_hotbar(self):
+        """
+            Gets the index of the selected hotbar from 0-8
+        """
         return self.__selected_hotbar
 
     @selected_hotbar.setter
     def selected_hotbar(self, index: int):
+        """
+            Sets the index of the selected hotbar, from 0-8
+        """
         self.__selected_hotbar = index
 
     @property
     def hotbar_item(self) -> Optional[Item]:
+        """
+            Gets the item the player selected in the hotbar
+        """
         return self.items[self.__selected_hotbar + 27]
 
     @hotbar_item.setter
     def hotbar_item(self, item: Optional[Item]) -> None:
         self.items[self.__selected_hotbar + 27] = item
 
-    #add items to inventory
-    def add(self, item: Item):
-        self.full = True
 
-        # TEST FOR FULL INVENTORY
-        for i in self.items:
-            if i is None:
-                self.full = False
-                break
-        if self.full:
-            # temporarily do not print to screen
-            print("Your inventory is nearly full or is already full. New items added may be lost.")
-        # Add items to inventory and combine into singular stacks (if stackable)
-        if item is not None:
-            if item.stackNum == 64:
-                Call = False
-                for j in range(len(self.items)):
-                    if self.items[j] is not None:
-                        if item.name == self.items[j].name and self.items[j].number < 64:
-                            self.items[j] = Item(self.items[j].name, item.number + self.items[j].number, self.items[j].enchantments, self.items[j].durability) #Add values
-                            Call = True
-                            break
-                if not Call:
-                    for j in range(len(self.items)):
-                        if self.items[j] is None:
-                            self.items[j] = item
-                            break
-            elif item.stackNum == 1:
-                for j in range(len(self.items)):
-                    if self.items[j] is None:
-                        self.items[j] = item
-                        break
+    def add(self, item_to_add: Optional[Item]):
+        """
+            Add an item to the inventory if possible
+        """
 
-        # Separate Items into stacks (Armour = Stack of 1), (Item = Stack of 64)
-        for i in range(len(self.items)):
-            if self.items[i] is not None:
-                if self.items[i].stackNum == 1 and self.items[i].number > 1:  # Armour
-                    count = 0
-                    while count < self.items[i].number:  # Separate into individual items
-                        if None in self.items:
-                            none_index = self.items.index(None)
-                            self.items[none_index] = Item(self.items[i].name, 1, self.items[i].enchantments, self.items[i].durability)
-                        count += 1
-                    self.items[i] = None
-                elif self.items[i].stackNum == 64 and self.items[i].number > 64:  # Item
-                    while self.items[i].number > 64:  # Separate into stacks of 64
-                        self.items[i].number -= 64
-                        if None in self.items:
-                            none_index = self.items.index(None)
-                            self.items[none_index] = Item(self.items[i].name, 64, self.items[i].enchantments, self.items[i].durability)
-                    if None in self.items:  # Remainder (Less than 64)
-                        none_index = self.items.index(None)
-                        self.items[none_index] = Item(self.items[i].name, self.items[i].number, self.items[i].enchantments, self.items[i].durability)
-                        self.items[i] = None
+        if item_to_add is None:
+            return
+
+        # attempt to add into existing stacks
+        for item_at in self.items:
+
+            if (
+                item_at is not None and 
+                item_at.name == item_to_add.name and # same name
+                item_at.number < item_at.stackNum # not full stack
+            ):
+                amount_remaining = min(item_at.stackNum - item_at.number, item_to_add.number) # do not over subtract
+                item_at.number += amount_remaining
+                item_to_add.number -= amount_remaining
+
+        # attempt to add to empty slots
+        if item_to_add.number > 0:
+
+            for index, item_at in enumerate(self.items):
+                if item_at is None:
+                    amount_to_add = min(item_to_add.number, item_to_add.stackNum)
+                    self.items[index] = Item(
+                        name=item_to_add.name, 
+                        number=amount_to_add,
+                        enchantments=item_to_add.enchantments,
+                        durability=item_to_add.durability
+                    )
+                    item_to_add.number -= amount_to_add
+
+                if item_to_add.number == 0:
+                    break
+
+        # by this point, there's no space for the remaining amount
+        if item_to_add.number > 0:
+            print("Your inventory is nearly full or is already full. New items added may be lost.") 
 
 
 class Armour:
