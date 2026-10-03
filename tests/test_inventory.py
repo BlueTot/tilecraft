@@ -60,6 +60,7 @@ def test_add_item_to_empty_inventory():
     """
         Test that adding an item to an empty inventory works as intended
     """
+
     inventory = Inventory()
     item = Item(name="Dirt", number=10, enchantments=None, durability=None)
 
@@ -68,10 +69,35 @@ def test_add_item_to_empty_inventory():
     assert inventory_contains_item(inventory, "Dirt", 10)
 
 
+def test_adding_item_to_inventory_does_not_modify_it():
+    """
+        Test that adding an item to the inventory does not modify the item's quantity
+    """
+
+    inventory = Inventory()
+    item = Item(name="Dirt", number=25, enchantments=None, durability=None)
+
+    inventory.add(item)
+    assert item.number == 25
+
+
+def test_adding_none_to_inventory_returns_0():
+    """
+        Test that adding None to the inventory returns 0 and does not add anything
+    """
+
+    inventory = Inventory()
+    remaining = inventory.add(None)
+
+    assert all(item is None for item in inventory.items)
+    assert remaining == 0 
+
+
 def test_add_item_to_partial_stack_adds_to_it():
     """
         Test that adding an item to a partial stack adds to the same item
     """
+
     inventory = Inventory()
 
     base_number = 30
@@ -102,6 +128,7 @@ def test_adding_items_preserves_total_quantity():
     """
         Test that adding items of the same type preserves total quantity when inventory isn't full
     """
+
     inventory = Inventory()
     inventory.add(Item("Dirt", 60, None, None))
 
@@ -130,7 +157,6 @@ def test_stackable_items_are_split_correctly(quantity: int, expected_stacks: lis
     """
 
     inventory = Inventory() 
-
     inventory.add(Item("Dirt", quantity, None, None))
 
     actual_stacks = sorted(
@@ -167,6 +193,7 @@ def test_add_non_stackable_items_uses_separate_slots():
     """
         Test that adding non stackable items uses one slot per item
     """
+
     inventory = Inventory()
     inventory.add(Item("Wooden Pickaxe", 10, None, None))
 
@@ -190,10 +217,25 @@ def test_different_item_types_do_not_combine():
     assert count_number_of_slots(inventory, "Sand") == 1
 
 
+def test_full_inventory_returns_correct_amount_remaining():
+    """
+        Test that if the inventory cannot fit the new item, the correct amount is returned
+    """
+
+    inventory = Inventory()
+    remaining = inventory.add(Item("Dirt", 36*64 - 32, None, None))
+    assert count_items(inventory, "Dirt") == 36*64 - 32
+    assert remaining == 0
+
+    remaining = inventory.add(Item("Dirt", 48, None, None))
+    assert remaining == 16 
+
+
 def test_select_hotbar_returns_correct_item():
     """
         Test that selecting hotbar index returns the item at index+27
     """
+
     inventory = Inventory()
     for index in range(9):
         inventory.items[index+27] = Item("Dirt", index+1, None, None)
@@ -209,6 +251,7 @@ def test_setting_hotbar_item_updates_selected_slot():
     """
         Test that setting hotbar item through setter updates correct inventory slot
     """
+
     inventory = Inventory()
     inventory.selected_hotbar = 3
     item = Item("Dirt", 10, None, None)

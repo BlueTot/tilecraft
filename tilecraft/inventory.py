@@ -50,13 +50,17 @@ class Inventory:
         self.items[self.__selected_hotbar + 27] = item
 
 
-    def add(self, item_to_add: Optional[Item]):
+    def add(self, item_to_add: Optional[Item]) -> int:
         """
-            Add an item to the inventory if possible
+            Add an item to the inventory if possible. Does not modify
+            the item passed in. Returns the remaining amount that did not fit
+            in the inventory.
         """
 
         if item_to_add is None:
-            return
+            return 0
+
+        remaining = item_to_add.number
 
         # attempt to add into existing stacks
         for item_at in self.items:
@@ -66,30 +70,32 @@ class Inventory:
                 item_at.name == item_to_add.name and # same name
                 item_at.number < item_at.stackNum # not full stack
             ):
-                amount_remaining = min(item_at.stackNum - item_at.number, item_to_add.number) # do not over subtract
+                amount_remaining = min(item_at.stackNum - item_at.number, remaining) # do not over subtract
                 item_at.number += amount_remaining
-                item_to_add.number -= amount_remaining
+                remaining -= amount_remaining
 
         # attempt to add to empty slots
-        if item_to_add.number > 0:
+        if remaining > 0:
 
             for index, item_at in enumerate(self.items):
                 if item_at is None:
-                    amount_to_add = min(item_to_add.number, item_to_add.stackNum)
+                    amount_to_add = min(remaining, item_to_add.stackNum)
                     self.items[index] = Item(
                         name=item_to_add.name, 
                         number=amount_to_add,
                         enchantments=item_to_add.enchantments,
                         durability=item_to_add.durability
                     )
-                    item_to_add.number -= amount_to_add
+                    remaining -= amount_to_add
 
-                if item_to_add.number == 0:
+                if remaining == 0:
                     break
 
         # by this point, there's no space for the remaining amount
-        if item_to_add.number > 0:
+        if remaining > 0:
             print("Your inventory is nearly full or is already full. New items added may be lost.") 
+
+        return remaining
 
 
 class Armour:
