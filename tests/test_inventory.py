@@ -231,6 +231,33 @@ def test_full_inventory_returns_correct_amount_remaining():
     assert remaining == 16 
 
 
+def test_full_inventory_still_accepts_items_into_matching_partial_stacks():
+    """
+        Test that an inventory with zero free slots can still accept items
+        into matching partial stacks
+    """
+
+    inventory = Inventory()
+    assert inventory.add(Item("Dirt", 35*64, None, None)) == 0
+    assert inventory.add(Item("Oak Log", 32, None, None)) == 0
+
+    assert all(slot is not None for slot in inventory.items)
+    assert inventory.add(Item("Oak Log", 16, None, None)) == 0
+    assert count_items(inventory, "Oak Log") == 32 + 16
+
+
+def test_adding_items_to_inventory_preserves_enchantments_and_durability():
+    """
+        Test that Inventory.add perserves enchantments and durability
+    """
+
+    inventory = Inventory()
+    assert inventory.add(Item("Dirt", 48, [["Efficiency", 5]], 10)) == 0
+
+    assert inventory.items[0].enchantments == [["Efficiency", 5]]
+    assert inventory.items[0].durability == 10
+
+
 def test_select_hotbar_returns_correct_item():
     """
         Test that selecting hotbar index returns the item at index+27
