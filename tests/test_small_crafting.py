@@ -11,20 +11,6 @@ from tilecraft.inventory import SmallCraftingGrid
 ##################################
 
 
-def new_single_item(item_name: str) -> Item:
-    """
-        Returns a new item with quantity 1
-    """
-    return Item(item_name, 1, None, None)
-
-
-def new_item(item_name: str, quantity: int) -> Item:
-    """
-        Returns a new item with given name and quantity
-    """
-    return Item(item_name, quantity, None, None)
-
-
 def item_equals(item1: Optional[Item], item2: Optional[Item]) -> bool:
     """
         Checks if two items are equal
@@ -54,19 +40,19 @@ def item_equals(item1: Optional[Item], item2: Optional[Item]) -> bool:
     [
         (
             ["Oak Log", None, None, None], 
-            new_item("Oak Planks", 4)
+            Item.new("Oak Planks", 4)
         ),
         (
             ["Oak Planks", "Oak Planks", "Oak Planks", "Oak Planks"],
-            new_single_item("Crafting Table")
+            Item.new("Crafting Table", 1)
         ),
         (
             ["Oak Planks", None, "Oak Planks", None],
-            new_item("Stick", 4)
+            Item.new("Stick", 4)
         ),
         (
             ["Iron Ingot", None, None, "Flint"],
-            new_single_item("Flint and Steel")
+            Item.new("Flint and Steel", 1)
         )
     ]
 )
@@ -80,7 +66,7 @@ def test_small_crafting_produces_correct_product(inputs: list[Optional[str]], ou
 
     small_crafting_table = SmallCraftingGrid()
     for i, name in enumerate(inputs):
-        small_crafting_table.items[i] = new_single_item(name) if name is not None else None 
+        small_crafting_table.items[i] = Item.new(name, 1) if name is not None else None 
 
     small_crafting_table.update()
     print(small_crafting_table.items[4].name, small_crafting_table.items[4].number)
@@ -118,7 +104,8 @@ def test_invalid_ingredients_produce_no_result(names):
     """
     crafting = SmallCraftingGrid()
     crafting.items[:4] = [
-        new_single_item(name) if name is not None else None
+        Item.new(name, 1)
+        if name is not None else None
         for name in names
     ]
 
@@ -132,11 +119,11 @@ def test_invalid_ingredients_clear_previous_result():
         Test that invalid ingredients clear a previously valid result
     """
     crafting = SmallCraftingGrid()
-    crafting.items[0] = new_single_item("Oak Log")
+    crafting.items[0] = Item.new("Oak Log", 1)
     crafting.update()
     assert crafting.items[4] is not None
 
-    crafting.items[0] = new_single_item("Dirt")
+    crafting.items[0] = Item.new("Dirt", 1)
     crafting.update()
 
     assert crafting.items[4] is None
