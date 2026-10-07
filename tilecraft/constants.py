@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from typing import Optional
 import pygame
@@ -242,6 +244,22 @@ class Item: #Item in the inventory
             self.targetTile = None
             # self.tile_img = None
             # self.alpha_tile_img = None
+
+    @classmethod
+    def new(cls, name: str, number: int) -> Item:
+        """
+            Return a new unenchanted item with no durability
+        """
+        return cls(name, number, None, None)
+
+
+    @classmethod
+    def clone(cls, item: Item) -> Item:
+        """
+            Returns a copy of the item
+        """
+        return cls(item.name, item.number, item.enchantments, item.durability)
+
 
 class Recipe:
     def __init__(self, requirements, result):

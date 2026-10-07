@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Optional
+from dataclasses import dataclass
 
 from .constants import Item, Context, CRAFTING_RECIPES, RandomNumberGenerator 
 from .player_info import Experience
@@ -28,7 +29,7 @@ class Inventory:
     def selected_hotbar(self):
         """
             Gets the index of the selected hotbar from 0-8
-        """
+        """ 
         return self.__selected_hotbar
 
     @selected_hotbar.setter
@@ -108,11 +109,39 @@ class Armour:
         self.items: list[Optional[Item]] = [None]*4
 
 
+@dataclass
+class SmallCraftingRecipe:
+    """
+        A small crafting recipe consists of four inputs and one output
+    """
+    inputs: list[Optional[Item]]
+    output: Optional[Item]
+
+
 class SmallCraftingInterface:
     """
         2x2 small crafting grid in the player's inventory
         consists of four cells and one result cell
     """
+
+    RECIPES: list[SmallCraftingRecipe] = [
+        SmallCraftingRecipe(
+            [Item.new("Oak Log", 1), None, None, None], 
+            Item.new("Oak Planks", 4)
+        ),
+        SmallCraftingRecipe(
+            [Item.new("Oak Planks", 1), Item.new("Oak Planks", 1), Item.new("Oak Planks", 1), Item.new("Oak Planks", 1)], 
+            Item.new("Crafting Table", 1)
+        ),
+        SmallCraftingRecipe(
+            [Item.new("Oak Planks", 1), None, Item.new("Oak Planks", 1), None], 
+            Item.new("Stick", 4)
+        ),
+        SmallCraftingRecipe(
+            [Item.new("Iron Ingot", 1), None, None, Item.new("Flint", 1)], 
+            Item.new("Flint and Steel", 1)
+        )
+    ]
 
     def __init__(self):
         self.items: list[Optional[Item]] = [None]*5
@@ -122,28 +151,26 @@ class SmallCraftingInterface:
         """
             Update attempts to craft an item from the ingredients
         """
-        if self.items[0] is not None and self.items[1] is None and self.items[2] is None and self.items[3] is None:
-            if self.items[0].name == 'Oak Log':
-                self.items[4] = Item("Oak Planks", 4, None, None)
-            else:
-                self.items[4] = None
-        elif self.items[0] is not None and self.items[1] is None and self.items[2] is not None and self.items[3] is None:
-            if self.items[0].name == 'Oak Planks' and self.items[2].name == 'Oak Planks':
-                self.items[4] = Item("Stick", 4, None, None)
-            else:
-                self.items[4] = None
-        elif self.items[0] is not None and self.items[1] is not None and self.items[2] is not None and self.items[3] is not None:
-            if self.items[0].name == 'Oak Planks' and self.items[1].name == 'Oak Planks' and self.items[2].name == 'Oak Planks' and self.items[3].name == 'Oak Planks':
-                self.items[4] = Item("Crafting Table", 1, None, None)
-            else:
-                self.items[4] = None
-        elif self.items[0] is not None and self.items[1] is None and self.items[2] is None and self.items[3] is not None:
-            if self.items[0].name == 'Iron Ingot' and self.items[3].name == 'Flint':
-                self.items[4] = Item("Flint and Steel", 1, None, None)
-            else:
-                self.items[4] = None
-        else:
-            self.items[4] = None
+
+        for recipe in self.RECIPES:
+
+            is_recipe_complete = True
+            for have, expected in zip(self.items[:4], recipe.inputs):
+                if have is None and expected is None:
+                    continue
+                if (
+                    have is not None and expected is not None and
+                    have.name == expected.name and have.number >= expected.number
+                ):
+                    continue
+                is_recipe_complete = False
+                break
+                
+            if is_recipe_complete:
+                self.items[4] = Item.clone(recipe.output)
+                return
+
+        self.items[4] = None
 
 
 class CraftingTableInterface:

@@ -125,3 +125,18 @@ def test_invalid_ingredients_produce_no_result(names):
     crafting.update()
 
     assert crafting.items[4] is None
+
+
+def test_invalid_ingredients_clear_previous_result():
+    """
+        Test that invalid ingredients clear a previously valid result
+    """
+    crafting = SmallCraftingInterface()
+    crafting.items[0] = new_single_item("Oak Log")
+    crafting.update()
+    assert crafting.items[4] is not None
+
+    crafting.items[0] = new_single_item("Dirt")
+    crafting.update()
+
+    assert crafting.items[4] is None
