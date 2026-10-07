@@ -3,7 +3,7 @@ from typing import Optional
 import pytest
 
 from tilecraft.constants import Item
-from tilecraft.inventory import SmallCraftingInterface 
+from tilecraft.inventory import SmallCraftingGrid 
 
 
 ##################################
@@ -78,7 +78,7 @@ def test_small_crafting_produces_correct_product(inputs: list[Optional[str]], ou
     if len(inputs) != 4:
         raise ValueError("List of inputs must have length 4")
 
-    small_crafting_table = SmallCraftingInterface()
+    small_crafting_table = SmallCraftingGrid()
     for i, name in enumerate(inputs):
         small_crafting_table.items[i] = new_single_item(name) if name is not None else None 
 
@@ -116,7 +116,7 @@ def test_invalid_ingredients_produce_no_result(names):
     """
         Tests that invalid ingredients produce None in the output slot
     """
-    crafting = SmallCraftingInterface()
+    crafting = SmallCraftingGrid()
     crafting.items[:4] = [
         new_single_item(name) if name is not None else None
         for name in names
@@ -131,7 +131,7 @@ def test_invalid_ingredients_clear_previous_result():
     """
         Test that invalid ingredients clear a previously valid result
     """
-    crafting = SmallCraftingInterface()
+    crafting = SmallCraftingGrid()
     crafting.items[0] = new_single_item("Oak Log")
     crafting.update()
     assert crafting.items[4] is not None

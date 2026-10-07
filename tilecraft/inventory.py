@@ -118,7 +118,7 @@ class SmallCraftingRecipe:
     output: Optional[Item]
 
 
-class SmallCraftingInterface:
+class SmallCraftingGrid:
     """
         2x2 small crafting grid in the player's inventory
         consists of four cells and one result cell
