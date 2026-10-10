@@ -4,7 +4,7 @@ import pygame
 from .constants import Context, RandomNumberGenerator, Item
 from .generation import Tile, UndergroundGeneratePortal, OverworldGeneratePortal
 from .inventory import Inventory, Armour, FurnaceInterface, EnchantingTable, Compressor, Grindstone, HoldingItem
-from .crafting import SmallCraftingGrid, CraftingTableInterface
+from .crafting import SmallCraftingGrid, LargeCraftingGrid
 from .player_info import Health, Hunger, Experience
 from .world import TilecraftWorld
 
@@ -68,7 +68,7 @@ class Player:
 
         self.armour = Armour() # armour
         self.craft_interface = SmallCraftingGrid() # small crafting grid
-        self.crafting_grid = CraftingTableInterface() # crafting table
+        self.crafting_grid = LargeCraftingGrid() # crafting table
         self.furnace = FurnaceInterface(context) # furnace interface
         self.enchanting_table = EnchantingTable(self.rng, self.experience) # enchanting table interface
         self.compressor = Compressor() # compressor interface

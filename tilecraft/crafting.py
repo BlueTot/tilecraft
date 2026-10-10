@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
 from typing import Optional
 from dataclasses import dataclass
 
@@ -7,52 +8,31 @@ from .constants import Item
 
 
 @dataclass
-class SmallCraftingRecipe:
+class CraftingRecipe:
     """
-        A small crafting recipe consists of four inputs and one output
+        A small crafting recipe consists of a list of inputs and one output
     """
     inputs: list[Optional[Item]]
     output: Optional[Item]
 
 
-class SmallCraftingGrid:
+class CraftingGrid(ABC):
     """
-        2x2 small crafting grid in the player's inventory
-        consists of four cells and one result cell
+        Abstract crafting grid class, has {x} input slots and 1 output slot
+        where {x} is configurable
     """
 
-    RECIPES: list[SmallCraftingRecipe] = [
-        SmallCraftingRecipe(
-            [Item.new("Oak Log", 1), None, None, None], 
-            Item.new("Oak Planks", 4)
-        ),
-        SmallCraftingRecipe(
-            [Item.new("Oak Planks", 1), Item.new("Oak Planks", 1), Item.new("Oak Planks", 1), Item.new("Oak Planks", 1)], 
-            Item.new("Crafting Table", 1)
-        ),
-        SmallCraftingRecipe(
-            [Item.new("Oak Planks", 1), None, Item.new("Oak Planks", 1), None], 
-            Item.new("Stick", 4)
-        ),
-        SmallCraftingRecipe(
-            [Item.new("Iron Ingot", 1), None, None, Item.new("Flint", 1)], 
-            Item.new("Flint and Steel", 1)
-        )
-    ]
-
-    def __init__(self):
-        self.items: list[Optional[Item]] = [None]*5
+    def __init__(self, num_input_slots: int):
+        self.num_input_slots = num_input_slots
+        self.items: list[Optional[Item]] = [None] * (self.num_input_slots + 1)
 
 
-    def update(self):
-        """
-            Update attempts to craft an item from the ingredients
-        """
+    def _update(self, recipes: list[CraftingRecipe]) -> None:
 
-        for recipe in self.RECIPES:
+        for recipe in recipes:
 
             is_recipe_complete = True
-            for have, expected in zip(self.items[:4], recipe.inputs):
+            for have, expected in zip(self.items[:self.num_input_slots], recipe.inputs):
                 if have is None and expected is None:
                     continue
                 if (
@@ -64,26 +44,62 @@ class SmallCraftingGrid:
                 break
                 
             if is_recipe_complete:
-                self.items[4] = Item.clone(recipe.output)
+                self.items[self.num_input_slots] = Item.clone(recipe.output)
                 return
 
-        self.items[4] = None
+        self.items[self.num_input_slots] = None
 
 
-@dataclass
-class CraftingRecipe:
+    @abstractmethod
+    def update(self) -> None:
+        """
+            Update attempts to craft an item from the ingredients
+        """
+        raise NotImplementedError
+
+
+class SmallCraftingGrid(CraftingGrid):
     """
-        A crafting recipe consists of nine inputs and one output
+        2x2 small crafting grid in the player's inventory
+        consists of four cells and one result cell
     """
-    inputs: list[Optional[Item]]
-    output: Optional[Item]
+
+    NUM_INPUT_SLOTS = 4
+
+    RECIPES: list[CraftingRecipe] = [
+        CraftingRecipe(
+            [Item.new("Oak Log", 1), None, None, None], 
+            Item.new("Oak Planks", 4)
+        ),
+        CraftingRecipe(
+            [Item.new("Oak Planks", 1), Item.new("Oak Planks", 1), Item.new("Oak Planks", 1), Item.new("Oak Planks", 1)], 
+            Item.new("Crafting Table", 1)
+        ),
+        CraftingRecipe(
+            [Item.new("Oak Planks", 1), None, Item.new("Oak Planks", 1), None], 
+            Item.new("Stick", 4)
+        ),
+        CraftingRecipe(
+            [Item.new("Iron Ingot", 1), None, None, Item.new("Flint", 1)], 
+            Item.new("Flint and Steel", 1)
+        )
+    ]
+
+    def __init__(self):
+        super().__init__(self.NUM_INPUT_SLOTS)
+
+    def update(self):
+        return super()._update(self.RECIPES)
 
 
-class CraftingTableInterface:
+
+class LargeCraftingGrid(CraftingGrid):
     """
         3x3 crafting grid in the crafting table interface
         Consists of 9 crafting slots and 1 result slot
     """
+
+    NUM_INPUT_SLOTS = 9
 
     # Create crafting recipes
     RECIPES: list[CraftingRecipe] = [
@@ -306,30 +322,8 @@ class CraftingTableInterface:
     ]
  
     def __init__(self):
-        self.items: list[Optional[Item]] = [None]*10
+        super().__init__(self.NUM_INPUT_SLOTS)
 
 
     def update(self):
-        """
-            Update attempts to craft an item from the ingredients
-        """
-
-        for recipe in self.RECIPES:
-
-            is_recipe_complete = True
-            for have, expected in zip(self.items[:9], recipe.inputs):
-                if have is None and expected is None:
-                    continue
-                if (
-                    have is not None and expected is not None and
-                    have.name == expected.name and have.number >= expected.number
-                ):
-                    continue
-                is_recipe_complete = False
-                break
-                
-            if is_recipe_complete:
-                self.items[9] = Item.clone(recipe.output)
-                return
-
-        self.items[9] = None
+        return super()._update(self.RECIPES)

@@ -3,7 +3,7 @@ from typing import Optional
 import pytest
 
 from tilecraft.constants import Item
-from tilecraft.crafting import SmallCraftingGrid, CraftingTableInterface
+from tilecraft.crafting import SmallCraftingGrid, LargeCraftingGrid
 
 
 ##################################
@@ -353,7 +353,7 @@ def test_crafting_produces_correct_product(inputs: list[Optional[str]], output: 
     if len(inputs) != 9:
         raise ValueError("List of inputs must have length 9")
 
-    crafting_table = CraftingTableInterface()
+    crafting_table = LargeCraftingGrid()
     for i, name in enumerate(inputs):
         crafting_table.items[i] = Item.new(name, 1) if name is not None else None 
 
@@ -401,7 +401,7 @@ def test_crafting_invalid_ingredients_produce_no_result(names):
         Tests that for large crafting grid, invalid ingredients produce
         None in the output slot
     """
-    crafting = CraftingTableInterface()
+    crafting = LargeCraftingGrid()
     crafting.items[:9] = [
         Item.new(name, 1)
         if name is not None else None
