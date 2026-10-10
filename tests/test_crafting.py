@@ -3,7 +3,7 @@ from typing import Optional
 import pytest
 
 from tilecraft.constants import Item
-from tilecraft.inventory import SmallCraftingGrid, CraftingTableInterface
+from tilecraft.crafting import SmallCraftingGrid, CraftingTableInterface
 
 
 ##################################

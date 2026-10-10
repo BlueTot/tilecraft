@@ -5,7 +5,8 @@ from tilecraft import ASSETS_DIR
 from tilecraft.constants import Coordinate, Context, ITEM_IMAGE_MAPPING, Item
 from tilecraft.ui.widget import Widget
 from tilecraft.ui.game.item_rendering import TextBox, RenderDurabilityBar
-from tilecraft.inventory import Inventory, SmallCraftingGrid, CraftingTableInterface, HoldingItem
+from tilecraft.inventory import Inventory, HoldingItem
+from tilecraft.crafting import SmallCraftingGrid, CraftingTableInterface
 
 
 class SmallCraftingWidget(Widget):
