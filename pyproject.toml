@@ -1,6 +1,6 @@
 [project]
 name = "tilecraft"
-version = "0.9.0a4"
+version = "0.9.0a5"
 description = "A video game based off 2D minecraft"
 requires-python = ">=3.10"
 dependencies = [
@@ -11,7 +11,39 @@ dependencies = [
 [project.scripts]
 tilecraft = "tilecraft.main:main"
 
+[tool.setuptools.packages.find]
+include = ["tilecraft", "tilecraft.*"]
+namespaces = false
+
 [tool.setuptools.package-data]
 tilecraft = [
     "assets/**/*",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-cov",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = [
+    "--cov=tilecraft",
+    "--cov-branch",
+    "--cov-report=term-missing",
+]
+
+[tool.coverage.run]
+source = ["tilecraft"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+precision = 2
+exclude_also = [
+    "if TYPE_CHECKING:",
+    "if __name__ == .__main__.:",
+    "@abstractmethod",
 ]

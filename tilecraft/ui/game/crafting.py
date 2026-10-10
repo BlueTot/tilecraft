@@ -5,7 +5,8 @@ from tilecraft import ASSETS_DIR
 from tilecraft.constants import Coordinate, Context, ITEM_IMAGE_MAPPING, Item
 from tilecraft.ui.widget import Widget
 from tilecraft.ui.game.item_rendering import TextBox, RenderDurabilityBar
-from tilecraft.inventory import Inventory, SmallCraftingInterface, CraftingTableInterface, HoldingItem
+from tilecraft.inventory import Inventory, HoldingItem
+from tilecraft.crafting import SmallCraftingGrid, LargeCraftingGrid
 
 
 class SmallCraftingWidget(Widget):
@@ -15,7 +16,7 @@ class SmallCraftingWidget(Widget):
 
     CELL_SIZE = 82
 
-    def __init__(self, x: int, y: int, inventory: Inventory, small_crafting_grid: SmallCraftingInterface, holding_item: HoldingItem):
+    def __init__(self, x: int, y: int, inventory: Inventory, small_crafting_grid: SmallCraftingGrid, holding_item: HoldingItem):
         self.x = x
         self.y = y
         self.inventory = inventory
@@ -172,7 +173,7 @@ class CraftingTableWidget(Widget):
 
     CELL_SIZE = 82
 
-    def __init__(self, x: int, y: int, inventory: Inventory, crafting_grid: CraftingTableInterface, holding_item: HoldingItem):
+    def __init__(self, x: int, y: int, inventory: Inventory, crafting_grid: LargeCraftingGrid, holding_item: HoldingItem):
         self.x = x
         self.y = y
         self.inventory = inventory

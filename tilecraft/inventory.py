@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Optional
 
-from .constants import Item, Context, CRAFTING_RECIPES, RandomNumberGenerator 
+from .constants import Item, Context, RandomNumberGenerator 
 from .player_info import Experience
 
 
@@ -21,80 +21,81 @@ class Inventory:
     """
 
     def __init__(self):
-        self.items = [None]*36
-        self.full = False
-        self.__selected_hotbar = 0
+        self.items: list[Optional[Item]] = [None]*36
+        self.__selected_hotbar: int = 0
     
     @property
     def selected_hotbar(self):
+        """
+            Gets the index of the selected hotbar from 0-8
+        """ 
         return self.__selected_hotbar
 
     @selected_hotbar.setter
     def selected_hotbar(self, index: int):
+        """
+            Sets the index of the selected hotbar, from 0-8
+        """
         self.__selected_hotbar = index
 
     @property
     def hotbar_item(self) -> Optional[Item]:
+        """
+            Gets the item the player selected in the hotbar
+        """
         return self.items[self.__selected_hotbar + 27]
 
     @hotbar_item.setter
     def hotbar_item(self, item: Optional[Item]) -> None:
         self.items[self.__selected_hotbar + 27] = item
 
-    #add items to inventory
-    def add(self, item: Item):
-        self.full = True
 
-        # TEST FOR FULL INVENTORY
-        for i in self.items:
-            if i is None:
-                self.full = False
-                break
-        if self.full:
-            # temporarily do not print to screen
-            print("Your inventory is nearly full or is already full. New items added may be lost.")
-        # Add items to inventory and combine into singular stacks (if stackable)
-        if item is not None:
-            if item.stackNum == 64:
-                Call = False
-                for j in range(len(self.items)):
-                    if self.items[j] is not None:
-                        if item.name == self.items[j].name and self.items[j].number < 64:
-                            self.items[j] = Item(self.items[j].name, item.number + self.items[j].number, self.items[j].enchantments, self.items[j].durability) #Add values
-                            Call = True
-                            break
-                if not Call:
-                    for j in range(len(self.items)):
-                        if self.items[j] is None:
-                            self.items[j] = item
-                            break
-            elif item.stackNum == 1:
-                for j in range(len(self.items)):
-                    if self.items[j] is None:
-                        self.items[j] = item
-                        break
+    def add(self, item_to_add: Optional[Item]) -> int:
+        """
+            Add an item to the inventory if possible. Does not modify
+            the item passed in. Returns the remaining amount that did not fit
+            in the inventory.
+        """
 
-        # Separate Items into stacks (Armour = Stack of 1), (Item = Stack of 64)
-        for i in range(len(self.items)):
-            if self.items[i] is not None:
-                if self.items[i].stackNum == 1 and self.items[i].number > 1:  # Armour
-                    count = 0
-                    while count < self.items[i].number:  # Separate into individual items
-                        if None in self.items:
-                            none_index = self.items.index(None)
-                            self.items[none_index] = Item(self.items[i].name, 1, self.items[i].enchantments, self.items[i].durability)
-                        count += 1
-                    self.items[i] = None
-                elif self.items[i].stackNum == 64 and self.items[i].number > 64:  # Item
-                    while self.items[i].number > 64:  # Separate into stacks of 64
-                        self.items[i].number -= 64
-                        if None in self.items:
-                            none_index = self.items.index(None)
-                            self.items[none_index] = Item(self.items[i].name, 64, self.items[i].enchantments, self.items[i].durability)
-                    if None in self.items:  # Remainder (Less than 64)
-                        none_index = self.items.index(None)
-                        self.items[none_index] = Item(self.items[i].name, self.items[i].number, self.items[i].enchantments, self.items[i].durability)
-                        self.items[i] = None
+        if item_to_add is None:
+            return 0
+
+        remaining = item_to_add.number
+
+        # attempt to add into existing stacks
+        for item_at in self.items:
+
+            if (
+                item_at is not None and 
+                item_at.name == item_to_add.name and # same name
+                item_at.number < item_at.stackNum # not full stack
+            ):
+                amount_remaining = min(item_at.stackNum - item_at.number, remaining) # do not over subtract
+                item_at.number += amount_remaining
+                remaining -= amount_remaining
+
+        # attempt to add to empty slots
+        if remaining > 0:
+
+            for index, item_at in enumerate(self.items):
+                if item_at is None:
+                    amount_to_add = min(remaining, item_to_add.stackNum)
+                    self.items[index] = Item(
+                        name=item_to_add.name, 
+                        number=amount_to_add,
+                        enchantments=item_to_add.enchantments,
+                        durability=item_to_add.durability
+                    )
+                    remaining -= amount_to_add
+
+                if remaining == 0:
+                    break
+
+        # by this point, there's no space for the remaining amount
+        if remaining > 0:
+            print("Your inventory is nearly full or is already full. New items added may be lost.") 
+
+        return remaining
 
 
 class Armour:
@@ -105,63 +106,6 @@ class Armour:
 
     def __init__(self):
         self.items: list[Optional[Item]] = [None]*4
-
-
-class SmallCraftingInterface:
-    """
-        2x2 small crafting grid in the player's inventory
-        consists of four cells and one result cell
-    """
-
-    def __init__(self):
-        self.items: list[Optional[Item]] = [None]*5
-
-
-    def update(self):
-        """
-            Update attempts to craft an item from the ingredients
-        """
-        if self.items[0] is not None and self.items[1] is None and self.items[2] is None and self.items[3] is None:
-            if self.items[0].name == 'Oak Log':
-                self.items[4] = Item("Oak Planks", 4, None, None)
-            else:
-                self.items[4] = None
-        elif self.items[0] is not None and self.items[1] is None and self.items[2] is not None and self.items[3] is None:
-            if self.items[0].name == 'Oak Planks' and self.items[2].name == 'Oak Planks':
-                self.items[4] = Item("Stick", 4, None, None)
-            else:
-                self.items[4] = None
-        elif self.items[0] is not None and self.items[1] is not None and self.items[2] is not None and self.items[3] is not None:
-            if self.items[0].name == 'Oak Planks' and self.items[1].name == 'Oak Planks' and self.items[2].name == 'Oak Planks' and self.items[3].name == 'Oak Planks':
-                self.items[4] = Item("Crafting Table", 1, None, None)
-            else:
-                self.items[4] = None
-        elif self.items[0] is not None and self.items[1] is None and self.items[2] is None and self.items[3] is not None:
-            if self.items[0].name == 'Iron Ingot' and self.items[3].name == 'Flint':
-                self.items[4] = Item("Flint and Steel", 1, None, None)
-            else:
-                self.items[4] = None
-        else:
-            self.items[4] = None
-
-
-class CraftingTableInterface:
-    """
-        3x3 crafting grid in the crafting table interface
-        Consists of 9 crafting slots and 1 result slot
-    """
-
-    def __init__(self):
-        self.items: list[Optional[Item]] = [None]*10
-
-
-    def update(self):
-        for recipe in CRAFTING_RECIPES.values():
-            if recipe.canCraft(self.items):
-                recipe.craft(self.items)
-                return
-            else:
-                self.items[9] = None
 
 
 class FurnaceInterface:
