@@ -261,6 +261,21 @@ class Item: #Item in the inventory
         return cls(item.name, item.number, item.enchantments, item.durability)
 
 
+    def set_max_durability(self) -> Item:
+        """
+            Sets the item to have max durability
+        """
+        self.durability = ITEM_TYPES[self.name].max_durability
+        return self
+
+
+    def __repr__(self) -> str:
+        """
+            Print method
+        """
+        return f"Item({self.name}, {self.number}, {self.enchantments}, {self.durability})"
+
+
 class Recipe:
     def __init__(self, requirements, result):
         self.requirements = requirements
@@ -346,7 +361,7 @@ CRAFTING_RECIPES = {
     "Stick_recipe" : Recipe(
         ["Oak Planks", None, None,
         "Oak Planks", None, None,
-        None, None, None], Item("Stick", 5, None, ITEM_TYPES["Stick"].max_durability)),
+        None, None, None], Item("Stick", 4, None, ITEM_TYPES["Stick"].max_durability)),
     "CraftingTable_recipe" : Recipe(
         ["Oak Planks", "Oak Planks", None,
         "Oak Planks", "Oak Planks", None,
