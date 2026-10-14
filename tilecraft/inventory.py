@@ -127,15 +127,25 @@ class FurnaceInterface:
         """
 
         # Load Fuel
-        if self.items[1] is not None:
-            if self.items[1].name == "Coal" and self.fuel_val == 0:
-                self.items[1] = Item(self.items[1].name, self.items[1].number - 1, self.items[1].enchantments, self.items[1].durability)
-                self.fuel_val = 8
+        if (
+            self.items[1] is not None and
+            self.items[1].name == "Coal" and 
+            self.fuel_val == 0
+        ):
+            self.items[1] = Item(self.items[1].name, self.items[1].number - 1, self.items[1].enchantments, self.items[1].durability)
+            self.fuel_val = 8
 
         # Smelting Process
-        if self.items[0] is not None:
-            if self.items[0].name == "Iron Ore" and self.fuel_val > 0:
-                self.smelting_time += 1
+        if (
+            self.items[0] is not None and 
+            self.items[0].name == "Iron Ore" and
+            self.items[0].number > 0 and
+            self.fuel_val > 0 and (
+                self.items[2] is None or
+                self.items[2].name == "Iron Ingot" and self.items[2].number < 64
+            )
+        ):
+            self.smelting_time += 1
         else:
             self.smelting_time = 0
 
@@ -145,11 +155,10 @@ class FurnaceInterface:
             self.items[0] = Item(self.items[0].name, self.items[0].number - 1, self.items[0].enchantments, self.items[0].durability)
             self.fuel_val -= 1
             if self.items[2] is None:
-                self.items[2] = Item("Iron Ingot", 1, None, None)
-                experience.add_points(12)
+                self.items[2] = Item.new("Iron Ingot", 1)
             else:
-                self.items[2] = Item("Iron Ingot", self.items[2].number + 1, None, None)
-                experience.add_points(12)
+                self.items[2].number += 1
+            experience.add_points(12)
 
         # Render Fire
         if self.fuel_val > 0:
