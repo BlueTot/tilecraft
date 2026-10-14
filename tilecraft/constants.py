@@ -268,6 +268,26 @@ class Item: #Item in the inventory
         self.durability = ITEM_TYPES[self.name].max_durability
         return self
 
+
+    @staticmethod
+    def equals_optional(item1: Optional[Item], item2: Optional[Item]) -> bool:
+        """
+            Checks if two optional items are equal
+        """
+
+        if (item1 is None and item2 is None):
+            return True
+
+        if (item1 is not None and item2 is None) or (item1 is None and item2 is not None):
+            return False
+
+        return all([
+            item1.name == item2.name,
+            item1.number == item2.number,
+            item1.enchantments == item2.enchantments,
+            item1.durability == item2.durability
+        ])
+
     
     def is_stackable_with(self, other: Item) -> bool:
         """

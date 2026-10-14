@@ -13,25 +13,6 @@ from tilecraft.player_info import Experience
 ##################################
 
 
-def item_equals(item1: Optional[Item], item2: Optional[Item]) -> bool:
-    """
-        Checks if two items are equal
-    """
-
-    if (item1 is None and item2 is None):
-        return True
-
-    if (item1 is not None and item2 is None) or (item1 is None and item2 is not None):
-        return False
-
-    return all([
-        item1.name == item2.name,
-        item1.number == item2.number,
-        item1.enchantments == item2.enchantments,
-        item1.durability == item2.durability
-    ])
-
-
 @pytest.fixture
 def context() -> Context:
     """Provide the two image references the backend uses, without opening a window."""
@@ -238,6 +219,6 @@ def test_furnace_does_not_smelt_into_blocked_output(furnace, context, experience
     advance(furnace, context, experience, 300)
 
     print(furnace.items[2])
-    assert item_equals(furnace.items[2], blocked_output)
+    assert Item.equals_optional(furnace.items[2], blocked_output)
     assert furnace.fuel_val == 8
     assert experience.levels == 0
