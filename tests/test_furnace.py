@@ -1,10 +1,35 @@
 from types import SimpleNamespace
+from typing import Optional
 
 import pytest
 
 from tilecraft.constants import Item, Context
 from tilecraft.inventory import FurnaceInterface
 from tilecraft.player_info import Experience
+
+
+##################################
+#         TEST HELPERS           #
+##################################
+
+
+def item_equals(item1: Optional[Item], item2: Optional[Item]) -> bool:
+    """
+        Checks if two items are equal
+    """
+
+    if (item1 is None and item2 is None):
+        return True
+
+    if (item1 is not None and item2 is None) or (item1 is None and item2 is not None):
+        return False
+
+    return all([
+        item1.name == item2.name,
+        item1.number == item2.number,
+        item1.enchantments == item2.enchantments,
+        item1.durability == item2.durability
+    ])
 
 
 @pytest.fixture
@@ -33,6 +58,11 @@ def advance(furnace, context, experience, ticks: int, fps=60):
     """
     for _ in range(ticks):
         furnace.smelt(context, fps, experience)
+
+
+##################################
+#             TESTS              #
+##################################
 
 
 def test_furnace_starts_empty_and_unlit(furnace, context):
@@ -177,7 +207,6 @@ def test_furnace_stops_when_stored_fuel_runs_out(furnace, context, experience):
     assert experience.levels == pytest.approx(3)
 
 
-# @pytest.mark.xfail(strict=True, reason="Furnace currently processes zero-count ore stacks")
 def test_furnace_does_not_smelt_depleted_input(furnace, context, experience):
     """
         Tests that furnace does not smelt input item with count 0
@@ -193,20 +222,22 @@ def test_furnace_does_not_smelt_depleted_input(furnace, context, experience):
     assert experience.levels == 0
 
 
-@pytest.mark.parametrize("output_name, quantity", [("Dirt", 1), ("Iron Ingot", 64)])
-# @pytest.mark.xfail(strict=True, reason="Furnace does not check output compatibility or capacity")
-def test_furnace_does_not_smelt_into_blocked_output(furnace, context, experience, output_name, quantity):
+@pytest.mark.parametrize("blocked_output", [
+    Item.new("Dirt", 1),  # different item
+    Item.new("Iron Ingot", 64),  # stack full
+    Item("Iron Ingot", 1, [["Efficiency", 5]], None) # enchantments do not stack
+])
+def test_furnace_does_not_smelt_into_blocked_output(furnace, context, experience, blocked_output: Item):
     """
         Tests that furnace does not smelt if output item cannot be added to
     """
     furnace.items[0] = Item.new("Iron Ore", 2)
-    furnace.items[2] = Item.new(output_name, quantity)
+    furnace.items[2] = Item.clone(blocked_output)
     furnace.fuel_val = 8
 
     advance(furnace, context, experience, 300)
 
-    assert furnace.items[2].name == output_name
-    assert furnace.items[2].number == quantity
-    assert furnace.items[0].number == 2
+    print(furnace.items[2])
+    assert item_equals(furnace.items[2], blocked_output)
     assert furnace.fuel_val == 8
     assert experience.levels == 0

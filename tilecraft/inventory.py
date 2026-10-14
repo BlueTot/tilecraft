@@ -142,7 +142,7 @@ class FurnaceInterface:
             self.items[0].number > 0 and
             self.fuel_val > 0 and (
                 self.items[2] is None or
-                self.items[2].name == "Iron Ingot" and self.items[2].number < 64
+                Item.new("Iron Ingot", self.items[0].number).is_stackable_with(self.items[2])
             )
         ):
             self.smelting_time += 1
