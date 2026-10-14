@@ -268,6 +268,18 @@ class Item: #Item in the inventory
         self.durability = ITEM_TYPES[self.name].max_durability
         return self
 
+    
+    def is_stackable_with(self, other: Item) -> bool:
+        """
+            Items are stackable if they have the same name, enchantments, and durability
+        """
+        return (
+            self.name == other.name and
+            self.enchantments == other.enchantments and
+            self.durability == other.durability and
+            self.number + other.number <= self.stackNum
+        )
+
 
     def __repr__(self) -> str:
         """
