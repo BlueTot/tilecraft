@@ -113,15 +113,14 @@ class FurnaceInterface:
         Smelting interrface in the inventory screen
         Consists of a fuel slot, item slot, and result slot
     """
-    def __init__(self, context: Context):
+    def __init__(self):
 
         self.items: list[Optional[Item]] = [None]*3
         self.fuel_val = 0
-        self.fuel_img = context.ITEM_IMAGES["no_fire"]
         self.smelting_time = 0
 
 
-    def smelt(self, context: Context, fps: float, experience: Experience):
+    def smelt(self, fps: float, experience: Experience):
         """
             Progress smelting an item by one tick
         """
@@ -159,12 +158,6 @@ class FurnaceInterface:
             else:
                 self.items[2].number += 1
             experience.add_points(12)
-
-        # Render Fire
-        if self.fuel_val > 0:
-            self.fuel_img = context.ITEM_IMAGES["fire"]
-        else:
-            self.fuel_img = context.ITEM_IMAGES["no_fire"]
 
 
 class EnchantingTable:
