@@ -106,6 +106,11 @@ class FurnaceWidget(Widget):
         mouse = pygame.mouse.get_pos()
         is_holding = self.holding_item.item is not None
 
+        if self.furnace.fuel_val > 0:
+            fuel_img = context.ITEM_IMAGES["fire"]
+        else:
+            fuel_img = context.ITEM_IMAGES["no_fire"]
+
         images = []
         numbers = []
 
@@ -143,7 +148,7 @@ class FurnaceWidget(Widget):
             text = self.__font.render(numbers[i], False, (255, 255, 255))
             surface.blit(text, (coordinate.x, coordinate.y))
 
-        surface.blit(self.furnace.fuel_img, (self.x, self.y + 105)) #Render Fire Image
+        surface.blit(fuel_img, (self.x, self.y + 105)) #Render Fire Image
         surface.blit(self.__side_font.render(str(self.furnace.fuel_val), False, (255, 0, 0)), (self.x - 38, self.y + 120)) #Render Power of Fuel Remaining
         surface.blit(self.__side_font.render(f"{int(self.furnace.smelting_time / self.fps)}", False, (255, 0, 0)), (self.x + 142, self.y + 90)) #Render Time to Smelt
         surface.blit(self.__arrow_font.render('-->', False, (0, 0, 0)), (self.x + 112, self.y + 120)) #Render Arrow
