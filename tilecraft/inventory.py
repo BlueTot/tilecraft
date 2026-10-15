@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import Optional
 
 from .constants import Item, Context, RandomNumberGenerator 
@@ -359,12 +360,23 @@ class EnchantingTable:
                     self.enchant_set()  # Remove Enchants
 
 
+@dataclass
+class CompressorRecipe:
+    ingredient: Item
+    product: Item
+
+
 class Compressor:
     """
         Compressor allows the player to compress things into plates
         Has two slots, one input slot and one output slot
         Runs on a timer
     """
+
+    RECIPES: list[CompressorRecipe] = [
+        CompressorRecipe(Item.new("Iron Ingot", 2), Item.new("Iron Plate", 1)),
+        CompressorRecipe(Item.new("Diamond", 2), Item.new("Diamond Plate", 1))
+    ]
 
     def __init__(self):
         self.items: list[Optional[Item]] = [None, None]
@@ -376,38 +388,32 @@ class Compressor:
             Advances the compressing state by one frame
         """
 
-        #Compressing Process
-        if self.items[0] is not None:
-            if self.items[0].number >= 2:
-                if self.items[0].name == 'Iron Ingot':
-                    if self.items[1] is not None:
-                        if self.items[1].name == 'Iron Plate':
-                            self.compressing_time += 1
-                    else:
-                        self.compressing_time += 1
-                elif self.items[0].name == 'Diamond':
-                    if self.items[1] is not None:
-                        if self.items[1].name == 'Diamond Plate':
-                            self.compressing_time += 1
-                    else:
-                        self.compressing_time += 1
+        expected_output: Optional[Item] = None
+
+        # compressing process
+        for recipe in self.RECIPES:
+            if (
+                self.items[0] is not None and
+                self.items[0].name == recipe.ingredient.name and
+                self.items[0].number >= recipe.ingredient.number and (
+                    self.items[1] is None or
+                    recipe.product.is_stackable_with(self.items[1])
+                )
+            ):
+                self.compressing_time += 1
+                expected_output = Item.clone(recipe.product)
+                break
         else:
             self.compressing_time = 0
 
-        #Finish Compressing Item
+        # finish compressing item
         if self.compressing_time >= 5 * fps:
             self.compressing_time = 0
-            self.items[0] = Item(self.items[0].name, self.items[0].number - 2, self.items[0].enchantments, self.items[0].durability)
-            if self.items[1] is None:
-                if self.items[0].name == 'Iron Ingot':
-                    self.items[1] = Item("Iron Plate", 1, None, None)
-                elif self.items[0].name == 'Diamond':
-                    self.items[1] = Item("Diamond Plate", 1, None, None)
+            self.items[0].number -= 2
+            if self.items[1] is None and expected_output is not None:
+                self.items[1] = expected_output
             else:
-                if self.items[0].name == 'Iron Ingot' and self.items[1].name == 'Iron Plate':
-                    self.items[1] = Item("Iron Plate", self.items[1].number + 1, None, None)
-                elif self.items[0].name == 'Diamond' and self.items[1].name == 'Diamond Plate':
-                    self.items[1] = Item("Diamond Plate", self.items[1].number + 1, None, None)
+                self.items[1].number += 1
 
 
 class Grindstone:
