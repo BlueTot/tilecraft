@@ -35,20 +35,26 @@ def test_compressor_starts_empty(compressor: Compressor):
 
 
 @pytest.mark.parametrize("fps", [1, 30, 60])
-def test_compressor_produces_correct_output_after_five_seconds(compressor: Compressor, fps: int):
+@pytest.mark.parametrize(("ingredient", "product"), [
+    (Item.new("Iron Ingot", 2), Item.new("Iron Plate", 1)),
+    (Item.new("Diamond", 2), Item.new("Diamond Plate", 1))
+])
+def test_compressor_produces_correct_output_after_five_seconds(compressor: Compressor, fps: int,
+                                                               ingredient: Item, product: Item):
     """
         Test that the compressor produces correct output after one cycle
     """
-    compressor.items[0] = Item.new("Iron Ingot", 4)
+    ingredient.number += 2
+    compressor.items[0] = Item.clone(ingredient)
 
-    advance(compressor, 5 * fps - 1)
+    advance(compressor, 5 * fps - 1, fps)
     assert compressor.items[1] is None
-    assert compressor.items[0].number == 4
+    assert compressor.items[0].number == ingredient.number
 
     compressor.compress(fps)
 
-    assert Item.equals_optional(compressor.items[1], Item.new("Iron Plate", 1))
-    assert compressor.items[0].number == 2
+    assert Item.equals_optional(compressor.items[1], product)
+    assert compressor.items[0].number == ingredient.number - 2
 
 
 @pytest.mark.parametrize("item", [None, Item.new("Dirt", 1), Item.new("Iron Ingot", 1)])
