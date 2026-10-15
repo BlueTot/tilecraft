@@ -1,8 +1,6 @@
-from types import SimpleNamespace
-
 import pytest
 
-from tilecraft.constants import Item, Context
+from tilecraft.constants import Item
 from tilecraft.inventory import FurnaceInterface
 from tilecraft.player_info import Experience
 
@@ -10,12 +8,6 @@ from tilecraft.player_info import Experience
 ##################################
 #         TEST HELPERS           #
 ##################################
-
-
-@pytest.fixture
-def context() -> Context:
-    """Provide the two image references the backend uses, without opening a window."""
-    return SimpleNamespace(ITEM_IMAGES={"fire": object(), "no_fire": object()})
 
 
 @pytest.fixture
