@@ -327,7 +327,7 @@ class GrindstoneScreen(GameRunningScreen):
     def update(self, fps: float) -> None:
 
         # update backend
-        self.game_state.player.grindstone.repair_and_disenchant()
+        self.game_state.player.grindstone.update()
 
         # update frontend
         super().update(fps)

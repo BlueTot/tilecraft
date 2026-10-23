@@ -38,11 +38,11 @@ def test_grindstone_produces_right_output_and_levels(item: Item, experience_poin
     grindstone = Grindstone(experience)
     grindstone.items[0] = item
 
-    grindstone.repair_and_disenchant()
+    grindstone.update()
     assert grindstone.items[2] is not None
     assert grindstone.items[2].enchantments is None
 
-    grindstone.disenchant()
+    grindstone.repair_and_disenchant()
     experience.add_points.assert_called_once_with(experience_points)
 
 
@@ -59,7 +59,7 @@ def test_grindstone_awards_experience_for_all_enchantments(enchantments, experie
     grindstone = Grindstone(experience)
     grindstone.items[0] = Item("Iron Pickaxe", 1, enchantments, 10)
 
-    grindstone.disenchant()
+    grindstone.repair_and_disenchant()
     total_points = sum(
         args[0]
         for args, kwargs in experience.add_points.call_args_list
@@ -77,7 +77,7 @@ def test_grindstone_previews_disenchanted_output_without_changing_input_or_exper
     item = Item("Iron Pickaxe", 1, [["Efficiency", 5]], 10)
     grindstone.items[0] = item
 
-    grindstone.repair_and_disenchant()
+    grindstone.update()
 
     output = grindstone.items[2]
     assert output is not None
@@ -102,7 +102,7 @@ def test_grindstone_repairs_matching_tools_with_durability_cap(exceeds_maximum, 
     second_durability = first.max_durability if exceeds_maximum else 20
     grindstone.items[:2] = [first, Item("Iron Pickaxe", 1, None, second_durability)]
 
-    grindstone.repair_and_disenchant()
+    grindstone.update()
 
     output = grindstone.items[2]
     assert output is not None
@@ -120,11 +120,11 @@ def test_grindstone_clears_previous_output_for_mismatched_tools():
     """
     grindstone = Grindstone(Experience())
     grindstone.items[0] = Item("Iron Pickaxe", 1, [["Efficiency", 1]], 10)
-    grindstone.repair_and_disenchant()
+    grindstone.update()
     assert grindstone.items[2] is not None
 
     grindstone.items[1] = Item("Stone Pickaxe", 1, None, 20)
-    grindstone.repair_and_disenchant()
+    grindstone.update()
 
     assert grindstone.items[2] is None
 
@@ -137,5 +137,5 @@ def test_grindstone_does_not_disenchant_invalid_input(input_slot: Optional[Item]
     grindstone = Grindstone(Experience())
     grindstone.items[0] = input_slot
 
-    grindstone.repair_and_disenchant()
+    grindstone.update()
     assert grindstone.items[2] is None

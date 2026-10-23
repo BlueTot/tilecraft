@@ -427,29 +427,42 @@ class Grindstone:
         self.items: list[Optional[Item]] = [None, None, None]
 
 
-    def repair_and_disenchant(self):
+    def update(self):
         """
             Update the result slot's information
         """
-        if self.items[0] is not None and self.items[1] is None:
-            if self.items[0].enchantments is not None:
-                self.items[2] = Item(self.items[0].name, self.items[0].number, None, self.items[0].durability)
-                return
-        elif self.items[0] is not None and self.items[1] is not None:
-            if self.items[0].durability is not None and self.items[1].durability is not None:
-                if self.items[0].name == self.items[1].name:
-                    total_durability = self.items[0].durability + self.items[1].durability
-                    if total_durability > self.items[0].max_durability:
-                        total_durability = self.items[0].max_durability
-                    self.items[2] = Item(self.items[0].name, self.items[0].number, None, total_durability)
-                    return
+
+        # if main slot is empty, output is empty
+        if self.items[0] is None:
+            self.items[2] = None
+            return
+
+        # disenchant main slot
+        if self.items[1] is None and self.items[0].enchantments is not None:
+            self.items[2] = Item.clone(self.items[0])
+            self.items[2].enchantments = None
+            return
+
+        # repair and combine
+        if (
+            self.items[1] is not None and
+            self.items[0].name == self.items[1].name and
+            self.items[0].durability is not None and
+            self.items[1].durability is not None
+        ):
+            total_durability = min(self.items[0].max_durability, self.items[0].durability + self.items[1].durability)
+            self.items[2] = Item.clone(self.items[0])
+            self.items[2].enchantments = None
+            self.items[2].durability = total_durability
+            return
+
+        # otherwise, leave output empty
         self.items[2] = None
 
 
-    def disenchant(self):
+    def repair_and_disenchant(self):
         """
             Add experience to player
         """
-        enchantments = self.items[0].enchantments
-        for i in enchantments:
-            self.experience.add_points(int(i[1]) * 8)
+        for _, level in self.items[0].enchantments:
+            self.experience.add_points(int(level) * 8)
