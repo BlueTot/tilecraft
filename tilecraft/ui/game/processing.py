@@ -550,7 +550,7 @@ class GrindstoneWidget(Widget):
             self.inventory.add(self.grindstone.items[2])
             if self.grindstone.items[0] is not None and self.grindstone.items[1] is None:
                 if self.grindstone.items[0].enchantments is not None:
-                    self.grindstone.disenchant()
+                    self.grindstone.repair_and_disenchant()
             self.grindstone.items[0], self.grindstone.items[1], self.grindstone.items[2] = None, None, None
 
 
