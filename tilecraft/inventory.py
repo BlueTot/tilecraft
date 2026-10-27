@@ -258,7 +258,7 @@ class EnchantingTable:
                 self.enchant_set()  # Set Enchants
 
 
-    def enchant1(self):  # First ENCHANTING BOX (Enchants start at LEVEL 1, MAX 5, no extras)
+    def __enchant1(self):  # First ENCHANTING BOX (Enchants start at LEVEL 1, MAX 5, no extras)
         """
             Enchant using the first option box
         """
@@ -278,7 +278,7 @@ class EnchantingTable:
                     self.enchant_set()  # Remove Enchants
 
 
-    def enchant2(self):  # Second ENCHANTING BOX (Enchants start at LEVEL 1, MAX 5, extras start LEVEL 4, MAX 2)
+    def __enchant2(self):  # Second ENCHANTING BOX (Enchants start at LEVEL 1, MAX 5, extras start LEVEL 4, MAX 2)
         """
             Enchant using the second option box
         """
@@ -319,7 +319,7 @@ class EnchantingTable:
                     self.enchant_set()  # Remove Enchants
 
 
-    def enchant3(self):  # Third ENCHANTING BOX (ENCHANTS start at LEVEL 0, MAX 5, extras start LEVEL 3, MAX 3)
+    def __enchant3(self):  # Third ENCHANTING BOX (ENCHANTS start at LEVEL 0, MAX 5, extras start LEVEL 3, MAX 3)
         """
             Enchant using the third option box
         """
@@ -358,6 +358,23 @@ class EnchantingTable:
                     self.items[1].number -= 3
                     self.experience.subtract(3)
                     self.enchant_set()  # Remove Enchants
+
+
+    def enchant(self, box: int):
+        """
+            Entry point for enchanting an item
+        """
+        match box:
+            case 1:
+                self.__enchant1()
+                return
+            case 2:
+                self.__enchant2()
+                return
+            case 3:
+                self.__enchant3()
+                return
+        raise Exception("Box must be between 1 and 3")
 
 
 @dataclass

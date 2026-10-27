@@ -243,15 +243,15 @@ class EnchantingTableWidget(Widget):
 
         # option 1
         elif index == 4:
-            self.enchanting_table.enchant1()
+            self.enchanting_table.enchant(1)
 
         # option 2
         elif index == 5:
-            self.enchanting_table.enchant2()
+            self.enchanting_table.enchant(2)
 
         # option 3
         elif index == 6:
-            self.enchanting_table.enchant3()
+            self.enchanting_table.enchant(3)
 
 
     def __handle_right_click(self, mouse: tuple[int, int]) -> None:

@@ -114,7 +114,7 @@ def test_enchanting_applies_selected_option_and_charges_exact_cost(table, choice
     surplus = 2
     prepare_enchanting(table, lapis=choice + surplus, experience=choice)
 
-    getattr(table, f"enchant{choice}")()
+    table.enchant(choice)
 
     assert table.items[0].name == "Iron Pickaxe"
     assert table.items[0].number == 1
@@ -135,7 +135,7 @@ def test_enchanting_does_not_consume_resources_when_cost_cannot_be_paid(table, c
     experience = choice - 1 if missing_resource == "experience" else choice
     original = prepare_enchanting(table, lapis=lapis_count, experience=experience)
 
-    getattr(table, f"enchant{choice}")()
+    table.enchant(choice)
 
     assert table.items[0] is original
     assert original.enchantments is None
@@ -246,6 +246,6 @@ def test_enchanting_preserves_durability(table, choice):
     """
     prepare_enchanting(table, lapis=3, experience=3)
 
-    getattr(table, f"enchant{choice}")()
+    table.enchant(choice)
 
     assert table.items[0].durability == 10
