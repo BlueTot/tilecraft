@@ -271,7 +271,7 @@ class EnchantingTable:
                         [
                             [self.option_list[0][0:-2], int(self.option_list[0][-1])]
                         ], 
-                        self.items[0].number
+                        self.items[0].durability
                     )
                     self.items[1].number -= 1
                     self.experience.subtract(1)
