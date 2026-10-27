@@ -16,6 +16,21 @@ def mock_experience():
     return create_autospec(Experience, instance=True, spec_set=True)
 
 
+def prepare_enchanting(table, *, lapis, experience):
+    """Prepare selectable options and resources; return the original input item."""
+    original = Item("Iron Pickaxe", 1, None, 10)
+    table.items[0] = original
+    table.items[1] = Item.new("Lapis Lazuli", lapis)
+    table.experience.levels = float(experience)
+    table.option_list = ["Efficiency 1", "Efficiency 2", "Efficiency 3"]
+    return original
+
+
+def option_snapshot(table):
+    """Capture option values without retaining the mutable option list."""
+    return tuple(table.option_list), table.optional_enchant2, table.optional_enchant3
+
+
 @pytest.fixture
 def table():
     """
@@ -91,10 +106,7 @@ def test_enchanting_applies_selected_option_and_charges_exact_cost(table, choice
         the right amount of experience
     """
     surplus = 2
-    table.items[0] = Item("Iron Pickaxe", 1, None, 10)
-    table.items[1] = Item.new("Lapis Lazuli", choice + surplus)
-    table.experience.levels = float(choice)
-    table.option_list = ["Efficiency 1", "Efficiency 2", "Efficiency 3"]
+    prepare_enchanting(table, lapis=choice + surplus, experience=choice)
 
     getattr(table, f"enchant{choice}")()
 
@@ -113,12 +125,9 @@ def test_enchanting_does_not_consume_resources_when_cost_cannot_be_paid(table, c
         Tests that enchanting does not consume resources if there is either not
         enough lapis or player experience
     """
-    original = Item("Iron Pickaxe", 1, None, 10)
-    table.items[0] = original
     lapis_count = choice - 1 if missing_resource == "lapis" else choice
-    table.items[1] = Item.new("Lapis Lazuli", lapis_count)
-    table.experience.levels = float(choice - 1) if missing_resource == "experience" else float(choice)
-    table.option_list = ["Efficiency 1", "Efficiency 2", "Efficiency 3"]
+    experience = choice - 1 if missing_resource == "experience" else choice
+    original = prepare_enchanting(table, lapis=lapis_count, experience=experience)
 
     getattr(table, f"enchant{choice}")()
 
@@ -151,8 +160,7 @@ def test_enchanting_upgrade_cost_and_maximum_level(
     table.items[2] = Item.new("Bookshelf", bookshelves)
     table.experience.levels = 0.0
     table.enchant_set()
-    previous_options = table.option_list.copy()
-    previous_extras = (table.optional_enchant2, table.optional_enchant3)
+    previous_options = option_snapshot(table)
     table.rng.next_random.reset_mock()
 
     table.enchant_upgrade()
@@ -170,8 +178,7 @@ def test_enchanting_upgrade_cost_and_maximum_level(
         assert table.option_list == [f"Efficiency {strength}" for strength in upgraded_strengths]
         assert (table.optional_enchant2, table.optional_enchant3) == upgraded_extras
     else:
-        assert table.option_list == previous_options
-        assert (table.optional_enchant2, table.optional_enchant3) == previous_extras
+        assert option_snapshot(table) == previous_options
         table.rng.next_random.assert_not_called()
 
 
@@ -187,8 +194,7 @@ def test_enchanting_upgrade_rejects_missing_or_wrong_material(table, level, mate
     material = Item.new(material_name, 4) if material_name else None
     table.items[2] = material
     table.enchant_set()
-    previous_options = table.option_list.copy()
-    previous_extras = (table.optional_enchant2, table.optional_enchant3)
+    previous_options = option_snapshot(table)
     table.rng.next_random.reset_mock()
 
     table.enchant_upgrade()
@@ -197,8 +203,7 @@ def test_enchanting_upgrade_rejects_missing_or_wrong_material(table, level, mate
     assert table.items[2] is material
     if material is not None:
         assert material.number == 4
-    assert table.option_list == previous_options
-    assert (table.optional_enchant2, table.optional_enchant3) == previous_extras
+    assert option_snapshot(table) == previous_options
     table.rng.next_random.assert_not_called()
     table.experience.subtract.assert_not_called()
 
@@ -233,9 +238,7 @@ def test_enchanting_preserves_durability(table, choice):
     """
         Tests that enchanting an item preserves its durability
     """
-    table.items[0] = Item("Iron Pickaxe", 1, None, 10)
-    table.items[1] = Item.new("Lapis Lazuli", 3)
-    table.option_list = ["Efficiency 1", "Efficiency 2", "Efficiency 3"]
+    prepare_enchanting(table, lapis=3, experience=3)
 
     getattr(table, f"enchant{choice}")()
 
