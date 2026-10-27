@@ -12,12 +12,16 @@ from tilecraft.player_info import Experience
 
 
 def mock_experience():
-    """ Creates a new mock experience object to observe method calls """
+    """
+        Creates a new mock experience object to observe method calls
+    """
     return create_autospec(Experience, instance=True, spec_set=True)
 
 
-def prepare_enchanting(table, *, lapis, experience):
-    """Prepare selectable options and resources; return the original input item."""
+def prepare_enchanting(table, *, lapis, experience) -> Item:
+    """
+        Prepare selectable options and resources; return the original input item.
+    """
     original = Item("Iron Pickaxe", 1, None, 10)
     table.items[0] = original
     table.items[1] = Item.new("Lapis Lazuli", lapis)
@@ -27,7 +31,9 @@ def prepare_enchanting(table, *, lapis, experience):
 
 
 def option_snapshot(table):
-    """Capture option values without retaining the mutable option list."""
+    """
+        Capture option values without retaining the mutable option list.
+    """
     return tuple(table.option_list), table.optional_enchant2, table.optional_enchant3
 
 
@@ -36,7 +42,7 @@ def table():
     """
         Creates a enchanting table with a mock player's experience
         and mock random number generator
-        """
+    """
     experience = mock_experience()
     experience.levels = 3.0
     rng = create_autospec(RandomNumberGenerator, instance=True, spec_set=True)
