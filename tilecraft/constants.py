@@ -208,11 +208,18 @@ ITEM_IMAGE_MAPPING = {
     "Hay Bale": "hay",
 }
 
+@dataclass
+class Enchantment:
+    """ An enchantment has a name and a level >= 1 """
+    name: str
+    level: int
+
+
 class Item: #Item in the inventory
     def __init__(self, name: str, number: int, enchantments, durability):
         self.name: str = name #Item Name
         self.number: int = number #Quantity
-        self.enchantments = enchantments #Enchantments List
+        self.enchantments: Optional[list[Optional[Enchantment]]] = enchantments #Enchantments List
         self.durability = durability #Durability of tool
         # self.img = context.ITEM_TYPES[self.name].img #Image
         self.stackNum = ITEM_TYPES[self.name].stack #Stackability
@@ -229,9 +236,9 @@ class Item: #Item in the inventory
             self.mining_speed = None
         if self.enchantments is not None:
             if self.mining_speed is not None:
-                for i in self.enchantments:
-                    if i[0] == "Efficiency":
-                        self.mining_speed += i[1]**2 + 1
+                for enchantment in self.enchantments:
+                    if enchantment.name == "Efficiency":
+                        self.mining_speed += enchantment.level **2 + 1
         if self.name == "Bookshelf" or self.name == "Cobblestone" or self.name == "Gravel" or self.name == "Hay Bale" or \
                 self.name == "Iron Ore" or self.name == "Oak Log" or self.name == "Oak Planks" or self.name == "Obsidian" or \
                 self.name == "Mine Entrance" or self.name == "Dirt" or self.name == "Sand" or self.name == "Snow":
