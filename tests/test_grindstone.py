@@ -3,7 +3,7 @@ from typing import Optional
 import pytest
 from unittest.mock import create_autospec
 
-from tilecraft.constants import Item
+from tilecraft.constants import Enchantment, Item
 from tilecraft.inventory import Grindstone
 from tilecraft.player_info import Experience
 
@@ -24,10 +24,10 @@ def mock_experience():
 
 
 @pytest.mark.parametrize(("item", "experience_points"), [
-    (Item("Wooden Pickaxe", 1, [["Efficiency", 5]], 0), 40),
-    (Item("Stone Pickaxe", 1, [["Efficiency", 5]], 0), 40),
-    (Item("Iron Pickaxe", 1, [["Efficiency", 5]], 0), 40),
-    (Item("Diamond Pickaxe", 1, [["Efficiency", 5]], 0), 40),
+    (Item("Wooden Pickaxe", 1, [Enchantment("Efficiency", 5)], 0), 40),
+    (Item("Stone Pickaxe", 1, [Enchantment("Efficiency", 5)], 0), 40),
+    (Item("Iron Pickaxe", 1, [Enchantment("Efficiency", 5)], 0), 40),
+    (Item("Diamond Pickaxe", 1, [Enchantment("Efficiency", 5)], 0), 40),
 ])
 def test_grindstone_produces_right_output_and_levels(item: Item, experience_points: int):
     """
@@ -47,9 +47,9 @@ def test_grindstone_produces_right_output_and_levels(item: Item, experience_poin
 
 
 @pytest.mark.parametrize(("enchantments", "experience_points"), [
-    ([["Efficiency", 5]], 40),
-    ([["Efficiency", 5], ["Unbreaking", 2]], 56),
-    ([["Efficiency", 1]], 8),
+    ([Enchantment("Efficiency", 5)], 40),
+    ([Enchantment("Efficiency", 5), Enchantment("Unbreaking", 2)], 56),
+    ([Enchantment("Efficiency", 1)], 8),
 ])
 def test_grindstone_awards_experience_for_all_enchantments(enchantments, experience_points):
     """
@@ -74,7 +74,7 @@ def test_grindstone_previews_disenchanted_output_without_changing_input_or_exper
     """
     experience = mock_experience()
     grindstone = Grindstone(experience)
-    item = Item("Iron Pickaxe", 1, [["Efficiency", 5]], 10)
+    item = Item("Iron Pickaxe", 1, [Enchantment("Efficiency", 5)], 10)
     grindstone.items[0] = item
 
     grindstone.update()
@@ -86,7 +86,7 @@ def test_grindstone_previews_disenchanted_output_without_changing_input_or_exper
     assert output.number == 1
     assert output.durability == 10
     assert output.enchantments is None
-    assert item.enchantments == [["Efficiency", 5]]
+    assert item.enchantments == [Enchantment("Efficiency", 5)]
     experience.add_points.assert_not_called()
 
 
@@ -97,7 +97,7 @@ def test_grindstone_repairs_matching_tools_with_durability_cap(exceeds_maximum, 
         Tests that grindstone repairing functionality is correct
     """
     grindstone = Grindstone(Experience())
-    enchantments = [["Efficiency", 1]] if is_enchanted else []
+    enchantments = [Enchantment("Efficiency", 1)] if is_enchanted else []
     first = Item("Iron Pickaxe", 1, enchantments, 10)
     second_durability = first.max_durability if exceeds_maximum else 20
     grindstone.items[:2] = [first, Item("Iron Pickaxe", 1, None, second_durability)]
@@ -119,7 +119,7 @@ def test_grindstone_clears_previous_output_for_mismatched_tools():
         Test that grindstone cannot repair one item with a different item
     """
     grindstone = Grindstone(Experience())
-    grindstone.items[0] = Item("Iron Pickaxe", 1, [["Efficiency", 1]], 10)
+    grindstone.items[0] = Item("Iron Pickaxe", 1, [Enchantment("Efficiency", 1)], 10)
     grindstone.update()
     assert grindstone.items[2] is not None
 

@@ -1,7 +1,9 @@
+from tkinter import E
+
 import pytest
 from unittest.mock import call, create_autospec
 
-from tilecraft.constants import Item, RandomNumberGenerator
+from tilecraft.constants import Enchantment, Item, RandomNumberGenerator
 from tilecraft.inventory import EnchantingTable
 from tilecraft.player_info import Experience
 
@@ -97,7 +99,7 @@ def test_enchanting_clears_options_for_missing_or_enchanted_item(table, enchante
     """
     table.option_list = ["Efficiency 1", "Efficiency 2", "Efficiency 3"]
     if enchanted:
-        table.items[0] = Item("Iron Pickaxe", 1, [["Efficiency", 1]], 10)
+        table.items[0] = Item("Iron Pickaxe", 1, [Enchantment("Efficiency", 1)], 10)
 
     table.enchant_set()
 
@@ -118,7 +120,7 @@ def test_enchanting_applies_selected_option_and_charges_exact_cost(table, choice
 
     assert table.items[0].name == "Iron Pickaxe"
     assert table.items[0].number == 1
-    assert table.items[0].enchantments == [["Efficiency", choice]]
+    assert Enchantment("Efficiency", choice) in table.items[0].enchantments
     assert table.items[1].number == surplus
     table.experience.subtract.assert_called_once_with(choice)
     assert table.option_list == ["", "", ""]
@@ -221,7 +223,7 @@ def test_enchanting_upgrade_without_enchantable_input(table, level, enchanted):
         Upgrading needs only bookshelves, even when no enchantment can be offered.
     """
     table.enchanting_level = level
-    original = Item("Iron Pickaxe", 1, [["Efficiency", 1]], 10) if enchanted else None
+    original = Item("Iron Pickaxe", 1, [Enchantment("Efficiency", 1)], 10) if enchanted else None
     table.items[0] = original
     table.items[2] = Item.new("Bookshelf", 4)
     table.option_list = ["Efficiency 1", "Efficiency 2", "Efficiency 3"]
@@ -232,7 +234,7 @@ def test_enchanting_upgrade_without_enchantable_input(table, level, enchanted):
     assert table.items[2].number == 0
     assert table.items[0] is original
     if enchanted:
-        assert original.enchantments == [["Efficiency", 1]]
+        assert original.enchantments == [Enchantment("Efficiency", 1)]
         assert original.durability == 10
     assert table.option_list == ["", "", ""]
     table.rng.next_random.assert_not_called()

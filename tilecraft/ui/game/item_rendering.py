@@ -49,8 +49,8 @@ def TextBox(display: pygame.Surface, item: Item, x: int, y: int, font: pygame.fo
             length_list = [len(item.name * 15)]
             if item.enchantments is not None:
                 width = (1 + len(item.enchantments)) * 37
-                for i in item.enchantments:
-                    length_list.append(len(str(i[0]) + DecimalToRoman(str(i[1]))) * 15)
+                for enchantment in item.enchantments:
+                    length_list.append(len(str(enchantment.name) + DecimalToRoman(str(enchantment.level))) * 15)
             else:
                 width = 37
             if item.durability is not None:
@@ -65,12 +65,18 @@ def TextBox(display: pygame.Surface, item: Item, x: int, y: int, font: pygame.fo
             display.blit(font.render(item.name, False, item.colour), (x + 15, y + 15))
             if item.durability is not None: #WITH DURABILITY
                 if item.enchantments is not None:
-                    for i in range(len(item.enchantments)):
-                        display.blit(font.render(f'{item.enchantments[i][0]} {DecimalToRoman(item.enchantments[i][1])}', False, (175, 175, 175)), (x + 15, y + 15 + (i + 1) * 22))
+                    for i, enchantment in enumerate(item.enchantments):
+                        display.blit(
+                            font.render(f'{enchantment.name} {DecimalToRoman(enchantment.level)}', False, (175, 175, 175)), 
+                            (x + 15, y + 15 + (i + 1) * 22)
+                        )
                 display.blit(font.render(f"Durability: {item.durability}/{item.max_durability}", False, (175, 175, 175)), (x + 15, y + width - 20))
             else: #EVERYTHING ELSE
                 if item.enchantments is not None:
-                    for i in range(len(item.enchantments)):
-                        display.blit(font.render(f'{item.enchantments[i][0]} {DecimalToRoman(item.enchantments[i][1])}', False, (175, 175, 175)), (x + 15, y + 15 + (i + 1) * 22))
+                    for i, enchantment in enumerate(item.enchantments):
+                        display.blit(
+                            font.render(f'{enchantment.name} {DecimalToRoman(enchantment.level)}', False, (175, 175, 175)), 
+                            (x + 15, y + 15 + (i + 1) * 22)
+                        )
     except IndexError:
         pass

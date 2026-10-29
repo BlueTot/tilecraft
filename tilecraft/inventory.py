@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional
 
-from .constants import Item, RandomNumberGenerator
+from .constants import Enchantment, Item, RandomNumberGenerator
 from .player_info import Experience
 
 
@@ -268,9 +268,7 @@ class EnchantingTable:
                     self.items[0] = Item(
                         self.items[0].name, 
                         self.items[0].number, 
-                        [
-                            [self.option_list[0][0:-2], int(self.option_list[0][-1])]
-                        ], 
+                        [Enchantment(self.option_list[0][0:-2], int(self.option_list[0][-1]))],
                         self.items[0].durability
                     )
                     self.items[1].number -= 1
@@ -291,8 +289,8 @@ class EnchantingTable:
                                 self.items[0].name, 
                                 self.items[0].number, 
                                 [
-                                    [self.option_list[1][0:-2], int(self.option_list[1][-1])], 
-                                    ['Unbreaking', self.optional_enchant2]
+                                    Enchantment(self.option_list[1][0:-2], int(self.option_list[1][-1])),
+                                    Enchantment('Unbreaking', self.optional_enchant2)
                                 ],
                                 self.items[0].durability
                             )
@@ -300,18 +298,14 @@ class EnchantingTable:
                             self.items[0] = Item(
                                 self.items[0].name, 
                                 self.items[0].number, 
-                                [
-                                    [self.option_list[1][0:-2], int(self.option_list[1][-1])]
-                                ], 
+                                [Enchantment(self.option_list[1][0:-2], int(self.option_list[1][-1]))], 
                                 self.items[0].durability
                             )
                     else:
                         self.items[0] = Item(
                             self.items[0].name, 
                             self.items[0].number, 
-                            [
-                                [self.option_list[1][0:-2], int(self.option_list[1][-1])]
-                            ], 
+                            [Enchantment(self.option_list[1][0:-2], int(self.option_list[1][-1]))], 
                             self.items[0].durability
                         )
                     self.items[1].number -= 2
@@ -332,8 +326,8 @@ class EnchantingTable:
                                 self.items[0].name, 
                                 self.items[0].number, 
                                 [
-                                    [self.option_list[2][0:-2], int(self.option_list[2][-1])], 
-                                    ['Unbreaking', self.optional_enchant3]
+                                    Enchantment(self.option_list[2][0:-2], int(self.option_list[2][-1])),
+                                    Enchantment('Unbreaking', self.optional_enchant3),
                                 ],
                                 self.items[0].durability
                             )
@@ -341,18 +335,14 @@ class EnchantingTable:
                             self.items[0] = Item(
                                 self.items[0].name, 
                                 self.items[0].number, 
-                                [
-                                    [self.option_list[2][0:-2], int(self.option_list[2][-1])]
-                                ], 
+                                [Enchantment(self.option_list[2][0:-2], int(self.option_list[2][-1]))], 
                                 self.items[0].durability
                             )
                     else:  # No extra enchantment
                         self.items[0] = Item(
                             self.items[0].name, 
                             self.items[0].number, 
-                            [
-                                [self.option_list[2][0:-2], int(self.option_list[2][-1])]
-                            ], 
+                            [Enchantment(self.option_list[2][0:-2], int(self.option_list[2][-1]))], 
                             self.items[0].durability
                         )
                     self.items[1].number -= 3
@@ -481,5 +471,5 @@ class Grindstone:
         """
             Add experience to player
         """
-        for _, level in self.items[0].enchantments:
-            self.experience.add_points(int(level) * 8)
+        for enchantment in self.items[0].enchantments:
+            self.experience.add_points(int(enchantment.level) * 8)
