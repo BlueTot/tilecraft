@@ -224,7 +224,7 @@ class Item: #Item in the inventory
     def __init__(self, name: str, number: int, enchantments, durability):
         self.name: str = name #Item Name
         self.number: int = number #Quantity
-        self.enchantments: Optional[list[Optional[Enchantment]]] = enchantments #Enchantments List
+        self.enchantments: Optional[list[Enchantment]] = enchantments #Enchantments List
         self.durability = durability #Durability of tool
         # self.img = context.ITEM_TYPES[self.name].img #Image
         self.stackNum = ITEM_TYPES[self.name].stack #Stackability
@@ -263,6 +263,14 @@ class Item: #Item in the inventory
             Return a new unenchanted item with no durability
         """
         return cls(name, number, None, None)
+
+
+    @classmethod
+    def clone_with_enchantments(cls, item: Item, enchantments: Optional[list[Enchantment]]) -> Item:
+        """
+            Clones the item but sets its enchantments to be `enchantments`
+        """
+        return cls(item.name, item.number, enchantments, item.durability)
 
 
     @classmethod

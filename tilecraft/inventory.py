@@ -192,24 +192,6 @@ class EnchantingTable:
 
 
     @property
-    def level1(self) -> int:
-        """ Read-only access to level1 attribute """
-        return self.__level1
-
-
-    @property
-    def level2(self) -> int:
-        """ Read-only access to level2 attribute """
-        return self.__level2
-
-
-    @property
-    def level3(self) -> int:
-        """ Read-only access to level3 attribute """
-        return self.__level3
-
-
-    @property
     def optional_enchant2(self) -> int:
         """ Read-only access to optional_enchant2 attribute """
         return self.__optional_enchant2
@@ -331,11 +313,9 @@ class EnchantingTable:
         if self.__option_list[0] is None or self.items[0] is None:
             return
 
-        self.items[0] = Item(
-            self.items[0].name, 
-            self.items[0].number, 
+        self.items[0] = Item.clone_with_enchantments(
+            self.items[0], 
             [Enchantment.clone(self.__option_list[0])],
-            self.items[0].durability
         )
         self.items[1].number -= 1
         self.experience.subtract(1)
@@ -350,25 +330,18 @@ class EnchantingTable:
         if self.items[1] is None or self.items[1].number < 2 or self.experience.levels < 2:
             return
 
-        if self.__option_list[1] == "N/A" or self.items[0] is None:
+        if self.__option_list[1] is None or self.items[0] is None:
             return
 
         if self.__optional_enchant2 is not None and self.__optional_enchant2 > 0:  # Extra enchantment
-            self.items[0] = Item(
-                self.items[0].name, 
-                self.items[0].number, 
-                [
-                    Enchantment.clone(self.__option_list[1]),
-                    Enchantment('Unbreaking', self.__optional_enchant2)
-                ],
-                self.items[0].durability
+            self.items[0] = Item.clone_with_enchantments(
+                self.items[0],
+                [ Enchantment.clone(self.__option_list[1]), Enchantment("Unbreaking", self.__optional_enchant2) ],
             )
         else:
-            self.items[0] = Item(
-                self.items[0].name, 
-                self.items[0].number, 
+            self.items[0] = Item.clone_with_enchantments(
+                self.items[0],
                 [Enchantment.clone(self.__option_list[1])],
-                self.items[0].durability
             )
 
         self.items[1].number -= 2
@@ -384,25 +357,18 @@ class EnchantingTable:
         if self.items[1] is None or self.items[1].number < 3 or self.experience.levels < 3:
             return
 
-        if self.__option_list[2] == "N/A" or self.items[0] is None:
+        if self.__option_list[2] is None or self.items[0] is None:
             return
 
         if self.__optional_enchant3 is not None and self.__optional_enchant3 > 0:  # Extra enchantment
-            self.items[0] = Item(
-                self.items[0].name, 
-                self.items[0].number, 
-                [
-                    Enchantment.clone(self.__option_list[2]),
-                    Enchantment('Unbreaking', self.__optional_enchant3),
-                ],
-                self.items[0].durability
+            self.items[0] = Item.clone_with_enchantments(
+                self.items[0],
+                [ Enchantment.clone(self.__option_list[2]), Enchantment('Unbreaking', self.__optional_enchant3) ],
             )
         else:  # No extra enchantment
-            self.items[0] = Item(
-                self.items[0].name, 
-                self.items[0].number, 
+            self.items[0] = Item.clone_with_enchantments(
+                self.items[0],
                 [Enchantment.clone(self.__option_list[2])],
-                self.items[0].durability
             )
 
         self.items[1].number -= 3
