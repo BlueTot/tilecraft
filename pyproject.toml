@@ -20,12 +20,6 @@ tilecraft = [
     "assets/**/*",
 ]
 
-[project.optional-dependencies]
-dev = [
-    "pytest",
-    "pytest-cov",
-]
-
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = [
@@ -46,4 +40,11 @@ exclude_also = [
     "if TYPE_CHECKING:",
     "if __name__ == .__main__.:",
     "@abstractmethod",
+]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "mypy>=2.4.1",
 ]
