@@ -175,9 +175,6 @@ class EnchantingTable:
         self.items: list[Optional[Item]] = [None]*3
         self.__option_list: list[Optional[Enchantment]] = [None]*3
         self.enchanting_level = 0
-        self.__level1 = 0
-        self.__level2 = 0
-        self.__level3 = 0
         self.__optional_enchant2 = None
         self.__optional_enchant3 = None
 
@@ -229,41 +226,45 @@ class EnchantingTable:
             self.__option_list[2] = None
             return
 
+        level1 = 0
+        level2 = 0
+        level3 = 0
+
         match self.enchanting_level:
             case 0:
-                self.__level1 = 0
-                self.__level2 = 0
-                self.__level3 = self.rng.next_random(0, 1)
+                level1 = 0
+                level2 = 0
+                level3 = self.rng.next_random(0, 1)
                 self.__optional_enchant2 = None
                 self.__optional_enchant3 = None
             case 1:
-                self.__level1 = 1
-                self.__level2 = self.rng.next_random(1, 2)
-                self.__level3 = 2
+                level1 = 1
+                level2 = self.rng.next_random(1, 2)
+                level3 = 2
                 self.__optional_enchant2 = None
                 self.__optional_enchant3 = None
             case 2:
-                self.__level1 = 2
-                self.__level2 = self.rng.next_random(2, 3)
-                self.__level3 = 3
+                level1 = 2
+                level2 = self.rng.next_random(2, 3)
+                level3 = 3
                 self.__optional_enchant2 = None
                 self.__optional_enchant3 = None
             case 3:
-                self.__level1 = 3
-                self.__level2 = self.rng.next_random(3, 4)
-                self.__level3 = 4
+                level1 = 3
+                level2 = self.rng.next_random(3, 4)
+                level3 = 4
                 self.__optional_enchant2 = None
                 self.__optional_enchant3 = self.rng.next_random(0, 1)
             case 4:
-                self.__level1 = 4
-                self.__level2 = self.rng.next_random(4, 5)
-                self.__level3 = 5
+                level1 = 4
+                level2 = self.rng.next_random(4, 5)
+                level3 = 5
                 self.__optional_enchant2 = self.rng.next_random(0, 1)
                 self.__optional_enchant3 = self.rng.next_random(1, 2)
             case 5:
-                self.__level1 = self.rng.next_random(4, 5)
-                self.__level2 = 5
-                self.__level3 = 5
+                level1 = self.rng.next_random(4, 5)
+                level2 = 5
+                level3 = 5
                 self.__optional_enchant2 = self.rng.next_random(1, 2)
                 self.__optional_enchant3 = self.rng.next_random(2, 3)
             case _:
@@ -271,16 +272,16 @@ class EnchantingTable:
 
         if self.items[0].itemType in ("Tier1", "Tier2", "Tier3"):
             self.__option_list = [
-                Enchantment("Protection", self.__level1),
-                Enchantment("Protection", self.__level2),
-                Enchantment("Protection", self.__level3),
+                Enchantment("Protection", level1),
+                Enchantment("Protection", level2),
+                Enchantment("Protection", level3),
             ]
 
         elif self.items[0].itemType in ("Pickaxe", "Axe", "Shovel", "Hoe"):
             self.__option_list = [
-                Enchantment("Efficiency", self.__level1),
-                Enchantment("Efficiency", self.__level2),
-                Enchantment("Efficiency", self.__level3),
+                Enchantment("Efficiency", level1),
+                Enchantment("Efficiency", level2),
+                Enchantment("Efficiency", level3),
             ]
 
         else:
