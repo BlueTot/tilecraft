@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from decimal import InvalidOperation
 from typing import Optional
 
 from .constants import Enchantment, Item, RandomNumberGenerator
@@ -192,58 +191,51 @@ class EnchantingTable:
             self.option_list[0] = self.option_list[1] = self.option_list[2] = ''
             return
 
-        self.level1 = 0
-        self.level2 = 0
-        self.level3 = 0
-        self.optional_enchant2 = None
-        self.optional_enchant3 = None
+        match self.enchanting_level:
+            case 0:
+                self.level1 = 0
+                self.level2 = 0
+                self.level3 = self.rng.next_random(0, 1)
+                self.optional_enchant2 = None
+                self.optional_enchant3 = None
+            case 1:
+                self.level1 = 1
+                self.level2 = self.rng.next_random(1, 2)
+                self.level3 = 2
+                self.optional_enchant2 = None
+                self.optional_enchant3 = None
+            case 2:
+                self.level1 = 2
+                self.level2 = self.rng.next_random(2, 3)
+                self.level3 = 3
+                self.optional_enchant2 = None
+                self.optional_enchant3 = None
+            case 3:
+                self.level1 = 3
+                self.level2 = self.rng.next_random(3, 4)
+                self.level3 = 4
+                self.optional_enchant2 = None
+                self.optional_enchant3 = self.rng.next_random(0, 1)
+            case 4:
+                self.level1 = 4
+                self.level2 = self.rng.next_random(4, 5)
+                self.level3 = 5
+                self.optional_enchant2 = self.rng.next_random(0, 1)
+                self.optional_enchant3 = self.rng.next_random(1, 2)
+            case 5:
+                self.level1 = self.rng.next_random(4, 5)
+                self.level2 = 5
+                self.level3 = 5
+                self.optional_enchant2 = self.rng.next_random(1, 2)
+                self.optional_enchant3 = self.rng.next_random(2, 3)
+            case _:
+                raise ValueError("Enchanting table level must be 0-5")
 
-        if self.enchanting_level == 0:  # LEVEL 0
-            self.level1 = 0
-            self.level2 = 0
-            self.level3 = self.rng.next_random(0, 1)
-            self.optional_enchant2 = None
-            self.optional_enchant3 = None
-        elif self.enchanting_level == 1:  # LEVEL 1
-            self.level1 = 1
-            self.level2 = self.rng.next_random(1, 2)
-            self.level3 = 2
-            self.optional_enchant2 = None
-            self.optional_enchant3 = None
-        elif self.enchanting_level == 2:  # LEVEL 2
-            self.level1 = 2
-            self.level2 = self.rng.next_random(2, 3)
-            self.level3 = 3
-            self.optional_enchant2 = None
-            self.optional_enchant3 = None
-        elif self.enchanting_level == 3:  # LEVEL 3
-            self.level1 = 3
-            self.level2 = self.rng.next_random(3, 4)
-            self.level3 = 4
-            self.optional_enchant2 = None
-            self.optional_enchant3 = self.rng.next_random(0, 1)
-        elif self.enchanting_level == 4:  # LEVEL 4
-            self.level1 = 4
-            self.level2 = self.rng.next_random(4, 5)
-            self.level3 = 5
-            self.optional_enchant2 = self.rng.next_random(0, 1)
-            self.optional_enchant3 = self.rng.next_random(1, 2)
-        else:  # LEVEL 5
-            self.level1 = self.rng.next_random(4, 5)
-            self.level2 = 5
-            self.level3 = 5
-            self.optional_enchant2 = self.rng.next_random(1, 2)
-            self.optional_enchant3 = self.rng.next_random(2, 3)
+        if self.items[0].itemType in ("Tier1", "Tier2", "Tier3"):
+            self.option_list = [f"Protection {self.level1}", f"Protection {self.level2}", f"Protection {self.level3}"]
 
-        if self.items[0].itemType == 'Tier1' or self.items[0].itemType == 'Tier2' or self.items[0].itemType == 'Tier3':  # Armour
-            self.option_list[0] = f'Protection {self.level1}'
-            self.option_list[1] = f'Protection {self.level2}'
-            self.option_list[2] = f'Protection {self.level3}'
-
-        elif self.items[0].itemType == 'Pickaxe' or self.items[0].itemType == 'Axe' or self.items[0].itemType == 'Shovel' or self.items[0].itemType == 'Hoe':  # Tools
-            self.option_list[0] = f'Efficiency {self.level1}'
-            self.option_list[1] = f'Efficiency {self.level2}'
-            self.option_list[2] = f'Efficiency {self.level3}'
+        elif self.items[0].itemType in ("Pickaxe", "Axe", "Shovel", "Hoe"):
+            self.option_list = [f"Efficiency {self.level1}", f"Efficiency {self.level2}", f"Efficiency {self.level3}"]
 
         for i, option in enumerate(self.option_list):
             if option == 'Protection 0' or option == 'Efficiency 0':
@@ -381,7 +373,8 @@ class EnchantingTable:
             case 3:
                 self.__enchant3()
                 return
-        raise InvalidOperation("Box must be between 1 and 3")
+            case _:
+                raise ValueError("Box must be between 1 and 3")
 
 
 @dataclass
