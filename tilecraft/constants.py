@@ -214,6 +214,19 @@ class Enchantment:
     name: str
     level: int
 
+
+    def __post_init__(self):
+        if self.level == 0:
+            raise ValueError("Enchantment level must not be 0")
+
+
+    @classmethod
+    def new_optional(cls, name: str, level: int) -> Optional[Enchantment]:
+        if level == 0:
+            return None
+        return cls(name, level)
+
+
     @classmethod
     def clone(cls, enchantment: Enchantment):
         """ Clones the enchantment object """

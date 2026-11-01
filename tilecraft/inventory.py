@@ -208,12 +208,10 @@ class EnchantingTable:
 
     @staticmethod
     def __option_string(enchantment: Optional[Enchantment]):
-        if enchantment is None:
+        if enchantment is None or enchantment.level == 0:
             return ""
-        if enchantment.level == 0:
-            return "N/A"
         return f"{enchantment.name} {enchantment.level}"
-    
+
 
     def enchant_set(self):
         """
@@ -272,16 +270,16 @@ class EnchantingTable:
 
         if self.items[0].itemType in ("Tier1", "Tier2", "Tier3"):
             self.__option_list = [
-                Enchantment("Protection", level1),
-                Enchantment("Protection", level2),
-                Enchantment("Protection", level3),
+                Enchantment.new_optional("Protection", level1),
+                Enchantment.new_optional("Protection", level2),
+                Enchantment.new_optional("Protection", level3),
             ]
 
         elif self.items[0].itemType in ("Pickaxe", "Axe", "Shovel", "Hoe"):
             self.__option_list = [
-                Enchantment("Efficiency", level1),
-                Enchantment("Efficiency", level2),
-                Enchantment("Efficiency", level3),
+                Enchantment.new_optional("Efficiency", level1),
+                Enchantment.new_optional("Efficiency", level2),
+                Enchantment.new_optional("Efficiency", level3),
             ]
 
         else:

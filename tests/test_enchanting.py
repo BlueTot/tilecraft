@@ -84,7 +84,7 @@ def test_enchanting_generates_options_for_tools_and_armour(
     table.enchant_set()
 
     assert table.option_list == tuple([
-        f"{enchantment} {strength}" if strength else "N/A"
+        f"{enchantment} {strength}" if strength else ""
         for strength in expected_levels[boundary]
     ])
     assert (table.optional_enchant2, table.optional_enchant3) == expected_extras[boundary]
@@ -230,7 +230,7 @@ def test_enchanting_upgrade_without_enchantable_input(table: EnchantingTable, le
     table.enchanting_level = level
     table.items[0] = Item.new("Iron Pickaxe", 1)
     table.enchant_set()
-    assert any(table.option_list)
+    assert any(table.option_list) if level > 0 else not any(table.option_list)
     table.rng.next_random.reset_mock()
     original = Item("Iron Pickaxe", 1, [Enchantment("Efficiency", 1)], 10) if enchanted else None
     table.items[0] = original
@@ -259,3 +259,35 @@ def test_enchanting_preserves_durability(table: EnchantingTable, choice):
     table.enchant(choice)
 
     assert table.items[0].durability == 10
+
+
+@pytest.mark.parametrize("name", ["Iron Pickaxe", "Tier 1 Iron Plate"])
+@pytest.mark.parametrize("level", range(6))
+@pytest.mark.parametrize("choice", [1, 2, 3])
+@pytest.mark.parametrize("boundary", [0, 1], ids=["minimum", "maximum"])
+def test_enchanting_never_produces_none_enchantments(
+    table: EnchantingTable, name, level, choice, boundary
+):
+    """Generate and apply options through the public API without None entries."""
+    original = Item.new(name, 1)
+    table.items[0] = original
+    table.items[1] = Item.new("Lapis Lazuli", 3)
+    table.experience.levels = 3.0
+    table.enchanting_level = level
+    table.rng.next_random.side_effect = lambda start, stop: (start, stop)[boundary]
+
+    table.enchant_set()
+    table.enchant(choice)
+
+    result = table.items[0]
+    assert result is not None
+    if level == 0 and (choice < 3 or boundary == 0):
+        # Disabled options must leave the original item and resources unchanged.
+        assert result is original
+        assert result.enchantments is None
+        assert table.items[1].number == 3
+        table.experience.subtract.assert_not_called()
+    else:
+        assert result.enchantments is not None
+        assert result.enchantments
+        assert None not in result.enchantments
