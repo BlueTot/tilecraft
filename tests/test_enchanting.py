@@ -28,7 +28,8 @@ def prepare_enchanting(table, *, lapis, experience) -> Item:
     table.items[0] = original
     table.items[1] = Item.new("Lapis Lazuli", lapis)
     table.experience.levels = float(experience)
-    table.option_list = ["Efficiency 1", "Efficiency 2", "Efficiency 3"]
+    table.enchanting_level = 2
+    table.enchant_set()
     return original
 
 
@@ -82,10 +83,10 @@ def test_enchanting_generates_options_for_tools_and_armour(
 
     table.enchant_set()
 
-    assert table.option_list == [
+    assert table.option_list == tuple([
         f"{enchantment} {strength}" if strength else "N/A"
         for strength in expected_levels[boundary]
-    ]
+    ])
     assert (table.optional_enchant2, table.optional_enchant3) == expected_extras[boundary]
     assert table.rng.next_random.call_args_list == [call(*bounds) for bounds in random_ranges]
     assert table.items[0].enchantments is None
@@ -97,18 +98,22 @@ def test_enchanting_clears_options_for_missing_or_enchanted_item(table, enchante
     """
         Tests that enchanting table does not emit options for invald inputs
     """
-    table.option_list = ["Efficiency 1", "Efficiency 2", "Efficiency 3"]
+    prepare_enchanting(table, lapis=3, experience=3)
+    assert table.option_list == ("Efficiency 2", "Efficiency 2", "Efficiency 3")
     if enchanted:
         table.items[0] = Item("Iron Pickaxe", 1, [Enchantment("Efficiency", 1)], 10)
+    else:
+        table.items[0] = None
+    table.rng.next_random.reset_mock()
 
     table.enchant_set()
 
-    assert table.option_list == ["", "", ""]
+    assert table.option_list == ("", "", "")
     table.rng.next_random.assert_not_called()
 
 
-@pytest.mark.parametrize("choice", [1, 2, 3])
-def test_enchanting_applies_selected_option_and_charges_exact_cost(table, choice):
+@pytest.mark.parametrize(("choice", "expected_strength"), [(1, 2), (2, 2), (3, 3)])
+def test_enchanting_applies_selected_option_and_charges_exact_cost(table, choice, expected_strength):
     """
         Test that enchanting table applies selected enchantment and subtracts
         the right amount of experience
@@ -120,10 +125,10 @@ def test_enchanting_applies_selected_option_and_charges_exact_cost(table, choice
 
     assert table.items[0].name == "Iron Pickaxe"
     assert table.items[0].number == 1
-    assert Enchantment("Efficiency", choice) in table.items[0].enchantments
+    assert table.items[0].enchantments == [Enchantment("Efficiency", expected_strength)]
     assert table.items[1].number == surplus
     table.experience.subtract.assert_called_once_with(choice)
-    assert table.option_list == ["", "", ""]
+    assert table.option_list == ("", "", "")
 
 
 @pytest.mark.parametrize("choice", [1, 2, 3])
@@ -183,7 +188,7 @@ def test_enchanting_upgrade_cost_and_maximum_level(
     assert table.items[1].number == 7
     table.experience.subtract.assert_not_called()
     if should_upgrade:
-        assert table.option_list == [f"Efficiency {strength}" for strength in upgraded_strengths]
+        assert table.option_list == tuple([f"Efficiency {strength}" for strength in upgraded_strengths])
         assert (table.optional_enchant2, table.optional_enchant3) == upgraded_extras
     else:
         assert option_snapshot(table) == previous_options
@@ -223,10 +228,13 @@ def test_enchanting_upgrade_without_enchantable_input(table, level, enchanted):
         Upgrading needs only bookshelves, even when no enchantment can be offered.
     """
     table.enchanting_level = level
+    table.items[0] = Item.new("Iron Pickaxe", 1)
+    table.enchant_set()
+    assert any(table.option_list)
+    table.rng.next_random.reset_mock()
     original = Item("Iron Pickaxe", 1, [Enchantment("Efficiency", 1)], 10) if enchanted else None
     table.items[0] = original
     table.items[2] = Item.new("Bookshelf", 4)
-    table.option_list = ["Efficiency 1", "Efficiency 2", "Efficiency 3"]
 
     table.enchant_upgrade()
 
@@ -236,7 +244,7 @@ def test_enchanting_upgrade_without_enchantable_input(table, level, enchanted):
     if enchanted:
         assert original.enchantments == [Enchantment("Efficiency", 1)]
         assert original.durability == 10
-    assert table.option_list == ["", "", ""]
+    assert table.option_list == ("", "", "")
     table.rng.next_random.assert_not_called()
     table.experience.subtract.assert_not_called()
 

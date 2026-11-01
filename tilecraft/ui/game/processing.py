@@ -317,9 +317,9 @@ class EnchantingTableWidget(Widget):
         surface.blit(self.__font.render(f'Enchanting Table LEVEL {self.enchanting_table.enchanting_level}', False, (0, 0, 0)), (self.x, self.y))
 
         self.upgrade.render(surface, 'Upgrade', 21)
-        self.option1.render(surface, self.enchanting_table.option_list[0], 30)
-        self.option2.render(surface, self.enchanting_table.option_list[1], 30)
-        self.option3.render(surface, self.enchanting_table.option_list[2], 30)
+        self.option1.render(surface, self.enchanting_table.option(0), 30)
+        self.option2.render(surface, self.enchanting_table.option(1), 30)
+        self.option3.render(surface, self.enchanting_table.option(2), 30)
 
         if not is_holding:
             self.render_hovering_label(surface, mouse)

@@ -173,14 +173,59 @@ class EnchantingTable:
         self.experience = experience
 
         self.items: list[Optional[Item]] = [None]*3
-        self.option_list = ['', '', '']
+        self.__option_list = ['', '', '']
         self.enchanting_level = 0
-        self.level1 = 0
-        self.level2 = 0
-        self.level3 = 0
-        self.optional_enchant2 = None
-        self.optional_enchant3 = None
+        self.__level1 = 0
+        self.__level2 = 0
+        self.__level3 = 0
+        self.__optional_enchant2 = None
+        self.__optional_enchant3 = None
 
+
+    def option(self, option_number: int) -> str:
+        """
+            Public-facing method used by the UI to get the enchanting table's option string
+        """
+        if option_number not in (0, 1, 2):
+            raise ValueError("Enchanting option must be 0, 1, or 2")
+        return self.__option_list[option_number]
+
+
+    @property
+    def level1(self) -> int:
+        """ Read-only access to level1 attribute """
+        return self.__level1
+
+
+    @property
+    def level2(self) -> int:
+        """ Read-only access to level2 attribute """
+        return self.__level2
+
+
+    @property
+    def level3(self) -> int:
+        """ Read-only access to level3 attribute """
+        return self.__level3
+
+
+    @property
+    def optional_enchant2(self) -> int:
+        """ Read-only access to optional_enchant2 attribute """
+        return self.__optional_enchant2
+
+
+    @property
+    def optional_enchant3(self) -> int:
+        """ Read-only access to optional_enchant3 attribute """
+        return self.__optional_enchant3
+
+
+    @property
+    def option_list(self) -> tuple[str, str, str]:
+        """ Read-only access to option_list attribute """
+        return (self.__option_list[0], self.__option_list[1], self.__option_list[2])
+    
 
     def enchant_set(self):
         """
@@ -188,58 +233,60 @@ class EnchantingTable:
         """
 
         if self.items[0] is None or self.items[0].enchantments is not None:
-            self.option_list[0] = self.option_list[1] = self.option_list[2] = ''
+            self.__option_list[0] = ""
+            self.__option_list[1] = ""
+            self.__option_list[2] = ""
             return
 
         match self.enchanting_level:
             case 0:
-                self.level1 = 0
-                self.level2 = 0
-                self.level3 = self.rng.next_random(0, 1)
-                self.optional_enchant2 = None
-                self.optional_enchant3 = None
+                self.__level1 = 0
+                self.__level2 = 0
+                self.__level3 = self.rng.next_random(0, 1)
+                self.__optional_enchant2 = None
+                self.__optional_enchant3 = None
             case 1:
-                self.level1 = 1
-                self.level2 = self.rng.next_random(1, 2)
-                self.level3 = 2
-                self.optional_enchant2 = None
-                self.optional_enchant3 = None
+                self.__level1 = 1
+                self.__level2 = self.rng.next_random(1, 2)
+                self.__level3 = 2
+                self.__optional_enchant2 = None
+                self.__optional_enchant3 = None
             case 2:
-                self.level1 = 2
-                self.level2 = self.rng.next_random(2, 3)
-                self.level3 = 3
-                self.optional_enchant2 = None
-                self.optional_enchant3 = None
+                self.__level1 = 2
+                self.__level2 = self.rng.next_random(2, 3)
+                self.__level3 = 3
+                self.__optional_enchant2 = None
+                self.__optional_enchant3 = None
             case 3:
-                self.level1 = 3
-                self.level2 = self.rng.next_random(3, 4)
-                self.level3 = 4
-                self.optional_enchant2 = None
-                self.optional_enchant3 = self.rng.next_random(0, 1)
+                self.__level1 = 3
+                self.__level2 = self.rng.next_random(3, 4)
+                self.__level3 = 4
+                self.__optional_enchant2 = None
+                self.__optional_enchant3 = self.rng.next_random(0, 1)
             case 4:
-                self.level1 = 4
-                self.level2 = self.rng.next_random(4, 5)
-                self.level3 = 5
-                self.optional_enchant2 = self.rng.next_random(0, 1)
-                self.optional_enchant3 = self.rng.next_random(1, 2)
+                self.__level1 = 4
+                self.__level2 = self.rng.next_random(4, 5)
+                self.__level3 = 5
+                self.__optional_enchant2 = self.rng.next_random(0, 1)
+                self.__optional_enchant3 = self.rng.next_random(1, 2)
             case 5:
-                self.level1 = self.rng.next_random(4, 5)
-                self.level2 = 5
-                self.level3 = 5
-                self.optional_enchant2 = self.rng.next_random(1, 2)
-                self.optional_enchant3 = self.rng.next_random(2, 3)
+                self.__level1 = self.rng.next_random(4, 5)
+                self.__level2 = 5
+                self.__level3 = 5
+                self.__optional_enchant2 = self.rng.next_random(1, 2)
+                self.__optional_enchant3 = self.rng.next_random(2, 3)
             case _:
                 raise ValueError("Enchanting table level must be 0-5")
 
         if self.items[0].itemType in ("Tier1", "Tier2", "Tier3"):
-            self.option_list = [f"Protection {self.level1}", f"Protection {self.level2}", f"Protection {self.level3}"]
+            self.__option_list = [f"Protection {self.__level1}", f"Protection {self.__level2}", f"Protection {self.__level3}"]
 
         elif self.items[0].itemType in ("Pickaxe", "Axe", "Shovel", "Hoe"):
-            self.option_list = [f"Efficiency {self.level1}", f"Efficiency {self.level2}", f"Efficiency {self.level3}"]
+            self.__option_list = [f"Efficiency {self.__level1}", f"Efficiency {self.__level2}", f"Efficiency {self.__level3}"]
 
-        for i, option in enumerate(self.option_list):
+        for i, option in enumerate(self.__option_list):
             if option == 'Protection 0' or option == 'Efficiency 0':
-                self.option_list[i] = 'N/A'
+                self.__option_list[i] = 'N/A'
 
 
     def enchant_upgrade(self):
@@ -261,13 +308,13 @@ class EnchantingTable:
         if self.items[1] is None or self.items[1].number < 1 or self.experience.levels < 1:
             return
 
-        if self.option_list[0] == "N/A" or self.items[0] is None:
+        if self.__option_list[0] == "N/A" or self.items[0] is None:
             return
 
         self.items[0] = Item(
             self.items[0].name, 
             self.items[0].number, 
-            [Enchantment(self.option_list[0][0:-2], int(self.option_list[0][-1]))],
+            [Enchantment(self.__option_list[0][0:-2], int(self.__option_list[0][-1]))],
             self.items[0].durability
         )
         self.items[1].number -= 1
@@ -283,17 +330,17 @@ class EnchantingTable:
         if self.items[1] is None or self.items[1].number < 2 or self.experience.levels < 2:
             return
 
-        if self.option_list[1] == "N/A" or self.items[0] is None:
+        if self.__option_list[1] == "N/A" or self.items[0] is None:
             return
 
-        if self.optional_enchant2 is not None:  # Extra enchantment
-            if self.optional_enchant2 > 0:  # Enchantment level > 0
+        if self.__optional_enchant2 is not None:  # Extra enchantment
+            if self.__optional_enchant2 > 0:  # Enchantment level > 0
                 self.items[0] = Item(
                     self.items[0].name, 
                     self.items[0].number, 
                     [
-                        Enchantment(self.option_list[1][0:-2], int(self.option_list[1][-1])),
-                        Enchantment('Unbreaking', self.optional_enchant2)
+                        Enchantment(self.__option_list[1][0:-2], int(self.__option_list[1][-1])),
+                        Enchantment('Unbreaking', self.__optional_enchant2)
                     ],
                     self.items[0].durability
                 )
@@ -301,14 +348,14 @@ class EnchantingTable:
                 self.items[0] = Item(
                     self.items[0].name, 
                     self.items[0].number, 
-                    [Enchantment(self.option_list[1][0:-2], int(self.option_list[1][-1]))], 
+                    [Enchantment(self.__option_list[1][0:-2], int(self.__option_list[1][-1]))], 
                     self.items[0].durability
                 )
         else:
             self.items[0] = Item(
                 self.items[0].name, 
                 self.items[0].number, 
-                [Enchantment(self.option_list[1][0:-2], int(self.option_list[1][-1]))], 
+                [Enchantment(self.__option_list[1][0:-2], int(self.__option_list[1][-1]))], 
                 self.items[0].durability
             )
 
@@ -325,17 +372,17 @@ class EnchantingTable:
         if self.items[1] is None or self.items[1].number < 3 or self.experience.levels < 3:
             return
 
-        if self.option_list[2] == "N/A" or self.items[0] is None:
+        if self.__option_list[2] == "N/A" or self.items[0] is None:
             return
 
-        if self.optional_enchant3 is not None:  # Extra enchantment
-            if self.optional_enchant3 > 0:  # Enchantment level > 0
+        if self.__optional_enchant3 is not None:  # Extra enchantment
+            if self.__optional_enchant3 > 0:  # Enchantment level > 0
                 self.items[0] = Item(
                     self.items[0].name, 
                     self.items[0].number, 
                     [
-                        Enchantment(self.option_list[2][0:-2], int(self.option_list[2][-1])),
-                        Enchantment('Unbreaking', self.optional_enchant3),
+                        Enchantment(self.__option_list[2][0:-2], int(self.__option_list[2][-1])),
+                        Enchantment('Unbreaking', self.__optional_enchant3),
                     ],
                     self.items[0].durability
                 )
@@ -343,14 +390,14 @@ class EnchantingTable:
                 self.items[0] = Item(
                     self.items[0].name, 
                     self.items[0].number, 
-                    [Enchantment(self.option_list[2][0:-2], int(self.option_list[2][-1]))], 
+                    [Enchantment(self.__option_list[2][0:-2], int(self.__option_list[2][-1]))], 
                     self.items[0].durability
                 )
         else:  # No extra enchantment
             self.items[0] = Item(
                 self.items[0].name, 
                 self.items[0].number, 
-                [Enchantment(self.option_list[2][0:-2], int(self.option_list[2][-1]))], 
+                [Enchantment(self.__option_list[2][0:-2], int(self.__option_list[2][-1]))], 
                 self.items[0].durability
             )
 
