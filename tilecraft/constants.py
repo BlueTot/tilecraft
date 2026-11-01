@@ -214,6 +214,11 @@ class Enchantment:
     name: str
     level: int
 
+    @classmethod
+    def clone(cls, enchantment: Enchantment):
+        """ Clones the enchantment object """
+        return cls(enchantment.name, enchantment.level)
+
 
 class Item: #Item in the inventory
     def __init__(self, name: str, number: int, enchantments, durability):

@@ -20,7 +20,7 @@ def mock_experience():
     return create_autospec(Experience, instance=True, spec_set=True)
 
 
-def prepare_enchanting(table, *, lapis, experience) -> Item:
+def prepare_enchanting(table: EnchantingTable, *, lapis, experience) -> Item:
     """
         Prepare selectable options and resources; return the original input item.
     """
@@ -33,7 +33,7 @@ def prepare_enchanting(table, *, lapis, experience) -> Item:
     return original
 
 
-def option_snapshot(table):
+def option_snapshot(table: EnchantingTable):
     """
         Capture option values without retaining the mutable option list.
     """
@@ -72,7 +72,7 @@ def table():
     (5, ((4, 5, 5), (5, 5, 5)), ((1, 2), (2, 3)), [(4, 5), (1, 2), (2, 3)]),
 ])
 def test_enchanting_generates_options_for_tools_and_armour(
-    table, name, enchantment, boundary, level, expected_levels, expected_extras, random_ranges
+    table: EnchantingTable, name, enchantment, boundary, level, expected_levels, expected_extras, random_ranges
 ):
     """
         Check all three options at every table level for both random boundaries.
@@ -94,7 +94,7 @@ def test_enchanting_generates_options_for_tools_and_armour(
 
 
 @pytest.mark.parametrize("enchanted", [False, True])
-def test_enchanting_clears_options_for_missing_or_enchanted_item(table, enchanted):
+def test_enchanting_clears_options_for_missing_or_enchanted_item(table: EnchantingTable, enchanted):
     """
         Tests that enchanting table does not emit options for invald inputs
     """
@@ -113,7 +113,7 @@ def test_enchanting_clears_options_for_missing_or_enchanted_item(table, enchante
 
 
 @pytest.mark.parametrize(("choice", "expected_strength"), [(1, 2), (2, 2), (3, 3)])
-def test_enchanting_applies_selected_option_and_charges_exact_cost(table, choice, expected_strength):
+def test_enchanting_applies_selected_option_and_charges_exact_cost(table: EnchantingTable, choice, expected_strength):
     """
         Test that enchanting table applies selected enchantment and subtracts
         the right amount of experience
@@ -133,7 +133,7 @@ def test_enchanting_applies_selected_option_and_charges_exact_cost(table, choice
 
 @pytest.mark.parametrize("choice", [1, 2, 3])
 @pytest.mark.parametrize("missing_resource", ["lapis", "experience"])
-def test_enchanting_does_not_consume_resources_when_cost_cannot_be_paid(table, choice, missing_resource):
+def test_enchanting_does_not_consume_resources_when_cost_cannot_be_paid(table: EnchantingTable, choice, missing_resource):
     """
         Tests that enchanting does not consume resources if there is either not
         enough lapis or player experience
@@ -161,7 +161,7 @@ def test_enchanting_does_not_consume_resources_when_cost_cannot_be_paid(table, c
     (5, None, None),
 ])
 def test_enchanting_upgrade_cost_and_maximum_level(
-    table, level, bookshelves, upgraded_strengths, upgraded_extras
+    table: EnchantingTable, level, bookshelves, upgraded_strengths, upgraded_extras
 ):
     """
         Upgrade once for four bookshelves, refresh options, and stop at level five.
@@ -197,7 +197,7 @@ def test_enchanting_upgrade_cost_and_maximum_level(
 
 @pytest.mark.parametrize("level", range(6))
 @pytest.mark.parametrize("material_name", [None, "Lapis Lazuli"], ids=["empty-slot", "wrong-item"])
-def test_enchanting_upgrade_rejects_missing_or_wrong_material(table, level, material_name):
+def test_enchanting_upgrade_rejects_missing_or_wrong_material(table: EnchantingTable, level, material_name):
     """
         Tests that enchanting table upgrades do not work if invalid material
         is passed in
@@ -223,7 +223,7 @@ def test_enchanting_upgrade_rejects_missing_or_wrong_material(table, level, mate
 
 @pytest.mark.parametrize("level", range(5))
 @pytest.mark.parametrize("enchanted", [False, True], ids=["empty-input", "enchanted-input"])
-def test_enchanting_upgrade_without_enchantable_input(table, level, enchanted):
+def test_enchanting_upgrade_without_enchantable_input(table: EnchantingTable, level, enchanted):
     """
         Upgrading needs only bookshelves, even when no enchantment can be offered.
     """
@@ -250,7 +250,7 @@ def test_enchanting_upgrade_without_enchantable_input(table, level, enchanted):
 
 
 @pytest.mark.parametrize("choice", [1, 2, 3])
-def test_enchanting_preserves_durability(table, choice):
+def test_enchanting_preserves_durability(table: EnchantingTable, choice):
     """
         Tests that enchanting an item preserves its durability
     """
