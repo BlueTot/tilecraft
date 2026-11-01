@@ -4,18 +4,41 @@ Rewrite of an old project started in 2021, a 2D recreation of minecraft.
 
 ## Installation
 
-Create a virtual environment in python. 
+Install [uv](https://docs.astral.sh/uv/getting-started/installation/), then open a terminal in the cloned repository. The project requires Python 3.10 or newer; CI currently tests Python 3.10 and 3.13.
 
-To compile as an executable and run it:
+For a full development setup, use Python 3.13 and install the locked dependencies:
 
-```bash
-python -m pip install -e .
-tilecraft
+```powershell
+uv sync --locked --python 3.13
 ```
 
-To run it from the command line:
+The default `dev` dependency group installs pytest, pytest-cov, and mypy alongside the game dependencies. uv creates `.venv` automatically; manual activation is not required.
 
-```bash
-python -m tilecraft
+Run the game from the repository root:
+
+```powershell
+uv run --locked python -m tilecraft
 ```
 
+To install and run only the game dependencies:
+
+```powershell
+uv sync --locked --python 3.13 --no-dev
+uv run --locked --no-dev python -m tilecraft
+```
+
+This runs the Python application but does not build a standalone executable.
+
+## Development
+
+To run tests (including the configured coverage report):
+
+```powershell
+uv run --locked python -m pytest
+```
+
+To run type checking:
+
+```powershell
+uv run --locked mypy tilecraft
+```

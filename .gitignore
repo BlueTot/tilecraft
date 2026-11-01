@@ -5,3 +5,5 @@ Microsoft*
 .coverage
 htmlcov/
 .pytest_cache/
+.idea
+.vscode
