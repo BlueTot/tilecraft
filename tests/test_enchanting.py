@@ -67,8 +67,8 @@ def table():
     (0, ((0, 0, 0), (0, 0, 1)), ((None, None), (None, None)), [(0, 1)]),
     (1, ((1, 1, 2), (1, 2, 2)), ((None, None), (None, None)), [(1, 2)]),
     (2, ((2, 2, 3), (2, 3, 3)), ((None, None), (None, None)), [(2, 3)]),
-    (3, ((3, 3, 4), (3, 4, 4)), ((None, 0), (None, 1)), [(3, 4), (0, 1)]),
-    (4, ((4, 4, 5), (4, 5, 5)), ((0, 1), (1, 2)), [(4, 5), (0, 1), (1, 2)]),
+    (3, ((3, 3, 4), (3, 4, 4)), ((None, None), (None, 1)), [(3, 4), (0, 1)]),
+    (4, ((4, 4, 5), (4, 5, 5)), ((None, 1), (1, 2)), [(4, 5), (0, 1), (1, 2)]),
     (5, ((4, 5, 5), (5, 5, 5)), ((1, 2), (2, 3)), [(4, 5), (1, 2), (2, 3)]),
 ])
 def test_enchanting_generates_options_for_tools_and_armour(
@@ -155,8 +155,8 @@ def test_enchanting_does_not_consume_resources_when_cost_cannot_be_paid(table: E
 @pytest.mark.parametrize(("level", "upgraded_strengths", "upgraded_extras"), [
     (0, (1, 1, 2), (None, None)),
     (1, (2, 2, 3), (None, None)),
-    (2, (3, 3, 4), (None, 0)),
-    (3, (4, 4, 5), (0, 1)),
+    (2, (3, 3, 4), (None, None)),
+    (3, (4, 4, 5), (None, 1)),
     (4, (4, 5, 5), (1, 2)),
     (5, None, None),
 ])

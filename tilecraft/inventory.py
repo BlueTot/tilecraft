@@ -207,11 +207,9 @@ class EnchantingTable:
         self.rng = rng
         self.experience = experience
 
+        self.enchanting_level = 0
         self.items: list[Optional[Item]] = [None]*3
         self.__options: list[EnchantmentPair] = [EnchantmentPair(None, None) for _ in range(3)]
-        self.enchanting_level = 0
-        self.__optional_enchant2 = None
-        self.__optional_enchant3 = None
 
 
     def option(self, option_number: int) -> str:
@@ -224,15 +222,19 @@ class EnchantingTable:
 
 
     @property
-    def optional_enchant2(self) -> int:
+    def optional_enchant2(self) -> Optional[int]:
         """ Read-only access to optional_enchant2 attribute """
-        return self.__optional_enchant2
+        if self.__options[1].optional_enchantment is None:
+            return None
+        return self.__options[1].optional_enchantment.level
 
 
     @property
-    def optional_enchant3(self) -> int:
+    def optional_enchant3(self) -> Optional[int]:
         """ Read-only access to optional_enchant3 attribute """
-        return self.__optional_enchant3
+        if self.__options[2].optional_enchantment is None:
+            return None
+        return self.__options[2].optional_enchantment.level
 
 
     @property
@@ -254,59 +256,59 @@ class EnchantingTable:
         """
 
         if self.items[0] is None or self.items[0].enchantments is not None:
-            self.__options[0] = EnchantmentPair(None, None) 
-            self.__options[1] = EnchantmentPair(None, None) 
+            self.__options[0] = EnchantmentPair(None, None)
+            self.__options[1] = EnchantmentPair(None, None)
             self.__options[2] = EnchantmentPair(None, None)
             return
 
         level1 = 0
         level2 = 0
         level3 = 0
+        optional_enchant2 = 0
+        optional_enchant3 = 0
 
         match self.enchanting_level:
             case 0:
                 level1 = 0
                 level2 = 0
                 level3 = self.rng.next_random(0, 1)
-                self.__optional_enchant2 = None
-                self.__optional_enchant3 = None
+                optional_enchant2 = 0
+                optional_enchant3 = 0
             case 1:
                 level1 = 1
                 level2 = self.rng.next_random(1, 2)
                 level3 = 2
-                self.__optional_enchant2 = None
-                self.__optional_enchant3 = None
+                optional_enchant2 = 0
+                optional_enchant3 = 0
             case 2:
                 level1 = 2
                 level2 = self.rng.next_random(2, 3)
                 level3 = 3
-                self.__optional_enchant2 = None
-                self.__optional_enchant3 = None
+                optional_enchant2 = 0
+                optional_enchant3 = 0
             case 3:
                 level1 = 3
                 level2 = self.rng.next_random(3, 4)
                 level3 = 4
-                self.__optional_enchant2 = None
-                self.__optional_enchant3 = self.rng.next_random(0, 1)
+                optional_enchant2 = 0
+                optional_enchant3 = self.rng.next_random(0, 1)
             case 4:
                 level1 = 4
                 level2 = self.rng.next_random(4, 5)
                 level3 = 5
-                self.__optional_enchant2 = self.rng.next_random(0, 1)
-                self.__optional_enchant3 = self.rng.next_random(1, 2)
+                optional_enchant2 = self.rng.next_random(0, 1)
+                optional_enchant3 = self.rng.next_random(1, 2)
             case 5:
                 level1 = self.rng.next_random(4, 5)
                 level2 = 5
                 level3 = 5
-                self.__optional_enchant2 = self.rng.next_random(1, 2)
-                self.__optional_enchant3 = self.rng.next_random(2, 3)
+                optional_enchant2 = self.rng.next_random(1, 2)
+                optional_enchant3 = self.rng.next_random(2, 3)
             case _:
                 raise ValueError("Enchanting table level must be 0-5")
 
         if self.items[0].itemType in self.DEFAULT_ENCHANTMENTS:
             default_enchantment = self.DEFAULT_ENCHANTMENTS[self.items[0].itemType]
-            optional_level2 = 0 if self.__optional_enchant2 is None else self.__optional_enchant2
-            optional_level3 = 0 if self.__optional_enchant3 is None else self.__optional_enchant3
             self.__options = [
                 EnchantmentPair(
                     Enchantment.new_optional(default_enchantment, level1),
@@ -314,11 +316,11 @@ class EnchantingTable:
                 ),
                 EnchantmentPair(
                     Enchantment.new_optional(default_enchantment, level2),
-                    Enchantment.new_optional(self.UNBREAKING, optional_level2)
+                    Enchantment.new_optional(self.UNBREAKING, optional_enchant2)
                 ),
                 EnchantmentPair(
                     Enchantment.new_optional(default_enchantment, level3),
-                    Enchantment.new_optional(self.UNBREAKING, optional_level3)
+                    Enchantment.new_optional(self.UNBREAKING, optional_enchant3)
                 ),
             ]
         else:
