@@ -221,20 +221,13 @@ class EnchantingTable:
         return self.__option_string(self.__options[option_number].main_enchantment)
 
 
-    @property
-    def optional_enchant2(self) -> Optional[int]:
-        """ Read-only access to optional_enchant2 attribute """
-        if self.__options[1].optional_enchantment is None:
-            return None
-        return self.__options[1].optional_enchantment.level
-
-
-    @property
-    def optional_enchant3(self) -> Optional[int]:
-        """ Read-only access to optional_enchant3 attribute """
-        if self.__options[2].optional_enchantment is None:
-            return None
-        return self.__options[2].optional_enchantment.level
+    def optional_enchantment_at(self, option_number: int) -> str:
+        """
+            Gets the optional enchantment at index `option_number`
+        """
+        if option_number not in (0, 1, 2):
+            raise ValueError("Enchanting option must be 0, 1, or 2")
+        return self.__option_string(self.__options[option_number].optional_enchantment)
 
 
     @property

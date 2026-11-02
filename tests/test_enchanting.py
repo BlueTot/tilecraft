@@ -37,7 +37,13 @@ def option_snapshot(table: EnchantingTable):
     """
         Capture option values without retaining the mutable option list.
     """
-    return tuple(table.option_list), table.optional_enchant2, table.optional_enchant3
+    return tuple(table.option_list), table.optional_enchantment_at(1), table.optional_enchantment_at(2)
+
+
+def expected_optional(level: int) -> str:
+    if level == 0:
+        return ""
+    return f"Unbreaking {level}"
 
 
 @pytest.fixture
@@ -64,11 +70,11 @@ def table():
 ])
 @pytest.mark.parametrize("boundary", [0, 1], ids=["minimum", "maximum"])
 @pytest.mark.parametrize(("level", "expected_levels", "expected_extras", "random_ranges"), [
-    (0, ((0, 0, 0), (0, 0, 1)), ((None, None), (None, None)), [(0, 1)]),
-    (1, ((1, 1, 2), (1, 2, 2)), ((None, None), (None, None)), [(1, 2)]),
-    (2, ((2, 2, 3), (2, 3, 3)), ((None, None), (None, None)), [(2, 3)]),
-    (3, ((3, 3, 4), (3, 4, 4)), ((None, None), (None, 1)), [(3, 4), (0, 1)]),
-    (4, ((4, 4, 5), (4, 5, 5)), ((None, 1), (1, 2)), [(4, 5), (0, 1), (1, 2)]),
+    (0, ((0, 0, 0), (0, 0, 1)), ((0, 0), (0, 0)), [(0, 1)]),
+    (1, ((1, 1, 2), (1, 2, 2)), ((0, 0), (0, 0)), [(1, 2)]),
+    (2, ((2, 2, 3), (2, 3, 3)), ((0, 0), (0, 0)), [(2, 3)]),
+    (3, ((3, 3, 4), (3, 4, 4)), ((0, 0), (0, 1)), [(3, 4), (0, 1)]),
+    (4, ((4, 4, 5), (4, 5, 5)), ((0, 1), (1, 2)), [(4, 5), (0, 1), (1, 2)]),
     (5, ((4, 5, 5), (5, 5, 5)), ((1, 2), (2, 3)), [(4, 5), (1, 2), (2, 3)]),
 ])
 def test_enchanting_generates_options_for_tools_and_armour(
@@ -87,7 +93,7 @@ def test_enchanting_generates_options_for_tools_and_armour(
         f"{enchantment} {strength}" if strength else ""
         for strength in expected_levels[boundary]
     ])
-    assert (table.optional_enchant2, table.optional_enchant3) == expected_extras[boundary]
+    assert [table.optional_enchantment_at(1), table.optional_enchantment_at(2)] == [expected_optional(i) for i in expected_extras[boundary]]
     assert table.rng.next_random.call_args_list == [call(*bounds) for bounds in random_ranges]
     assert table.items[0].enchantments is None
     table.experience.subtract.assert_not_called()
@@ -153,12 +159,12 @@ def test_enchanting_does_not_consume_resources_when_cost_cannot_be_paid(table: E
 
 @pytest.mark.parametrize("bookshelves", [0, 1, 2, 3, 4, 5, 8, 64])
 @pytest.mark.parametrize(("level", "upgraded_strengths", "upgraded_extras"), [
-    (0, (1, 1, 2), (None, None)),
-    (1, (2, 2, 3), (None, None)),
-    (2, (3, 3, 4), (None, None)),
-    (3, (4, 4, 5), (None, 1)),
+    (0, (1, 1, 2), (0, 0)),
+    (1, (2, 2, 3), (0, 0)),
+    (2, (3, 3, 4), (0, 0)),
+    (3, (4, 4, 5), (0, 1)),
     (4, (4, 5, 5), (1, 2)),
-    (5, None, None),
+    (5, 0, 0),
 ])
 def test_enchanting_upgrade_cost_and_maximum_level(
     table: EnchantingTable, level, bookshelves, upgraded_strengths, upgraded_extras
@@ -189,7 +195,7 @@ def test_enchanting_upgrade_cost_and_maximum_level(
     table.experience.subtract.assert_not_called()
     if should_upgrade:
         assert table.option_list == tuple([f"Efficiency {strength}" for strength in upgraded_strengths])
-        assert (table.optional_enchant2, table.optional_enchant3) == upgraded_extras
+        assert [table.optional_enchantment_at(1), table.optional_enchantment_at(2)] == [expected_optional(i) for i in upgraded_extras]
     else:
         assert option_snapshot(table) == previous_options
         table.rng.next_random.assert_not_called()
