@@ -1,0 +1,303 @@
+from tkinter import E
+
+import pytest
+from unittest.mock import call, create_autospec
+
+from tilecraft.constants import Enchantment, Item, RandomNumberGenerator
+from tilecraft.inventory import EnchantingTable
+from tilecraft.player_info import Experience
+
+
+##################################
+#         TEST HELPERS           #
+##################################
+
+
+def mock_experience():
+    """
+        Creates a new mock experience object to observe method calls
+    """
+    return create_autospec(Experience, instance=True, spec_set=True)
+
+
+def prepare_enchanting(table: EnchantingTable, *, lapis, experience) -> Item:
+    """
+        Prepare selectable options and resources; return the original input item.
+    """
+    original = Item("Iron Pickaxe", 1, None, 10)
+    table.items[0] = original
+    table.items[1] = Item.new("Lapis Lazuli", lapis)
+    table.experience.levels = float(experience)
+    table.enchanting_level = 2
+    table.update()
+    return original
+
+
+def options(table: EnchantingTable):
+    return (table.option(0), table.option(1), table.option(2))
+
+
+def option_snapshot(table: EnchantingTable):
+    """
+        Capture option values without retaining the mutable option list.
+    """
+    return options(table), table.optional_enchantment_at(1), table.optional_enchantment_at(2)
+
+
+def expected_optional(level: int) -> str:
+    if level == 0:
+        return ""
+    return f"Unbreaking {level}"
+
+
+@pytest.fixture
+def table():
+    """
+        Creates a enchanting table with a mock player's experience
+        and mock random number generator
+    """
+    experience = mock_experience()
+    experience.levels = 3.0
+    rng = create_autospec(RandomNumberGenerator, instance=True, spec_set=True)
+    rng.next_random.side_effect = lambda start, stop: start
+    return EnchantingTable(rng, experience)
+
+
+##################################
+#             TESTS              #
+##################################
+
+
+@pytest.mark.parametrize(("name", "enchantment"), [
+    ("Iron Pickaxe", "Efficiency"),
+    ("Tier 1 Iron Plate", "Protection"),
+])
+@pytest.mark.parametrize("boundary", [0, 1], ids=["minimum", "maximum"])
+@pytest.mark.parametrize(("level", "expected_levels", "expected_extras", "random_ranges"), [
+    (0, ((0, 0, 0), (0, 0, 1)), ((0, 0), (0, 0)), [(0, 1)]),
+    (1, ((1, 1, 2), (1, 2, 2)), ((0, 0), (0, 0)), [(1, 2)]),
+    (2, ((2, 2, 3), (2, 3, 3)), ((0, 0), (0, 0)), [(2, 3)]),
+    (3, ((3, 3, 4), (3, 4, 4)), ((0, 0), (0, 1)), [(3, 4), (0, 1)]),
+    (4, ((4, 4, 5), (4, 5, 5)), ((0, 1), (1, 2)), [(4, 5), (0, 1), (1, 2)]),
+    (5, ((4, 5, 5), (5, 5, 5)), ((1, 2), (2, 3)), [(4, 5), (1, 2), (2, 3)]),
+])
+def test_enchanting_generates_options_for_tools_and_armour(
+    table: EnchantingTable, name, enchantment, boundary, level, expected_levels, expected_extras, random_ranges
+):
+    """
+        Check all three options at every table level for both random boundaries.
+    """
+    table.items[0] = Item.new(name, 1)
+    table.enchanting_level = level
+    table.rng.next_random.side_effect = lambda start, stop: (start, stop)[boundary]
+
+    table.update()
+
+    assert options(table) == tuple([
+        f"{enchantment} {strength}" if strength else ""
+        for strength in expected_levels[boundary]
+    ])
+    assert [table.optional_enchantment_at(1), table.optional_enchantment_at(2)] == [expected_optional(i) for i in expected_extras[boundary]]
+    assert table.rng.next_random.call_args_list == [call(*bounds) for bounds in random_ranges]
+    assert table.items[0].enchantments is None
+    table.experience.subtract.assert_not_called()
+
+
+@pytest.mark.parametrize("enchanted", [False, True])
+def test_enchanting_clears_options_for_missing_or_enchanted_item(table: EnchantingTable, enchanted):
+    """
+        Tests that enchanting table does not emit options for invald inputs
+    """
+    prepare_enchanting(table, lapis=3, experience=3)
+    assert options(table) == ("Efficiency 2", "Efficiency 2", "Efficiency 3")
+    if enchanted:
+        table.items[0] = Item("Iron Pickaxe", 1, [Enchantment("Efficiency", 1)], 10)
+    else:
+        table.items[0] = None
+    table.rng.next_random.reset_mock()
+
+    table.update()
+
+    assert options(table) == ("", "", "")
+    table.rng.next_random.assert_not_called()
+
+
+@pytest.mark.parametrize(("choice", "expected_strength"), [(1, 2), (2, 2), (3, 3)])
+def test_enchanting_applies_selected_option_and_charges_exact_cost(table: EnchantingTable, choice, expected_strength):
+    """
+        Test that enchanting table applies selected enchantment and subtracts
+        the right amount of experience
+    """
+    surplus = 2
+    prepare_enchanting(table, lapis=choice + surplus, experience=choice)
+
+    table.enchant(choice)
+
+    assert table.items[0].name == "Iron Pickaxe"
+    assert table.items[0].number == 1
+    assert table.items[0].enchantments == [Enchantment("Efficiency", expected_strength)]
+    assert table.items[1].number == surplus
+    table.experience.subtract.assert_called_once_with(choice)
+    assert options(table) == ("", "", "")
+
+
+@pytest.mark.parametrize("choice", [1, 2, 3])
+@pytest.mark.parametrize("missing_resource", ["lapis", "experience"])
+def test_enchanting_does_not_consume_resources_when_cost_cannot_be_paid(table: EnchantingTable, choice, missing_resource):
+    """
+        Tests that enchanting does not consume resources if there is either not
+        enough lapis or player experience
+    """
+    lapis_count = choice - 1 if missing_resource == "lapis" else choice
+    experience = choice - 1 if missing_resource == "experience" else choice
+    original = prepare_enchanting(table, lapis=lapis_count, experience=experience)
+
+    table.enchant(choice)
+
+    assert table.items[0] is original
+    assert original.enchantments is None
+    assert original.durability == 10
+    assert table.items[1].number == lapis_count
+    table.experience.subtract.assert_not_called()
+
+
+@pytest.mark.parametrize("bookshelves", [0, 1, 2, 3, 4, 5, 8, 64])
+@pytest.mark.parametrize(("level", "upgraded_strengths", "upgraded_extras"), [
+    (0, (1, 1, 2), (0, 0)),
+    (1, (2, 2, 3), (0, 0)),
+    (2, (3, 3, 4), (0, 0)),
+    (3, (4, 4, 5), (0, 1)),
+    (4, (4, 5, 5), (1, 2)),
+    (5, 0, 0),
+])
+def test_enchanting_upgrade_cost_and_maximum_level(
+    table: EnchantingTable, level, bookshelves, upgraded_strengths, upgraded_extras
+):
+    """
+        Upgrade once for four bookshelves, refresh options, and stop at level five.
+    """
+    table.enchanting_level = level
+    original = Item("Iron Pickaxe", 1, None, 10)
+    table.items[0] = original
+    table.items[1] = Item.new("Lapis Lazuli", 7)
+    table.items[2] = Item.new("Bookshelf", bookshelves)
+    table.experience.levels = 0.0
+    table.update()
+    previous_options = option_snapshot(table)
+    table.rng.next_random.reset_mock()
+
+    table.upgrade()
+
+    should_upgrade = level < 5 and bookshelves >= 4
+    assert table.enchanting_level == level + int(should_upgrade)
+    assert table.items[2].name == "Bookshelf"
+    assert table.items[2].number == bookshelves - (4 if should_upgrade else 0)
+    assert table.items[0] is original
+    assert original.enchantments is None
+    assert original.durability == 10
+    assert table.items[1].number == 7
+    table.experience.subtract.assert_not_called()
+    if should_upgrade:
+        assert options(table) == tuple([f"Efficiency {strength}" for strength in upgraded_strengths])
+        assert [table.optional_enchantment_at(1), table.optional_enchantment_at(2)] == [expected_optional(i) for i in upgraded_extras]
+    else:
+        assert option_snapshot(table) == previous_options
+        table.rng.next_random.assert_not_called()
+
+
+@pytest.mark.parametrize("level", range(6))
+@pytest.mark.parametrize("material_name", [None, "Lapis Lazuli"], ids=["empty-slot", "wrong-item"])
+def test_enchanting_upgrade_rejects_missing_or_wrong_material(table: EnchantingTable, level, material_name):
+    """
+        Tests that enchanting table upgrades do not work if invalid material
+        is passed in
+    """
+    table.enchanting_level = level
+    table.items[0] = Item.new("Iron Pickaxe", 1)
+    material = Item.new(material_name, 4) if material_name else None
+    table.items[2] = material
+    table.update()
+    previous_options = option_snapshot(table)
+    table.rng.next_random.reset_mock()
+
+    table.upgrade()
+
+    assert table.enchanting_level == level
+    assert table.items[2] is material
+    if material is not None:
+        assert material.number == 4
+    assert option_snapshot(table) == previous_options
+    table.rng.next_random.assert_not_called()
+    table.experience.subtract.assert_not_called()
+
+
+@pytest.mark.parametrize("level", range(5))
+@pytest.mark.parametrize("enchanted", [False, True], ids=["empty-input", "enchanted-input"])
+def test_enchanting_upgrade_without_enchantable_input(table: EnchantingTable, level, enchanted):
+    """
+        Upgrading needs only bookshelves, even when no enchantment can be offered.
+    """
+    table.enchanting_level = level
+    table.items[0] = Item.new("Iron Pickaxe", 1)
+    table.update()
+    assert any(options(table)) if level > 0 else not any(options(table))
+    table.rng.next_random.reset_mock()
+    original = Item("Iron Pickaxe", 1, [Enchantment("Efficiency", 1)], 10) if enchanted else None
+    table.items[0] = original
+    table.items[2] = Item.new("Bookshelf", 4)
+
+    table.upgrade()
+
+    assert table.enchanting_level == level + 1
+    assert table.items[2].number == 0
+    assert table.items[0] is original
+    if enchanted:
+        assert original.enchantments == [Enchantment("Efficiency", 1)]
+        assert original.durability == 10
+    assert options(table) == ("", "", "")
+    table.rng.next_random.assert_not_called()
+    table.experience.subtract.assert_not_called()
+
+
+@pytest.mark.parametrize("choice", [1, 2, 3])
+def test_enchanting_preserves_durability(table: EnchantingTable, choice):
+    """
+        Tests that enchanting an item preserves its durability
+    """
+    prepare_enchanting(table, lapis=3, experience=3)
+
+    table.enchant(choice)
+
+    assert table.items[0].durability == 10
+
+
+@pytest.mark.parametrize("name", ["Iron Pickaxe", "Tier 1 Iron Plate"])
+@pytest.mark.parametrize("level", range(6))
+@pytest.mark.parametrize("choice", [1, 2, 3])
+@pytest.mark.parametrize("boundary", [0, 1], ids=["minimum", "maximum"])
+def test_enchanting_never_produces_none_enchantments(
+    table: EnchantingTable, name, level, choice, boundary
+):
+    """Generate and apply options through the public API without None entries."""
+    original = Item.new(name, 1)
+    table.items[0] = original
+    table.items[1] = Item.new("Lapis Lazuli", 3)
+    table.experience.levels = 3.0
+    table.enchanting_level = level
+    table.rng.next_random.side_effect = lambda start, stop: (start, stop)[boundary]
+
+    table.update()
+    table.enchant(choice)
+
+    result = table.items[0]
+    assert result is not None
+    if level == 0 and (choice < 3 or boundary == 0):
+        # Disabled options must leave the original item and resources unchanged.
+        assert result is original
+        assert result.enchantments is None
+        assert table.items[1].number == 3
+        table.experience.subtract.assert_not_called()
+    else:
+        assert result.enchantments is not None
+        assert result.enchantments
+        assert None not in result.enchantments

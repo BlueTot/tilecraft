@@ -106,6 +106,11 @@ class FurnaceWidget(Widget):
         mouse = pygame.mouse.get_pos()
         is_holding = self.holding_item.item is not None
 
+        if self.furnace.fuel_val > 0:
+            fuel_img = context.ITEM_IMAGES["fire"]
+        else:
+            fuel_img = context.ITEM_IMAGES["no_fire"]
+
         images = []
         numbers = []
 
@@ -143,7 +148,7 @@ class FurnaceWidget(Widget):
             text = self.__font.render(numbers[i], False, (255, 255, 255))
             surface.blit(text, (coordinate.x, coordinate.y))
 
-        surface.blit(self.furnace.fuel_img, (self.x, self.y + 105)) #Render Fire Image
+        surface.blit(fuel_img, (self.x, self.y + 105)) #Render Fire Image
         surface.blit(self.__side_font.render(str(self.furnace.fuel_val), False, (255, 0, 0)), (self.x - 38, self.y + 120)) #Render Power of Fuel Remaining
         surface.blit(self.__side_font.render(f"{int(self.furnace.smelting_time / self.fps)}", False, (255, 0, 0)), (self.x + 142, self.y + 90)) #Render Time to Smelt
         surface.blit(self.__arrow_font.render('-->', False, (0, 0, 0)), (self.x + 112, self.y + 120)) #Render Arrow
@@ -230,23 +235,23 @@ class EnchantingTableWidget(Widget):
             else:
                 self.holding_item.item, self.enchanting_table.items[index] = self.enchanting_table.items[index], self.holding_item.item
             if index == 0:
-                self.enchanting_table.enchant_set()
+                self.enchanting_table.update()
 
         # upgrade button
         elif index == 3:
-            self.enchanting_table.enchant_upgrade()
+            self.enchanting_table.upgrade()
 
         # option 1
         elif index == 4:
-            self.enchanting_table.enchant1()
+            self.enchanting_table.enchant(1)
 
         # option 2
         elif index == 5:
-            self.enchanting_table.enchant2()
+            self.enchanting_table.enchant(2)
 
         # option 3
         elif index == 6:
-            self.enchanting_table.enchant3()
+            self.enchanting_table.enchant(3)
 
 
     def __handle_right_click(self, mouse: tuple[int, int]) -> None:
@@ -312,9 +317,9 @@ class EnchantingTableWidget(Widget):
         surface.blit(self.__font.render(f'Enchanting Table LEVEL {self.enchanting_table.enchanting_level}', False, (0, 0, 0)), (self.x, self.y))
 
         self.upgrade.render(surface, 'Upgrade', 21)
-        self.option1.render(surface, self.enchanting_table.option_list[0], 30)
-        self.option2.render(surface, self.enchanting_table.option_list[1], 30)
-        self.option3.render(surface, self.enchanting_table.option_list[2], 30)
+        self.option1.render(surface, self.enchanting_table.option(0), 30)
+        self.option2.render(surface, self.enchanting_table.option(1), 30)
+        self.option3.render(surface, self.enchanting_table.option(2), 30)
 
         if not is_holding:
             self.render_hovering_label(surface, mouse)
@@ -545,7 +550,7 @@ class GrindstoneWidget(Widget):
             self.inventory.add(self.grindstone.items[2])
             if self.grindstone.items[0] is not None and self.grindstone.items[1] is None:
                 if self.grindstone.items[0].enchantments is not None:
-                    self.grindstone.disenchant()
+                    self.grindstone.repair_and_disenchant()
             self.grindstone.items[0], self.grindstone.items[1], self.grindstone.items[2] = None, None, None
 
 

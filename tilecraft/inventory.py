@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
+from errno import EFAULT
 from typing import Optional
 
-from .constants import Item, Context, RandomNumberGenerator 
+from .constants import Enchantment, Item, RandomNumberGenerator
 from .player_info import Experience
 
 
@@ -113,29 +115,38 @@ class FurnaceInterface:
         Smelting interrface in the inventory screen
         Consists of a fuel slot, item slot, and result slot
     """
-    def __init__(self, context: Context):
+    def __init__(self):
 
         self.items: list[Optional[Item]] = [None]*3
         self.fuel_val = 0
-        self.fuel_img = context.ITEM_IMAGES["no_fire"]
         self.smelting_time = 0
 
 
-    def smelt(self, context: Context, fps: float, experience: Experience):
+    def smelt(self, fps: float, experience: Experience):
         """
             Progress smelting an item by one tick
         """
 
         # Load Fuel
-        if self.items[1] is not None:
-            if self.items[1].name == "Coal" and self.fuel_val == 0:
-                self.items[1] = Item(self.items[1].name, self.items[1].number - 1, self.items[1].enchantments, self.items[1].durability)
-                self.fuel_val = 8
+        if (
+            self.items[1] is not None and
+            self.items[1].name == "Coal" and 
+            self.fuel_val == 0
+        ):
+            self.items[1] = Item(self.items[1].name, self.items[1].number - 1, self.items[1].enchantments, self.items[1].durability)
+            self.fuel_val = 8
 
         # Smelting Process
-        if self.items[0] is not None:
-            if self.items[0].name == "Iron Ore" and self.fuel_val > 0:
-                self.smelting_time += 1
+        if (
+            self.items[0] is not None and 
+            self.items[0].name == "Iron Ore" and
+            self.items[0].number > 0 and
+            self.fuel_val > 0 and (
+                self.items[2] is None or
+                Item.new("Iron Ingot", self.items[0].number).is_stackable_with(self.items[2])
+            )
+        ):
+            self.smelting_time += 1
         else:
             self.smelting_time = 0
 
@@ -145,17 +156,30 @@ class FurnaceInterface:
             self.items[0] = Item(self.items[0].name, self.items[0].number - 1, self.items[0].enchantments, self.items[0].durability)
             self.fuel_val -= 1
             if self.items[2] is None:
-                self.items[2] = Item("Iron Ingot", 1, None, None)
-                experience.add_points(12)
+                self.items[2] = Item.new("Iron Ingot", 1)
             else:
-                self.items[2] = Item("Iron Ingot", self.items[2].number + 1, None, None)
-                experience.add_points(12)
+                self.items[2].number += 1
+            experience.add_points(12)
 
-        # Render Fire
-        if self.fuel_val > 0:
-            self.fuel_img = context.ITEM_IMAGES["fire"]
-        else:
-            self.fuel_img = context.ITEM_IMAGES["no_fire"]
+
+@dataclass
+class EnchantmentPair:
+    """
+        An enchantment pair consists of a main and optional enchantment,
+        both can be None.
+    """
+    main_enchantment: Optional[Enchantment]
+    optional_enchantment: Optional[Enchantment]
+
+    def enchantment_list(self) -> Optional[list[Enchantment]]:
+        """
+            Returns a list of enchantments excluding None if possible, otherwise None
+        """
+        if self.main_enchantment is None:
+            return None
+        if self.optional_enchantment is None:
+            return [Enchantment.clone(self.main_enchantment)]
+        return [Enchantment.clone(self.main_enchantment), Enchantment.clone(self.optional_enchantment)]
 
 
 class EnchantingTable:
@@ -165,196 +189,197 @@ class EnchantingTable:
         Requires experience levels
     """
 
+    PROTECTION = "Protection"
+    EFFICIENCY = "Efficiency"
+    UNBREAKING = "Unbreaking"
+
+    DEFAULT_ENCHANTMENTS = {
+        "Tier1": PROTECTION,
+        "Tier2": PROTECTION,
+        "Tier3": PROTECTION,
+        "Pickaxe": EFFICIENCY,
+        "Axe" : EFFICIENCY,
+        "Shovel": EFFICIENCY,
+        "Hoe": EFFICIENCY,
+    }
+
+    MIN_LAPIS = {
+        1: 1,
+        2: 2,
+        3: 3,
+    }
+
+    MIN_EXPERIENCE = {
+        1: 1,
+        2: 2,
+        3: 3,
+    }
+
+    COST_OF_UPGRADE = Item.new("Bookshelf", 4)
+    NUM_BOXES = 3
+    VALID_BOX_INDICES = tuple(range(NUM_BOXES))
+    VALID_BOX_NUMEBRS = tuple(range(1, NUM_BOXES + 1))
+
     def __init__(self, rng: RandomNumberGenerator, experience: Experience):
         self.rng = rng
         self.experience = experience
 
-        self.items: list[Optional[Item]] = [None]*3
-        self.option_list = ['', '', '']
         self.enchanting_level = 0
-        self.level1 = 0
-        self.level2 = 0
-        self.level3 = 0
-        self.optional_enchant2 = None
-        self.optional_enchant3 = None
+        self.items: list[Optional[Item]] = [None]*3
+        self.__options: list[EnchantmentPair] = [EnchantmentPair(None, None) for _ in range(self.NUM_BOXES)]
 
 
-    def enchant_set(self):
+    def option(self, option_number: int) -> str:
+        """
+            Public-facing method used by the UI to get the enchanting table's option string
+        """
+        if option_number not in self.VALID_BOX_INDICES:
+            raise ValueError(f"Enchanting option must be in {self.VALID_BOX_INDICES}")
+        return self.__option_string(self.__options[option_number].main_enchantment)
+
+
+    def optional_enchantment_at(self, option_number: int) -> str:
+        """
+            Public-facing method, gets the optional enchantment at index `option_number`
+        """
+        if option_number not in self.VALID_BOX_INDICES:
+            raise ValueError(f"Enchanting option must be in {self.VALID_BOX_INDICES}")
+        return self.__option_string(self.__options[option_number].optional_enchantment)
+
+
+    @staticmethod
+    def __option_string(enchantment: Optional[Enchantment]):
+        if enchantment is None or enchantment.level == 0:
+            return ""
+        return f"{enchantment.name} {enchantment.level}"
+
+
+    def update(self) -> None:
         """
             Set the options in the enchanting table
+            Box 1 - Enchants start at LEVEL 1, MAX 5, no extras
+            Box 2 - Enchants start at LEVEL 1, MAX 5, extras start LEVEL 4, MAX 2
+            Box 3 - Enchants start at LEVEL 0, MAX 5, extras start LEVEL 3, MAX 3
         """
-        if self.items[0] is not None:
-            if self.items[0].enchantments is None:
-                self.level1 = 0
-                self.level2 = 0
-                self.level3 = 0
-                self.optional_enchant2 = None
-                self.optional_enchant3 = None
-                if self.enchanting_level == 0:  # LEVEL 0
-                    self.level1 = 0
-                    self.level2 = 0
-                    self.level3 = self.rng.next_random(0, 1)
-                    self.optional_enchant2 = None
-                    self.optional_enchant3 = None
-                elif self.enchanting_level == 1:  # LEVEL 1
-                    self.level1 = 1
-                    self.level2 = self.rng.next_random(1, 2)
-                    self.level3 = 2
-                    self.optional_enchant2 = None
-                    self.optional_enchant3 = None
-                elif self.enchanting_level == 2:  # LEVEL 2
-                    self.level1 = 2
-                    self.level2 = self.rng.next_random(2, 3)
-                    self.level3 = 3
-                    self.optional_enchant2 = None
-                    self.optional_enchant3 = None
-                elif self.enchanting_level == 3:  # LEVEL 3
-                    self.level1 = 3
-                    self.level2 = self.rng.next_random(3, 4)
-                    self.level3 = 4
-                    self.optional_enchant2 = None
-                    self.optional_enchant3 = self.rng.next_random(0, 1)
-                elif self.enchanting_level == 4:  # LEVEL 4
-                    self.level1 = 4
-                    self.level2 = self.rng.next_random(4, 5)
-                    self.level3 = 5
-                    self.optional_enchant2 = self.rng.next_random(0, 1)
-                    self.optional_enchant3 = self.rng.next_random(1, 2)
-                else:  # LEVEL 5
-                    self.level1 = self.rng.next_random(4, 5)
-                    self.level2 = 5
-                    self.level3 = 5
-                    self.optional_enchant2 = self.rng.next_random(1, 2)
-                    self.optional_enchant3 = self.rng.next_random(2, 3)
 
-                if self.items[0].itemType == 'Tier1' or self.items[0].itemType == 'Tier2' or self.items[0].itemType == 'Tier3':  # Armour
-                    self.option_list[0] = f'Protection {self.level1}'
-                    self.option_list[1] = f'Protection {self.level2}'
-                    self.option_list[2] = f'Protection {self.level3}'
-                elif self.items[0].itemType == 'Pickaxe' or self.items[0].itemType == 'Axe' or self.items[0].itemType == 'Shovel' or self.items[0].itemType == 'Hoe':  # Tools
-                    self.option_list[0] = f'Efficiency {self.level1}'
-                    self.option_list[1] = f'Efficiency {self.level2}'
-                    self.option_list[2] = f'Efficiency {self.level3}'
-                for i in range(len(self.option_list)):
-                    if self.option_list[i] == 'Protection 0' or self.option_list[i] == 'Efficiency 0':
-                        self.option_list[i] = 'N/A'
-            else:
-                self.option_list[0] = self.option_list[1] = self.option_list[2] = ''
+        if self.items[0] is None or self.items[0].enchantments is not None:
+            self.__options = [EnchantmentPair(None, None) for _ in range(self.NUM_BOXES)]
+            return
+
+        level1 = 0
+        level2 = 0
+        level3 = 0
+        optional_enchant2 = 0
+        optional_enchant3 = 0
+
+        match self.enchanting_level:
+            case 0:
+                level1 = 0
+                level2 = 0
+                level3 = self.rng.next_random(0, 1)
+                optional_enchant2 = 0
+                optional_enchant3 = 0
+            case 1:
+                level1 = 1
+                level2 = self.rng.next_random(1, 2)
+                level3 = 2
+                optional_enchant2 = 0
+                optional_enchant3 = 0
+            case 2:
+                level1 = 2
+                level2 = self.rng.next_random(2, 3)
+                level3 = 3
+                optional_enchant2 = 0
+                optional_enchant3 = 0
+            case 3:
+                level1 = 3
+                level2 = self.rng.next_random(3, 4)
+                level3 = 4
+                optional_enchant2 = 0
+                optional_enchant3 = self.rng.next_random(0, 1)
+            case 4:
+                level1 = 4
+                level2 = self.rng.next_random(4, 5)
+                level3 = 5
+                optional_enchant2 = self.rng.next_random(0, 1)
+                optional_enchant3 = self.rng.next_random(1, 2)
+            case 5:
+                level1 = self.rng.next_random(4, 5)
+                level2 = 5
+                level3 = 5
+                optional_enchant2 = self.rng.next_random(1, 2)
+                optional_enchant3 = self.rng.next_random(2, 3)
+            case _:
+                raise ValueError("Enchanting table level must be 0-5")
+
+        if self.items[0].itemType in self.DEFAULT_ENCHANTMENTS:
+            default_enchantment = self.DEFAULT_ENCHANTMENTS[self.items[0].itemType]
+            self.__options = [
+                EnchantmentPair(
+                    Enchantment.new_optional(default_enchantment, level1),
+                    None,
+                ),
+                EnchantmentPair(
+                    Enchantment.new_optional(default_enchantment, level2),
+                    Enchantment.new_optional(self.UNBREAKING, optional_enchant2)
+                ),
+                EnchantmentPair(
+                    Enchantment.new_optional(default_enchantment, level3),
+                    Enchantment.new_optional(self.UNBREAKING, optional_enchant3)
+                ),
+            ]
         else:
-            self.option_list[0] = self.option_list[1] = self.option_list[2] = ''
+            raise ValueError("Expected an enchantable item")
 
 
-    def enchant_upgrade(self):
+    def upgrade(self) -> None:
         """
             Upgrade the level of the enchanting table
         """
-        if self.items[2] is not None and self.enchanting_level < 5:
-            if self.items[2].name == 'Bookshelf' and self.items[2].number > 3:
-                self.items[2].number -= 4
-                self.enchanting_level += 1
-                self.enchant_set()  # Set Enchants
+        if (
+            self.items[2] is None or
+            self.items[2].name != self.COST_OF_UPGRADE.name or
+            self.items[2].number < self.COST_OF_UPGRADE.number
+        ):
+            return
+
+        if self.enchanting_level >= 5:
+            return
+
+        self.items[2].number -= self.COST_OF_UPGRADE.number
+        self.enchanting_level += 1
+        self.update()
 
 
-    def enchant1(self):  # First ENCHANTING BOX (Enchants start at LEVEL 1, MAX 5, no extras)
+    def enchant(self, box: int) -> None:
         """
-            Enchant using the first option box
+            Enchant an item, given the specified `box` number in (1, 2, 3)
         """
-        if self.items[1] is not None:
-            if self.items[1].number > 0 and self.experience.levels > 0:  # REQUIRE 1 Lapis + 1 Experience
-                if self.option_list[0] != 'N/A' and self.items[0] is not None:
-                    self.items[0] = Item(
-                        self.items[0].name, 
-                        self.items[0].number, 
-                        [
-                            [self.option_list[0][0:-2], int(self.option_list[0][-1])]
-                        ], 
-                        self.items[0].number
-                    )
-                    self.items[1].number -= 1
-                    self.experience.subtract(1)
-                    self.enchant_set()  # Remove Enchants
+        if box not in self.VALID_BOX_NUMEBRS:
+            raise ValueError(f"Box number must be in {self.VALID_BOX_NUMEBRS}")
+
+        if self.items[1] is None or self.items[1].number < self.MIN_LAPIS[box]:
+            return
+
+        if self.experience.levels < self.MIN_EXPERIENCE[box]:
+            return
+
+        if self.__options[box-1].main_enchantment is None or self.items[0] is None:
+            return
+
+        self.items[0] = Item.clone_with_enchantments(self.items[0], self.__options[box-1].enchantment_list())
+        self.items[1].number -= self.MIN_LAPIS[box]
+        self.experience.subtract(self.MIN_EXPERIENCE[box])
+        self.update()
 
 
-    def enchant2(self):  # Second ENCHANTING BOX (Enchants start at LEVEL 1, MAX 5, extras start LEVEL 4, MAX 2)
-        """
-            Enchant using the second option box
-        """
-        if self.items[1] is not None:
-            if self.items[1].number > 1 and self.experience.levels > 1:  # REQUIRE 2 Lapis + 2 Experience
-                if self.option_list[1] != 'N/A' and self.items[0] is not None:  # Test for None
-                    if self.optional_enchant2 is not None:  # Extra enchantment
-                        if self.optional_enchant2 > 0:  # Enchantment level > 0
-                            self.items[0] = Item(
-                                self.items[0].name, 
-                                self.items[0].number, 
-                                [
-                                    [self.option_list[1][0:-2], int(self.option_list[1][-1])], 
-                                    ['Unbreaking', self.optional_enchant2]
-                                ],
-                                self.items[0].durability
-                            )
-                        else:  # No extra enchantment
-                            self.items[0] = Item(
-                                self.items[0].name, 
-                                self.items[0].number, 
-                                [
-                                    [self.option_list[1][0:-2], int(self.option_list[1][-1])]
-                                ], 
-                                self.items[0].durability
-                            )
-                    else:
-                        self.items[0] = Item(
-                            self.items[0].name, 
-                            self.items[0].number, 
-                            [
-                                [self.option_list[1][0:-2], int(self.option_list[1][-1])]
-                            ], 
-                            self.items[0].durability
-                        )
-                    self.items[1].number -= 2
-                    self.experience.subtract(2)
-                    self.enchant_set()  # Remove Enchants
-
-
-    def enchant3(self):  # Third ENCHANTING BOX (ENCHANTS start at LEVEL 0, MAX 5, extras start LEVEL 3, MAX 3)
-        """
-            Enchant using the third option box
-        """
-        if self.items[1] is not None:
-            if self.items[1].number > 2 and self.experience.levels > 2:  # REQUIRE 3 Lapis + 3 Experience
-                if self.option_list[2] != 'N/A' and self.items[0] is not None:  # Test for None
-                    if self.optional_enchant3 is not None:  # Extra enchantment
-                        if self.optional_enchant3 > 0:  # Enchantment level > 0
-                            self.items[0] = Item(
-                                self.items[0].name, 
-                                self.items[0].number, 
-                                [
-                                    [self.option_list[2][0:-2], int(self.option_list[2][-1])], 
-                                    ['Unbreaking', self.optional_enchant3]
-                                ],
-                                self.items[0].durability
-                            )
-                        else:  # No extra enchantment
-                            self.items[0] = Item(
-                                self.items[0].name, 
-                                self.items[0].number, 
-                                [
-                                    [self.option_list[2][0:-2], int(self.option_list[2][-1])]
-                                ], 
-                                self.items[0].durability
-                            )
-                    else:  # No extra enchantment
-                        self.items[0] = Item(
-                            self.items[0].name, 
-                            self.items[0].number, 
-                            [
-                                [self.option_list[2][0:-2], int(self.option_list[2][-1])]
-                            ], 
-                            self.items[0].durability
-                        )
-                    self.items[1].number -= 3
-                    self.experience.subtract(3)
-                    self.enchant_set()  # Remove Enchants
+@dataclass
+class CompressorRecipe:
+    """
+        A compressor recipe consists of one ingredient and one product
+    """
+    ingredient: Item
+    product: Item
 
 
 class Compressor:
@@ -363,6 +388,11 @@ class Compressor:
         Has two slots, one input slot and one output slot
         Runs on a timer
     """
+
+    RECIPES: list[CompressorRecipe] = [
+        CompressorRecipe(Item.new("Iron Ingot", 2), Item.new("Iron Plate", 1)),
+        CompressorRecipe(Item.new("Diamond", 2), Item.new("Diamond Plate", 1))
+    ]
 
     def __init__(self):
         self.items: list[Optional[Item]] = [None, None]
@@ -374,38 +404,32 @@ class Compressor:
             Advances the compressing state by one frame
         """
 
-        #Compressing Process
-        if self.items[0] is not None:
-            if self.items[0].number >= 2:
-                if self.items[0].name == 'Iron Ingot':
-                    if self.items[1] is not None:
-                        if self.items[1].name == 'Iron Plate':
-                            self.compressing_time += 1
-                    else:
-                        self.compressing_time += 1
-                elif self.items[0].name == 'Diamond':
-                    if self.items[1] is not None:
-                        if self.items[1].name == 'Diamond Plate':
-                            self.compressing_time += 1
-                    else:
-                        self.compressing_time += 1
+        expected_output: Optional[Item] = None
+
+        # compressing process
+        for recipe in self.RECIPES:
+            if (
+                self.items[0] is not None and
+                self.items[0].name == recipe.ingredient.name and
+                self.items[0].number >= recipe.ingredient.number and (
+                    self.items[1] is None or
+                    recipe.product.is_stackable_with(self.items[1])
+                )
+            ):
+                self.compressing_time += 1
+                expected_output = Item.clone(recipe.product)
+                break
         else:
             self.compressing_time = 0
 
-        #Finish Compressing Item
+        # finish compressing item
         if self.compressing_time >= 5 * fps:
             self.compressing_time = 0
-            self.items[0] = Item(self.items[0].name, self.items[0].number - 2, self.items[0].enchantments, self.items[0].durability)
-            if self.items[1] is None:
-                if self.items[0].name == 'Iron Ingot':
-                    self.items[1] = Item("Iron Plate", 1, None, None)
-                elif self.items[0].name == 'Diamond':
-                    self.items[1] = Item("Diamond Plate", 1, None, None)
+            self.items[0].number -= 2
+            if self.items[1] is None and expected_output is not None:
+                self.items[1] = expected_output
             else:
-                if self.items[0].name == 'Iron Ingot' and self.items[1].name == 'Iron Plate':
-                    self.items[1] = Item("Iron Plate", self.items[1].number + 1, None, None)
-                elif self.items[0].name == 'Diamond' and self.items[1].name == 'Diamond Plate':
-                    self.items[1] = Item("Diamond Plate", self.items[1].number + 1, None, None)
+                self.items[1].number += 1
 
 
 class Grindstone:
@@ -419,29 +443,42 @@ class Grindstone:
         self.items: list[Optional[Item]] = [None, None, None]
 
 
-    def repair_and_disenchant(self):
+    def update(self):
         """
             Update the result slot's information
         """
-        if self.items[0] is not None and self.items[1] is None:
-            if self.items[0].enchantments is not None:
-                self.items[2] = Item(self.items[0].name, self.items[0].number, None, self.items[0].durability)
-                return
-        elif self.items[0] is not None and self.items[1] is not None:
-            if self.items[0].durability is not None and self.items[1].durability is not None:
-                if self.items[0].name == self.items[1].name:
-                    total_durability = self.items[0].durability + self.items[1].durability
-                    if total_durability > self.items[0].max_durability:
-                        total_durability = self.items[0].max_durability
-                    self.items[2] = Item(self.items[0].name, self.items[0].number, None, total_durability)
-                    return
+
+        # if main slot is empty, output is empty
+        if self.items[0] is None:
+            self.items[2] = None
+            return
+
+        # disenchant main slot
+        if self.items[1] is None and self.items[0].enchantments is not None:
+            self.items[2] = Item.clone(self.items[0])
+            self.items[2].enchantments = None
+            return
+
+        # repair and combine
+        if (
+            self.items[1] is not None and
+            self.items[0].name == self.items[1].name and
+            self.items[0].durability is not None and
+            self.items[1].durability is not None
+        ):
+            total_durability = min(self.items[0].max_durability, self.items[0].durability + self.items[1].durability)
+            self.items[2] = Item.clone(self.items[0])
+            self.items[2].enchantments = None
+            self.items[2].durability = total_durability
+            return
+
+        # otherwise, leave output empty
         self.items[2] = None
 
 
-    def disenchant(self):
+    def repair_and_disenchant(self):
         """
             Add experience to player
         """
-        enchantments = self.items[0].enchantments
-        for i in enchantments:
-            self.experience.add_points(int(i[1]) * 8)
+        for enchantment in self.items[0].enchantments:
+            self.experience.add_points(int(enchantment.level) * 8)

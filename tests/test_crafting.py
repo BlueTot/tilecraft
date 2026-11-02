@@ -11,25 +11,6 @@ from tilecraft.crafting import SmallCraftingGrid, LargeCraftingGrid
 ##################################
 
 
-def item_equals(item1: Optional[Item], item2: Optional[Item]) -> bool:
-    """
-        Checks if two items are equal
-    """
-
-    if (item1 is None and item2 is None):
-        return True
-
-    if (item1 is not None and item2 is None) or (item1 is None and item2 is not None):
-        return False
-
-    return all([
-        item1.name == item2.name,
-        item1.number == item2.number,
-        item1.enchantments == item2.enchantments,
-        item1.durability == item2.durability
-    ])
-
-
 ##################################
 #             TESTS              #
 ##################################
@@ -69,7 +50,7 @@ def test_small_crafting_produces_correct_product(inputs: list[Optional[str]], ou
         small_crafting_table.items[i] = Item.new(name, 1) if name is not None else None 
 
     small_crafting_table.update()
-    assert item_equals(small_crafting_table.items[4], output)
+    assert Item.equals_optional(small_crafting_table.items[4], output)
 
 
 @pytest.mark.parametrize(
@@ -358,7 +339,7 @@ def test_crafting_produces_correct_product(inputs: list[Optional[str]], output: 
         crafting_table.items[i] = Item.new(name, 1) if name is not None else None 
 
     crafting_table.update()
-    assert item_equals(crafting_table.items[9], output)
+    assert Item.equals_optional(crafting_table.items[9], output)
 
 
 @pytest.mark.parametrize(

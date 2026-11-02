@@ -73,6 +73,6 @@ class GameRunningScreen(Interface):
 
     def update(self, fps: float) -> None:
         # In all game screens, furnace and compressor run in the background even when the interface isn't open
-        self.game_state.player.furnace.smelt(self.context, fps, self.game_state.player.experience)
+        self.game_state.player.furnace.smelt(fps, self.game_state.player.experience)
         self.game_state.player.compressor.compress(fps)
         self.game_state.player.remove_items() #Remove all items with number of 0 or durability of 0

@@ -69,7 +69,7 @@ class Player:
         self.armour = Armour() # armour
         self.craft_interface = SmallCraftingGrid() # small crafting grid
         self.crafting_grid = LargeCraftingGrid() # crafting table
-        self.furnace = FurnaceInterface(context) # furnace interface
+        self.furnace = FurnaceInterface() # furnace interface
         self.enchanting_table = EnchantingTable(self.rng, self.experience) # enchanting table interface
         self.compressor = Compressor() # compressor interface
         self.grindstone = Grindstone(self.experience) # grindstone interface

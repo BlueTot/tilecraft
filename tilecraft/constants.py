@@ -208,11 +208,36 @@ ITEM_IMAGE_MAPPING = {
     "Hay Bale": "hay",
 }
 
+@dataclass
+class Enchantment:
+    """ An enchantment has a name and a level >= 1 """
+    name: str
+    level: int
+
+
+    def __post_init__(self):
+        if self.level == 0:
+            raise ValueError("Enchantment level must not be 0")
+
+
+    @classmethod
+    def new_optional(cls, name: str, level: int) -> Optional[Enchantment]:
+        if level == 0:
+            return None
+        return cls(name, level)
+
+
+    @classmethod
+    def clone(cls, enchantment: Enchantment):
+        """ Clones the enchantment object """
+        return cls(enchantment.name, enchantment.level)
+
+
 class Item: #Item in the inventory
     def __init__(self, name: str, number: int, enchantments, durability):
         self.name: str = name #Item Name
         self.number: int = number #Quantity
-        self.enchantments = enchantments #Enchantments List
+        self.enchantments: Optional[list[Enchantment]] = enchantments #Enchantments List
         self.durability = durability #Durability of tool
         # self.img = context.ITEM_TYPES[self.name].img #Image
         self.stackNum = ITEM_TYPES[self.name].stack #Stackability
@@ -229,9 +254,9 @@ class Item: #Item in the inventory
             self.mining_speed = None
         if self.enchantments is not None:
             if self.mining_speed is not None:
-                for i in self.enchantments:
-                    if i[0] == "Efficiency":
-                        self.mining_speed += i[1]**2 + 1
+                for enchantment in self.enchantments:
+                    if enchantment.name == "Efficiency":
+                        self.mining_speed += enchantment.level **2 + 1
         if self.name == "Bookshelf" or self.name == "Cobblestone" or self.name == "Gravel" or self.name == "Hay Bale" or \
                 self.name == "Iron Ore" or self.name == "Oak Log" or self.name == "Oak Planks" or self.name == "Obsidian" or \
                 self.name == "Mine Entrance" or self.name == "Dirt" or self.name == "Sand" or self.name == "Snow":
@@ -254,6 +279,14 @@ class Item: #Item in the inventory
 
 
     @classmethod
+    def clone_with_enchantments(cls, item: Item, enchantments: Optional[list[Enchantment]]) -> Item:
+        """
+            Clones the item but sets its enchantments to be `enchantments`
+        """
+        return cls(item.name, item.number, enchantments, item.durability)
+
+
+    @classmethod
     def clone(cls, item: Item) -> Item:
         """
             Returns a copy of the item
@@ -267,6 +300,38 @@ class Item: #Item in the inventory
         """
         self.durability = ITEM_TYPES[self.name].max_durability
         return self
+
+
+    @staticmethod
+    def equals_optional(item1: Optional[Item], item2: Optional[Item]) -> bool:
+        """
+            Checks if two optional items are equal
+        """
+
+        if (item1 is None and item2 is None):
+            return True
+
+        if (item1 is not None and item2 is None) or (item1 is None and item2 is not None):
+            return False
+
+        return all([
+            item1.name == item2.name,
+            item1.number == item2.number,
+            item1.enchantments == item2.enchantments,
+            item1.durability == item2.durability
+        ])
+
+    
+    def is_stackable_with(self, other: Item) -> bool:
+        """
+            Items are stackable if they have the same name, enchantments, and durability
+        """
+        return (
+            self.name == other.name and
+            self.enchantments == other.enchantments and
+            self.durability == other.durability and
+            self.number + other.number <= self.stackNum
+        )
 
 
     def __repr__(self) -> str:
