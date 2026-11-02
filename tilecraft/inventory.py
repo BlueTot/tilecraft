@@ -203,6 +203,18 @@ class EnchantingTable:
         "Hoe": EFFICIENCY,
     }
 
+    MIN_LAPIS = {
+        1: 1,
+        2: 2,
+        3: 3,
+    }
+
+    MIN_EXPERIENCE = {
+        1: 1,
+        2: 2,
+        3: 3,
+    }
+
     def __init__(self, rng: RandomNumberGenerator, experience: Experience):
         self.rng = rng
         self.experience = experience
@@ -240,6 +252,9 @@ class EnchantingTable:
     def enchant_set(self):
         """
             Set the options in the enchanting table
+            Box 1 - Enchants start at LEVEL 1, MAX 5, no extras
+            Box 2 - Enchants start at LEVEL 1, MAX 5, extras start LEVEL 4, MAX 2
+            Box 3 - Enchants start at LEVEL 0, MAX 5, extras start LEVEL 3, MAX 3
         """
 
         if self.items[0] is None or self.items[0].enchantments is not None:
@@ -329,76 +344,26 @@ class EnchantingTable:
         self.enchant_set()
 
 
-    def __enchant1(self):
-        """
-            Enchant using the first option box
-            Enchants start at LEVEL 1, MAX 5, no extras
-        """
-
-        if self.items[1] is None or self.items[1].number < 1 or self.experience.levels < 1:
-            return
-
-        if self.__options[0].main_enchantment is None or self.items[0] is None:
-            return
-
-        self.items[0] = Item.clone_with_enchantments(self.items[0], self.__options[0].enchantment_list())
-        self.items[1].number -= 1
-        self.experience.subtract(1)
-        self.enchant_set()
-
-
-    def __enchant2(self):  
-        """
-            Enchant using the second option box.
-            Enchants start at LEVEL 1, MAX 5, extras start LEVEL 4, MAX 2
-        """
-
-        if self.items[1] is None or self.items[1].number < 2 or self.experience.levels < 2:
-            return
-
-        if self.__options[1].main_enchantment is None or self.items[0] is None:
-            return
-
-        self.items[0] = Item.clone_with_enchantments(self.items[0], self.__options[1].enchantment_list())
-        self.items[1].number -= 2
-        self.experience.subtract(2)
-        self.enchant_set()
-
-
-    def __enchant3(self):  
-        """
-            Enchant using the third option box.
-            Enchants start at LEVEL 0, MAX 5, extras start LEVEL 3, MAX 3
-        """
-
-        if self.items[1] is None or self.items[1].number < 3 or self.experience.levels < 3:
-            return
-
-        if self.__options[2].main_enchantment is None or self.items[0] is None:
-            return
-
-        self.items[0] = Item.clone_with_enchantments(self.items[0], self.__options[2].enchantment_list())
-        self.items[1].number -= 3
-        self.experience.subtract(3)
-        self.enchant_set()
-
-
     def enchant(self, box: int):
         """
-            Entry point for enchanting an item
+            Enchant an item, given the specified `box` number in (1, 2, 3)
         """
-        match box:
-            case 1:
-                self.__enchant1()
-                return
-            case 2:
-                self.__enchant2()
-                return
-            case 3:
-                self.__enchant3()
-                return
-            case _:
-                raise ValueError("Box must be between 1 and 3")
+        if box not in (1, 2, 3):
+            raise ValueError("Box must be between 1 and 3")
+
+        if self.items[1] is None or self.items[1].number < self.MIN_LAPIS[box]:
+            return
+
+        if self.experience.levels < self.MIN_EXPERIENCE[box]:
+            return
+
+        if self.__options[box-1].main_enchantment is None or self.items[0] is None:
+            return
+
+        self.items[0] = Item.clone_with_enchantments(self.items[0], self.__options[box-1].enchantment_list())
+        self.items[1].number -= self.MIN_LAPIS[box]
+        self.experience.subtract(self.MIN_EXPERIENCE[box])
+        self.enchant_set()
 
 
 @dataclass
