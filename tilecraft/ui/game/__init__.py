@@ -8,3 +8,11 @@ from .processing import (
     GrindstoneWidget,
 )
 from .status_bars import ExperienceBarWidget, HealthBarWidget, HungerBarWidget
+
+__all__ = [
+    "CraftingTableWidget", "SmallCraftingWidget", 
+    "DebugWidget", 
+    "ArmourWidget", "HoldingItemWidget", "HotbarWidget", "InventoryWidget",
+    "CompressorWidget", "EnchantingTableWidget", "FurnaceWidget", "GrindstoneWidget",
+    "ExperienceBarWidget", "HealthBarWidget", "HungerBarWidget"
+]

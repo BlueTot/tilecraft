@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from errno import EFAULT
 from typing import Optional
 
 from .constants import Enchantment, Item, RandomNumberGenerator
