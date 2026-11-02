@@ -29,7 +29,7 @@ def prepare_enchanting(table: EnchantingTable, *, lapis, experience) -> Item:
     table.items[1] = Item.new("Lapis Lazuli", lapis)
     table.experience.levels = float(experience)
     table.enchanting_level = 2
-    table.enchant_set()
+    table.update()
     return original
 
 
@@ -91,7 +91,7 @@ def test_enchanting_generates_options_for_tools_and_armour(
     table.enchanting_level = level
     table.rng.next_random.side_effect = lambda start, stop: (start, stop)[boundary]
 
-    table.enchant_set()
+    table.update()
 
     assert options(table) == tuple([
         f"{enchantment} {strength}" if strength else ""
@@ -116,7 +116,7 @@ def test_enchanting_clears_options_for_missing_or_enchanted_item(table: Enchanti
         table.items[0] = None
     table.rng.next_random.reset_mock()
 
-    table.enchant_set()
+    table.update()
 
     assert options(table) == ("", "", "")
     table.rng.next_random.assert_not_called()
@@ -182,11 +182,11 @@ def test_enchanting_upgrade_cost_and_maximum_level(
     table.items[1] = Item.new("Lapis Lazuli", 7)
     table.items[2] = Item.new("Bookshelf", bookshelves)
     table.experience.levels = 0.0
-    table.enchant_set()
+    table.update()
     previous_options = option_snapshot(table)
     table.rng.next_random.reset_mock()
 
-    table.enchant_upgrade()
+    table.upgrade()
 
     should_upgrade = level < 5 and bookshelves >= 4
     assert table.enchanting_level == level + int(should_upgrade)
@@ -216,11 +216,11 @@ def test_enchanting_upgrade_rejects_missing_or_wrong_material(table: EnchantingT
     table.items[0] = Item.new("Iron Pickaxe", 1)
     material = Item.new(material_name, 4) if material_name else None
     table.items[2] = material
-    table.enchant_set()
+    table.update()
     previous_options = option_snapshot(table)
     table.rng.next_random.reset_mock()
 
-    table.enchant_upgrade()
+    table.upgrade()
 
     assert table.enchanting_level == level
     assert table.items[2] is material
@@ -239,14 +239,14 @@ def test_enchanting_upgrade_without_enchantable_input(table: EnchantingTable, le
     """
     table.enchanting_level = level
     table.items[0] = Item.new("Iron Pickaxe", 1)
-    table.enchant_set()
+    table.update()
     assert any(options(table)) if level > 0 else not any(options(table))
     table.rng.next_random.reset_mock()
     original = Item("Iron Pickaxe", 1, [Enchantment("Efficiency", 1)], 10) if enchanted else None
     table.items[0] = original
     table.items[2] = Item.new("Bookshelf", 4)
 
-    table.enchant_upgrade()
+    table.upgrade()
 
     assert table.enchanting_level == level + 1
     assert table.items[2].number == 0
@@ -286,7 +286,7 @@ def test_enchanting_never_produces_none_enchantments(
     table.enchanting_level = level
     table.rng.next_random.side_effect = lambda start, stop: (start, stop)[boundary]
 
-    table.enchant_set()
+    table.update()
     table.enchant(choice)
 
     result = table.items[0]

@@ -249,7 +249,7 @@ class EnchantingTable:
         return f"{enchantment.name} {enchantment.level}"
 
 
-    def enchant_set(self):
+    def update(self) -> None:
         """
             Set the options in the enchanting table
             Box 1 - Enchants start at LEVEL 1, MAX 5, no extras
@@ -329,7 +329,7 @@ class EnchantingTable:
             raise ValueError("Expected an enchantable item")
 
 
-    def enchant_upgrade(self):
+    def upgrade(self) -> None:
         """
             Upgrade the level of the enchanting table
         """
@@ -341,10 +341,10 @@ class EnchantingTable:
 
         self.items[2].number -= 4
         self.enchanting_level += 1
-        self.enchant_set()
+        self.update()
 
 
-    def enchant(self, box: int):
+    def enchant(self, box: int) -> None:
         """
             Enchant an item, given the specified `box` number in (1, 2, 3)
         """
@@ -363,7 +363,7 @@ class EnchantingTable:
         self.items[0] = Item.clone_with_enchantments(self.items[0], self.__options[box-1].enchantment_list())
         self.items[1].number -= self.MIN_LAPIS[box]
         self.experience.subtract(self.MIN_EXPERIENCE[box])
-        self.enchant_set()
+        self.update()
 
 
 @dataclass

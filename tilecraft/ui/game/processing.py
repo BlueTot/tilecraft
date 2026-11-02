@@ -235,11 +235,11 @@ class EnchantingTableWidget(Widget):
             else:
                 self.holding_item.item, self.enchanting_table.items[index] = self.enchanting_table.items[index], self.holding_item.item
             if index == 0:
-                self.enchanting_table.enchant_set()
+                self.enchanting_table.update()
 
         # upgrade button
         elif index == 3:
-            self.enchanting_table.enchant_upgrade()
+            self.enchanting_table.upgrade()
 
         # option 1
         elif index == 4:
