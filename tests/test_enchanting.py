@@ -33,11 +33,15 @@ def prepare_enchanting(table: EnchantingTable, *, lapis, experience) -> Item:
     return original
 
 
+def options(table: EnchantingTable):
+    return (table.option(0), table.option(1), table.option(2))
+
+
 def option_snapshot(table: EnchantingTable):
     """
         Capture option values without retaining the mutable option list.
     """
-    return tuple(table.option_list), table.optional_enchantment_at(1), table.optional_enchantment_at(2)
+    return options(table), table.optional_enchantment_at(1), table.optional_enchantment_at(2)
 
 
 def expected_optional(level: int) -> str:
@@ -89,7 +93,7 @@ def test_enchanting_generates_options_for_tools_and_armour(
 
     table.enchant_set()
 
-    assert table.option_list == tuple([
+    assert options(table) == tuple([
         f"{enchantment} {strength}" if strength else ""
         for strength in expected_levels[boundary]
     ])
@@ -105,7 +109,7 @@ def test_enchanting_clears_options_for_missing_or_enchanted_item(table: Enchanti
         Tests that enchanting table does not emit options for invald inputs
     """
     prepare_enchanting(table, lapis=3, experience=3)
-    assert table.option_list == ("Efficiency 2", "Efficiency 2", "Efficiency 3")
+    assert options(table) == ("Efficiency 2", "Efficiency 2", "Efficiency 3")
     if enchanted:
         table.items[0] = Item("Iron Pickaxe", 1, [Enchantment("Efficiency", 1)], 10)
     else:
@@ -114,7 +118,7 @@ def test_enchanting_clears_options_for_missing_or_enchanted_item(table: Enchanti
 
     table.enchant_set()
 
-    assert table.option_list == ("", "", "")
+    assert options(table) == ("", "", "")
     table.rng.next_random.assert_not_called()
 
 
@@ -134,7 +138,7 @@ def test_enchanting_applies_selected_option_and_charges_exact_cost(table: Enchan
     assert table.items[0].enchantments == [Enchantment("Efficiency", expected_strength)]
     assert table.items[1].number == surplus
     table.experience.subtract.assert_called_once_with(choice)
-    assert table.option_list == ("", "", "")
+    assert options(table) == ("", "", "")
 
 
 @pytest.mark.parametrize("choice", [1, 2, 3])
@@ -194,7 +198,7 @@ def test_enchanting_upgrade_cost_and_maximum_level(
     assert table.items[1].number == 7
     table.experience.subtract.assert_not_called()
     if should_upgrade:
-        assert table.option_list == tuple([f"Efficiency {strength}" for strength in upgraded_strengths])
+        assert options(table) == tuple([f"Efficiency {strength}" for strength in upgraded_strengths])
         assert [table.optional_enchantment_at(1), table.optional_enchantment_at(2)] == [expected_optional(i) for i in upgraded_extras]
     else:
         assert option_snapshot(table) == previous_options
@@ -236,7 +240,7 @@ def test_enchanting_upgrade_without_enchantable_input(table: EnchantingTable, le
     table.enchanting_level = level
     table.items[0] = Item.new("Iron Pickaxe", 1)
     table.enchant_set()
-    assert any(table.option_list) if level > 0 else not any(table.option_list)
+    assert any(options(table)) if level > 0 else not any(options(table))
     table.rng.next_random.reset_mock()
     original = Item("Iron Pickaxe", 1, [Enchantment("Efficiency", 1)], 10) if enchanted else None
     table.items[0] = original
@@ -250,7 +254,7 @@ def test_enchanting_upgrade_without_enchantable_input(table: EnchantingTable, le
     if enchanted:
         assert original.enchantments == [Enchantment("Efficiency", 1)]
         assert original.durability == 10
-    assert table.option_list == ("", "", "")
+    assert options(table) == ("", "", "")
     table.rng.next_random.assert_not_called()
     table.experience.subtract.assert_not_called()
 

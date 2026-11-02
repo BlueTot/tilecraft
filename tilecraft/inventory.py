@@ -223,17 +223,11 @@ class EnchantingTable:
 
     def optional_enchantment_at(self, option_number: int) -> str:
         """
-            Gets the optional enchantment at index `option_number`
+            Public-facing method, gets the optional enchantment at index `option_number`
         """
         if option_number not in (0, 1, 2):
             raise ValueError("Enchanting option must be 0, 1, or 2")
         return self.__option_string(self.__options[option_number].optional_enchantment)
-
-
-    @property
-    def option_list(self) -> tuple[str, str, str]:
-        """ Read-only access to option_list attribute """
-        return (self.option(0), self.option(1), self.option(2))
 
 
     @staticmethod
