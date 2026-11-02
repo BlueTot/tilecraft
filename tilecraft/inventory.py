@@ -215,21 +215,26 @@ class EnchantingTable:
         3: 3,
     }
 
+    COST_OF_UPGRADE = Item.new("Bookshelf", 4)
+    NUM_BOXES = 3
+    VALID_BOX_INDICES = tuple(range(NUM_BOXES))
+    VALID_BOX_NUMEBRS = tuple(range(1, NUM_BOXES + 1))
+
     def __init__(self, rng: RandomNumberGenerator, experience: Experience):
         self.rng = rng
         self.experience = experience
 
         self.enchanting_level = 0
         self.items: list[Optional[Item]] = [None]*3
-        self.__options: list[EnchantmentPair] = [EnchantmentPair(None, None) for _ in range(3)]
+        self.__options: list[EnchantmentPair] = [EnchantmentPair(None, None) for _ in range(self.NUM_BOXES)]
 
 
     def option(self, option_number: int) -> str:
         """
             Public-facing method used by the UI to get the enchanting table's option string
         """
-        if option_number not in (0, 1, 2):
-            raise ValueError("Enchanting option must be 0, 1, or 2")
+        if option_number not in self.VALID_BOX_INDICES:
+            raise ValueError(f"Enchanting option must be in {self.VALID_BOX_INDICES}")
         return self.__option_string(self.__options[option_number].main_enchantment)
 
 
@@ -237,8 +242,8 @@ class EnchantingTable:
         """
             Public-facing method, gets the optional enchantment at index `option_number`
         """
-        if option_number not in (0, 1, 2):
-            raise ValueError("Enchanting option must be 0, 1, or 2")
+        if option_number not in self.VALID_BOX_INDICES:
+            raise ValueError(f"Enchanting option must be in {self.VALID_BOX_INDICES}")
         return self.__option_string(self.__options[option_number].optional_enchantment)
 
 
@@ -258,9 +263,7 @@ class EnchantingTable:
         """
 
         if self.items[0] is None or self.items[0].enchantments is not None:
-            self.__options[0] = EnchantmentPair(None, None)
-            self.__options[1] = EnchantmentPair(None, None)
-            self.__options[2] = EnchantmentPair(None, None)
+            self.__options = [EnchantmentPair(None, None) for _ in range(self.NUM_BOXES)]
             return
 
         level1 = 0
@@ -333,13 +336,17 @@ class EnchantingTable:
         """
             Upgrade the level of the enchanting table
         """
-        if self.items[2] is None or self.items[2].name != "Bookshelf" or self.items[2].number < 4:
+        if (
+            self.items[2] is None or
+            self.items[2].name != self.COST_OF_UPGRADE.name or
+            self.items[2].number < self.COST_OF_UPGRADE.number
+        ):
             return
 
         if self.enchanting_level >= 5:
             return
 
-        self.items[2].number -= 4
+        self.items[2].number -= self.COST_OF_UPGRADE.number
         self.enchanting_level += 1
         self.update()
 
@@ -348,8 +355,8 @@ class EnchantingTable:
         """
             Enchant an item, given the specified `box` number in (1, 2, 3)
         """
-        if box not in (1, 2, 3):
-            raise ValueError("Box must be between 1 and 3")
+        if box not in self.VALID_BOX_NUMEBRS:
+            raise ValueError(f"Box number must be in {self.VALID_BOX_NUMEBRS}")
 
         if self.items[1] is None or self.items[1].number < self.MIN_LAPIS[box]:
             return
@@ -368,6 +375,9 @@ class EnchantingTable:
 
 @dataclass
 class CompressorRecipe:
+    """
+        A compressor recipe consists of one ingredient and one product
+    """
     ingredient: Item
     product: Item
 
