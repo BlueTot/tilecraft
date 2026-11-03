@@ -302,6 +302,24 @@ class Item:
         return self
 
 
+    def disenchant(self) -> Item:
+        """
+            Sets the Item's enchantments to None
+        """
+        self.enchantments = None
+        return self
+
+
+    def set_durability(self, durability: Optional[int]) -> Item:
+        """
+            Sets the Item's durability
+        """
+        if durability > self.max_durability:
+            raise ValueError(f"Cannot set {self}'s durability to be more than the maximum")
+        self.durability = durability
+        return self
+
+
     @staticmethod
     def equals_optional(item1: Optional[Item], item2: Optional[Item]) -> bool:
         """

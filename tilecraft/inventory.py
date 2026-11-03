@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional
 
+
 from .constants import Enchantment, Item, RandomNumberGenerator
 from .player_info import Experience
 
@@ -249,7 +250,7 @@ class EnchantingTable:
 
 
     @staticmethod
-    def __option_string(enchantment: Optional[Enchantment]):
+    def __option_string(enchantment: Optional[Enchantment]) -> str:
         if enchantment is None or enchantment.level == 0:
             return ""
         return f"{enchantment.name} {enchantment.level}"
@@ -395,12 +396,12 @@ class Compressor:
         CompressorRecipe(Item.new("Diamond", 2), Item.new("Diamond Plate", 1))
     ]
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.items: list[Optional[Item]] = [None, None]
         self.compressing_time = 0
 
 
-    def compress(self, fps: float):
+    def compress(self, fps: float) -> None:
         """
             Advances the compressing state by one frame
         """
@@ -422,6 +423,7 @@ class Compressor:
                 break
         else:
             self.compressing_time = 0
+            return
 
         # finish compressing item
         if self.compressing_time >= 5 * fps:
@@ -439,12 +441,12 @@ class Grindstone:
         Consists of two input slots and one output slot
     """
 
-    def __init__(self, experience: Experience):
+    def __init__(self, experience: Experience) -> None:
         self.experience = experience
         self.items: list[Optional[Item]] = [None, None, None]
 
 
-    def update(self):
+    def update(self) -> None:
         """
             Update the result slot's information
         """
@@ -456,8 +458,7 @@ class Grindstone:
 
         # disenchant main slot
         if self.items[1] is None and self.items[0].enchantments is not None:
-            self.items[2] = Item.clone(self.items[0])
-            self.items[2].enchantments = None
+            self.items[2] = Item.clone(self.items[0]).disenchant()
             return
 
         # repair and combine
@@ -465,21 +466,24 @@ class Grindstone:
             self.items[1] is not None and
             self.items[0].name == self.items[1].name and
             self.items[0].durability is not None and
-            self.items[1].durability is not None
+            self.items[1].durability is not None and 
+            self.items[0].max_durability is not None
         ):
             total_durability = min(self.items[0].max_durability, self.items[0].durability + self.items[1].durability)
-            self.items[2] = Item.clone(self.items[0])
-            self.items[2].enchantments = None
-            self.items[2].durability = total_durability
+            self.items[2] = Item.clone(self.items[0]).disenchant().set_durability(total_durability)
             return
 
         # otherwise, leave output empty
         self.items[2] = None
 
 
-    def repair_and_disenchant(self):
+    def repair_and_disenchant(self) -> None:
         """
             Add experience to player
         """
-        for enchantment in self.items[0].enchantments:
+
+        if self.items[0] is None:
+            raise ValueError("Cannot disenchant an empty slot")
+
+        for enchantment in (self.items[0].enchantments or []):
             self.experience.add_points(int(enchantment.level) * 8)
