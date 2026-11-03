@@ -12,7 +12,7 @@ class HoldingItem:
         Item that the user is holding in the inventory menus
         Can be an item or nothing.
     """
-    def __init__(self):
+    def __init__(self) -> None:
         self.item: Optional[Item] = None
 
 
@@ -148,11 +148,13 @@ class FurnaceInterface:
             self.smelting_time += 1
         else:
             self.smelting_time = 0
+            return
 
         # Finish Smelting Item
         if self.smelting_time >= 5 * fps:
             self.smelting_time = 0
-            self.items[0] = Item(self.items[0].name, self.items[0].number - 1, self.items[0].enchantments, self.items[0].durability)
+            self.items[0] = Item.clone(self.items[0])
+            self.items[0].number -= 1
             self.fuel_val -= 1
             if self.items[2] is None:
                 self.items[2] = Item.new("Iron Ingot", 1)
