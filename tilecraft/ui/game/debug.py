@@ -15,18 +15,18 @@ class DebugWidget(Widget):
 
     def __init__(self, game_state: GameState):
         self.game_state = game_state 
-        self.fps = 0
+        self.fps = 0.0
 
 
-    def handle_event(self, event: pygame.event.Event) -> None:
-        pass
+    def handle_event(self, event: pygame.event.Event) -> bool:
+        return False
 
     
     def update(self, fps: float) -> None:
         self.fps = fps
 
 
-    def render(self, surface: pygame.Surface, context: Context):
+    def render(self, surface: pygame.Surface, context: Context) -> None:
 
         font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 25)
 

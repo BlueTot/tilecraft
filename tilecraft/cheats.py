@@ -50,6 +50,7 @@ def teleport(screen, internalX: int, internalY: int, coords):
 
 #/enchant command
 def enchant(screen, inventory: Inventory, enchantment):
+    # TODO: fix enchant command to use Enchantment class
     if inventory.hotbar_item is not None:
         enchantment = enchantment.replace(' ', '') #remove whitespaces
         if ',' in enchantment and enchantment[-1] != ',':

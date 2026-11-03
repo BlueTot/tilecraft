@@ -1,7 +1,8 @@
 import pygame
 
 from tilecraft import ASSETS_DIR
-from tilecraft.constants import SCREEN_WIDTH 
+from tilecraft.constants import SCREEN_WIDTH, Context
+from tilecraft.game_state import GameState
 from tilecraft.interfaces.interface import GameRunningScreen, ScreenID
 from tilecraft.ui.widget import Widget
 from tilecraft.ui.game import (
@@ -22,7 +23,7 @@ class InventoryScreen(GameRunningScreen):
         Screen containing the inventory, armour, and small crafting grid widgets
     """
 
-    def __init__(self, display, context, game_state):
+    def __init__(self, display: pygame.Surface, context: Context, game_state: GameState):
         super().__init__(display, context, game_state)
 
         self.__widgets: list[Widget] = [
@@ -46,7 +47,7 @@ class InventoryScreen(GameRunningScreen):
         ]
 
 
-    def update(self, fps: float):
+    def update(self, fps: float) -> None:
 
         # update backend
         self.game_state.player.craft_interface.update()
@@ -82,7 +83,7 @@ class CraftingScreen(GameRunningScreen):
         Screen showing the 3x3 crafting grid and the inventory
     """
 
-    def __init__(self, display, context, game_state):
+    def __init__(self, display: pygame.Surface, context: Context, game_state: GameState):
         super().__init__(display, context, game_state)
         self.__widgets: list[Widget] = [
             InventoryWidget(
@@ -141,7 +142,7 @@ class SmeltingScreen(GameRunningScreen):
         Screen showing the furance interface and the inventory
     """
 
-    def __init__(self, display, context, game_state):
+    def __init__(self, display: pygame.Surface, context: Context, game_state: GameState):
         super().__init__(display, context, game_state)
         self.__widgets: list[Widget] = [
             InventoryWidget(
@@ -194,7 +195,7 @@ class EnchantingScreen(GameRunningScreen):
         Screen showing the enchanting table interface and the inventory
     """
 
-    def __init__(self, display, context, game_state):
+    def __init__(self, display: pygame.Surface, context: Context, game_state: GameState):
         super().__init__(display, context, game_state)
         self.__widgets: list[Widget] = [
             InventoryWidget(
@@ -243,7 +244,7 @@ class CompressingScreen(GameRunningScreen):
         Screen showing the compressor interface and the inventory
     """
 
-    def __init__(self, display, context, game_state):
+    def __init__(self, display: pygame.Surface, context: Context, game_state: GameState):
         super().__init__(display, context, game_state)
         self.__widgets: list[Widget] = [
             InventoryWidget(
@@ -296,7 +297,7 @@ class GrindstoneScreen(GameRunningScreen):
         Screen showing the grindstone interface and the inventory
     """
 
-    def __init__(self, display, context, game_state):
+    def __init__(self, display: pygame.Surface, context: Context, game_state: GameState):
         super().__init__(display, context, game_state)
         self.__widgets: list[Widget] = [
             InventoryWidget(

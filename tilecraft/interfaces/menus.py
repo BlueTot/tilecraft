@@ -2,9 +2,9 @@ import random
 import pygame
 
 from tilecraft import ASSETS_DIR, VERSION
-from tilecraft.constants import RandomNumberGenerator, SCREEN_WIDTH 
+from tilecraft.constants import RandomNumberGenerator, SCREEN_WIDTH, Context
 from tilecraft.interfaces.interface import Interface, ScreenID
-from tilecraft.game_state import SpeedrunTimer
+from tilecraft.game_state import SpeedrunTimer, GameState
 from tilecraft.ui.general import Button, Dropdown, ScrollableTextBox, TextInput
 
 
@@ -19,7 +19,7 @@ class TitleScreen(Interface):
 
     LOAD_OPTIONS = ['"Music Player" Speedrun Data Pack', '"God Gear" Speedrun Data Pack', 'Cheats Data Pack', 'None']
 
-    def __init__(self, display, context, game_state):
+    def __init__(self, display: pygame.Surface, context: Context, game_state: GameState):
         super().__init__(display, context, game_state)
 
         text_input_font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 20)
@@ -206,7 +206,7 @@ class HowToPlayScreen(Interface):
     TEXT_INPUT_WIDTH = 600
     TEXT_INPUT_HEIGHT = 570
 
-    def __init__(self, display, context, game_state):
+    def __init__(self, display: pygame.Surface, context: Context, game_state: GameState):
         super().__init__(display, context, game_state)
 
         font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 18)
@@ -264,7 +264,7 @@ class PatchNotesScreen(Interface):
     TEXT_INPUT_WIDTH = 600
     TEXT_INPUT_HEIGHT = 570
 
-    def __init__(self, display, context, game_state):
+    def __init__(self, display: pygame.Surface, context: Context, game_state: GameState):
         super().__init__(display, context, game_state)
 
         font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 18)
@@ -322,7 +322,7 @@ class GameCreditsScreen(Interface):
     TEXT_INPUT_WIDTH = 600
     TEXT_INPUT_HEIGHT = 570
 
-    def __init__(self, display, context, game_state):
+    def __init__(self, display: pygame.Surface, context: Context, game_state: GameState):
         super().__init__(display, context, game_state)
 
         font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 18)

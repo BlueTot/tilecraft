@@ -23,7 +23,7 @@ class SpeedrunTimer:
         self.running = True 
         self.latest_time_string = ""
 
-    def render(self, display: pygame.Surface, play_time_seconds: float):
+    def render(self, display: pygame.Surface, play_time_seconds: float) -> None:
         """
             Render the speedrun timer to the display
             If not enabled, it will not render
@@ -160,24 +160,24 @@ class Screen:
 
         self.game_state = game_state 
 
-    def scroll_up(self):
+    def scroll_up(self) -> None:
         if self.position < len(self.print_list) - 15:
             self.position += 1
 
-    def scroll_down(self):
+    def scroll_down(self) -> None:
         if self.position > 0:
             self.position -= 1
 
-    def start_typing(self, text):
+    def start_typing(self, text) -> None:
         self.input_line = 15
         self.isTyping = True
         self.foretext = text
         self.timer = 0
 
-    def type(self, char):
+    def type(self, char) -> None:
         self.typingText += char
 
-    def stop_typing(self):
+    def stop_typing(self) -> None:
         self.input_line = 0
         self.isTyping = False
         length = len(list(ITEM_TYPES.keys())) - 1
@@ -200,10 +200,10 @@ class Screen:
         self.typingText = ''
         self.position = 0
 
-    def delete(self):
+    def delete(self) -> None:
         self.typingText = self.typingText[0:-1]
 
-    def text_validate(self):
+    def text_validate(self) -> None:
         if len(self.typingText) != 0:
             if self.typingText[0] == '/':
                 self.typingText = self.typingText.replace(' ', '')  # REMOVE WHITESPACES
@@ -224,11 +224,11 @@ class Screen:
             else:
                 self.print(f"<Player> {self.typingText}")
 
-    def print(self, text):
+    def print(self, text: str) -> None:
         self.timer = 0
         self.print_list.append(text)
 
-    def render(self, display: pygame.Surface):
+    def render(self, display: pygame.Surface) -> None:
         if self.timer == 600:
             return
 
@@ -278,7 +278,7 @@ class GameState:
     debug_mode: bool
 
 
-def commands(number: int, val: str, game_state: GameState):
+def commands(number: int, val: str, game_state: GameState) -> None:
     """
         Legcay commands and cheat commands to play the game
         This is to be gradually deprecated in favour of new game mechanics
@@ -642,7 +642,7 @@ def commands(number: int, val: str, game_state: GameState):
             game_state.screen.print("Invalid Function")
 
 
-def try_set_empty_village(world: TilecraftWorld, actualX: int, actualY: int):
+def try_set_empty_village(world: TilecraftWorld, actualX: int, actualY: int) -> None:
     """
         Try to mark a villge structure as empty
         actualX, actualY are the coordinates of the village
@@ -670,7 +670,7 @@ def try_set_empty_village(world: TilecraftWorld, actualX: int, actualY: int):
         world.empty_vil_total.append([actualX, actualY])
 
 
-def try_set_empty_ruined_portal(world: TilecraftWorld, actualX: int, actualY: int):
+def try_set_empty_ruined_portal(world: TilecraftWorld, actualX: int, actualY: int) -> None:
     """
         Try to mark a ruined portal structure as empty
         actualX, actualY are the coordinates of the ruined portal

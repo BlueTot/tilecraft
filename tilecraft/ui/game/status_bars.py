@@ -18,8 +18,8 @@ class ExperienceBarWidget(Widget):
         self.__font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 45)
 
 
-    def handle_event(self, event: pygame.event.Event) -> None:
-        pass
+    def handle_event(self, event: pygame.event.Event) -> bool:
+        return False
 
 
     def render(self, surface: pygame.Surface, context: Context) -> None:
@@ -55,7 +55,7 @@ class HealthBarWidget(Widget):
             self.__coordinates.append(Coordinate(7 + 35*i, 592))
 
 
-    def handle_event(self, event) -> bool:
+    def handle_event(self, event: pygame.event.Event) -> bool:
         return False
 
 
@@ -86,8 +86,8 @@ class HungerBarWidget(Widget):
             self.__coordinates.append(Coordinate(715 - 34*i, 592))
 
 
-    def handle_event(self, event):
-        pass
+    def handle_event(self, event: pygame.event.Event) -> bool:
+        return False
 
 
     def render(self, surface: pygame.Surface, context: Context):

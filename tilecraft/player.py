@@ -107,7 +107,7 @@ class Player:
         return True
 
 
-    def hunger_mechanism(self):
+    def hunger_mechanism(self) -> None:
         """
             Hunger mechanism to decrease hunger as distance travelled increases
         """
@@ -116,7 +116,7 @@ class Player:
             self.hunger_subtracted += 1
 
 
-    def health_update(self, frame_count: int):
+    def health_update(self, frame_count: int) -> None:
         """
             Update Health and Regeneration
         """
@@ -136,7 +136,7 @@ class Player:
                 self.regenerate_val = False
 
 
-    def remove_items(self):
+    def remove_items(self) -> None:
         """
             Remove items that shouldn't be there
         """
@@ -160,7 +160,7 @@ class Player:
                     self.holding_item.item = None
 
 
-    def collide(self): #Collisions with tiles
+    def collide(self) -> None: #Collisions with tiles
         self.canMove = True
         try:
             if self.dimension == "Overworld": #Overworld dimension
@@ -215,7 +215,7 @@ class Player:
         return self.canMove
 
     #Player Move Keybinds
-    def move(self):
+    def move(self) -> None:
         # Position calculation
         self.left = self.x * 32 - 359
         self.right = self.x * 32 + 391
@@ -372,7 +372,7 @@ class Player:
             self.world.generate_chunks(self.dimension)
 
 
-    def place_tile(self): #Place tiles
+    def place_tile(self) -> None: #Place tiles
         if self.isShifting: #is shifting = can edit background tiles
             if self.dimension == "Overworld": #Overworld background tiles
                 if self.inventory.hotbar_item.hasTile:
@@ -412,7 +412,7 @@ class Player:
                         if self.inventory.hotbar_item.number == 0:
                             self.inventory.hotbar_item = None  # Remove from inventory
 
-    def breaking(self, fps: float): #Breaking process of tile
+    def breaking(self, fps: float) -> None: #Breaking process of tile
         if self.breaking_delay == 0:
             if self.isShifting: #can edit background tiles
                 if self.dimension == "Overworld": #Overworld background tiles
@@ -545,7 +545,7 @@ class Player:
                             except ZeroDivisionError:
                                 self.breaking_time += 7
 
-    def break_add_item(self, value, fps: float):
+    def break_add_item(self, value, fps: float) -> None:
         if not self.isInstantMining:
             self.breaking_delay = fps * 3/10
         if self.dimension == "Overworld":
@@ -609,7 +609,7 @@ class Player:
                 else:
                     self.inventory.hotbar_item.durability -= 1
 
-    def break_tile(self, value, fps: float):
+    def break_tile(self, value, fps: float) -> None:
         if self.isShifting:
             if self.dimension == "Overworld":
                 if self.inventory.hotbar_item is not None:
@@ -677,7 +677,7 @@ class Player:
                     self.break_add_item(value, fps)
                 self.world.UndergroundTiles[(value.x, value.y)] = Tile("Air", self.target[0], self.target[1])
 
-    def pick_up_liquid(self): #Picking up liquids with a bucket
+    def pick_up_liquid(self) -> None: #Picking up liquids with a bucket
         if self.dimension == "Overworld": #Overworld
             if self.isShifting: #Background tiles
                 if self.world.UnderTiles[(self.target[0], self.target[1])].tile == "Water": #Wate
@@ -717,7 +717,7 @@ class Player:
                     self.inventory.add(Item("Lava Bucket", 1, None, None))
                     self.world.UndergroundTiles[(self.target[0], self.target[1])] = Tile("Air", self.target[0], self.target[1])
 
-    def place_liquid(self):
+    def place_liquid(self) -> None:
         if self.dimension == "Overworld":
             if self.isShifting:
                 if self.inventory.hotbar_item.name == "Water Bucket":
