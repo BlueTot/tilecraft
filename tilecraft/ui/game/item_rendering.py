@@ -1,32 +1,44 @@
 import math
+from typing import Optional
 import pygame
 
 from tilecraft.constants import Item
 
-def DurabilityBar(durability, max_durability):
-    durabilityPercent = math.floor((durability / max_durability) * 100)
-    if durabilityPercent == 100:
+def durability_colour(durability: int, max_durability: int) -> Optional[str]:
+    """
+        Get the durability colour given a tool's durability and max durability
+    """
+    percentage = math.floor((durability / max_durability) * 100)
+    if percentage == 100:
         return None
-    elif 75 < durabilityPercent <= 99:
+    elif 75 < percentage <= 99:
         return "#00ff00"
-    elif 50 < durabilityPercent <= 75:
+    elif 50 < percentage <= 75:
         return "#ffff00"
-    elif 25 < durabilityPercent <= 50:
+    elif 25 < percentage <= 50:
         return "#ff8000"
-    elif 5 < durabilityPercent <= 25:
+    elif 5 < percentage <= 25:
         return "#ff0000"
-    elif 0 < durabilityPercent <= 5:
+    elif 0 < percentage <= 5:
         return "#000000"
+    
+    raise ValueError("Something bad went wrong")
 
-def RenderDurabilityBar(display, x, y, durability, max_durability):
-    colour = DurabilityBar(durability, max_durability)
+
+def render_durability_bar(display: pygame.Surface, x: int, y: int, durability: int, max_durability: int) -> None:
+    """
+        Render a durability bar to the `display` at coordiantes x, y
+    """
+    colour = durability_colour(durability, max_durability)
     if colour is not None:
         pygame.draw.rect(display, (0, 0, 0), (x + 5, y + 72, 72, 5))
         pygame.draw.rect(display, colour, (x + 5, y + 72, math.floor(72 * durability / max_durability), 5))
 
 
-#Convert Numbers to Roman Numerals
-def DecimalToRoman(num):
+def decimal_to_roman(num: str | int) -> str:
+    """
+        Convert Numbers to Roman Numerals
+    """
     num = int(num)
     nums = [1, 4, 5, 9, 10, 40, 50, 90, 100, 400, 500, 900, 1000]
     symbols = ["I", "IV", "V", "IX", "X", "XL", "L", "XC", "C", "CD", "D", "CM", "M"]
@@ -42,15 +54,17 @@ def DecimalToRoman(num):
     return roman_value
 
 
-#Info Box for Items (with and without enchantments)
-def TextBox(display: pygame.Surface, item: Item, x: int, y: int, font: pygame.font.Font):
+def render_info_box(display: pygame.Surface, item: Item, x: int, y: int, font: pygame.font.Font) -> None:
+    """
+        Info Box for Items (with and without enchantments)
+    """
     try:
         if item is not None: #Check to prevent crashes
             length_list = [len(item.name * 15)]
             if item.enchantments is not None:
                 width = (1 + len(item.enchantments)) * 37
                 for enchantment in item.enchantments:
-                    length_list.append(len(str(enchantment.name) + DecimalToRoman(str(enchantment.level))) * 15)
+                    length_list.append(len(str(enchantment.name) + decimal_to_roman(str(enchantment.level))) * 15)
             else:
                 width = 37
             if item.durability is not None:
@@ -67,7 +81,7 @@ def TextBox(display: pygame.Surface, item: Item, x: int, y: int, font: pygame.fo
                 if item.enchantments is not None:
                     for i, enchantment in enumerate(item.enchantments):
                         display.blit(
-                            font.render(f'{enchantment.name} {DecimalToRoman(enchantment.level)}', False, (175, 175, 175)), 
+                            font.render(f'{enchantment.name} {decimal_to_roman(enchantment.level)}', False, (175, 175, 175)), 
                             (x + 15, y + 15 + (i + 1) * 22)
                         )
                 display.blit(font.render(f"Durability: {item.durability}/{item.max_durability}", False, (175, 175, 175)), (x + 15, y + width - 20))
@@ -75,7 +89,7 @@ def TextBox(display: pygame.Surface, item: Item, x: int, y: int, font: pygame.fo
                 if item.enchantments is not None:
                     for i, enchantment in enumerate(item.enchantments):
                         display.blit(
-                            font.render(f'{enchantment.name} {DecimalToRoman(enchantment.level)}', False, (175, 175, 175)), 
+                            font.render(f'{enchantment.name} {decimal_to_roman(enchantment.level)}', False, (175, 175, 175)), 
                             (x + 15, y + 15 + (i + 1) * 22)
                         )
     except IndexError:

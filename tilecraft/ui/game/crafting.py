@@ -4,7 +4,7 @@ import pygame
 from tilecraft import ASSETS_DIR
 from tilecraft.constants import Coordinate, Context, ITEM_IMAGE_MAPPING, Item
 from tilecraft.ui.widget import Widget
-from tilecraft.ui.game.item_rendering import TextBox, RenderDurabilityBar
+from tilecraft.ui.game.item_rendering import render_info_box, render_durability_bar
 from tilecraft.inventory import Inventory, HoldingItem
 from tilecraft.crafting import SmallCraftingGrid, LargeCraftingGrid
 
@@ -146,7 +146,7 @@ class SmallCraftingWidget(Widget):
                 if self.small_crafting_grid.items[i].enchantments is not None:
                     surface.blit(context.TC_GLINTS[self.small_crafting_grid.items[i].name], (cell.x, cell.y))
                 if self.small_crafting_grid.items[i].durability is not None:
-                    RenderDurabilityBar(surface, cell.x, cell.y, self.small_crafting_grid.items[i].durability, self.small_crafting_grid.items[i].max_durability)
+                    render_durability_bar(surface, cell.x, cell.y, self.small_crafting_grid.items[i].durability, self.small_crafting_grid.items[i].max_durability)
 
         for i, coordinate in enumerate(self.__numbers):
             text = self.__font.render(numbers[i], False, (255, 255, 255))
@@ -163,7 +163,7 @@ class SmallCraftingWidget(Widget):
             return
         
         font = pygame.font.Font(str(ASSETS_DIR / "monofur/monof55.ttf"), 22)
-        TextBox(display, self.small_crafting_grid.items[index], mouse[0], mouse[1], font) 
+        render_info_box(display, self.small_crafting_grid.items[index], mouse[0], mouse[1], font) 
 
 
 class CraftingTableWidget(Widget):
@@ -286,7 +286,7 @@ class CraftingTableWidget(Widget):
                 if self.crafting_grid.items[i].enchantments is not None:
                     surface.blit(context.TC_GLINTS[self.crafting_grid.items[i].name], (cell.x, cell.y))
                 if self.crafting_grid.items[i].durability is not None:
-                    RenderDurabilityBar(surface, cell.x, cell.y, self.crafting_grid.items[i].durability, self.crafting_grid.items[i].max_durability)
+                    render_durability_bar(surface, cell.x, cell.y, self.crafting_grid.items[i].durability, self.crafting_grid.items[i].max_durability)
 
         for i, coordinate in enumerate(self.__numbers):
             text = self.__font.render(numbers[i], False, (255, 255, 255))
@@ -303,4 +303,4 @@ class CraftingTableWidget(Widget):
             return
         
         font = pygame.font.Font(str(ASSETS_DIR / "monofur/monof55.ttf"), 22)
-        TextBox(display, self.crafting_grid.items[index], mouse[0], mouse[1], font) 
+        render_info_box(display, self.crafting_grid.items[index], mouse[0], mouse[1], font) 

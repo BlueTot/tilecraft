@@ -4,7 +4,7 @@ import pygame
 from tilecraft import ASSETS_DIR
 from tilecraft.constants import Coordinate, Context, ITEM_IMAGE_MAPPING, Item, Button
 from tilecraft.ui.widget import Widget
-from tilecraft.ui.game.item_rendering import TextBox, RenderDurabilityBar
+from tilecraft.ui.game.item_rendering import render_info_box, render_durability_bar
 from tilecraft.inventory import Inventory, FurnaceInterface, EnchantingTable, Compressor, Grindstone, HoldingItem
 
 
@@ -142,7 +142,7 @@ class FurnaceWidget(Widget):
                 if self.furnace.items[i].enchantments is not None:
                     surface.blit(context.TC_GLINTS[self.furnace.items[i].name], (cell.x, cell.y))
                 if self.furnace.items[i].durability is not None:
-                    RenderDurabilityBar(surface, cell.x, cell.y, self.furnace.items[i].durability, self.furnace.items[i].max_durability)
+                    render_durability_bar(surface, cell.x, cell.y, self.furnace.items[i].durability, self.furnace.items[i].max_durability)
 
         for i, coordinate in enumerate(self.__numbers):
             text = self.__font.render(numbers[i], False, (255, 255, 255))
@@ -162,7 +162,7 @@ class FurnaceWidget(Widget):
             return
         
         font = pygame.font.Font(str(ASSETS_DIR / "monofur/monof55.ttf"), 22)
-        TextBox(display, self.furnace.items[index], mouse[0], mouse[1], font) 
+        render_info_box(display, self.furnace.items[index], mouse[0], mouse[1], font) 
 
 
 class EnchantingTableWidget(Widget):
@@ -308,7 +308,7 @@ class EnchantingTableWidget(Widget):
                 if self.enchanting_table.items[i].enchantments is not None:
                     surface.blit(context.TC_GLINTS[self.enchanting_table.items[i].name], (cell.x, cell.y))
                 if self.enchanting_table.items[i].durability is not None:
-                    RenderDurabilityBar(surface, cell.x, cell.y, self.enchanting_table.items[i].durability, self.enchanting_table.items[i].max_durability)
+                    render_durability_bar(surface, cell.x, cell.y, self.enchanting_table.items[i].durability, self.enchanting_table.items[i].max_durability)
 
         for i, coordinate in enumerate(self.__numbers):
             text = self.__font.render(str(numbers[i]), False, (255, 255, 255))
@@ -332,7 +332,7 @@ class EnchantingTableWidget(Widget):
             return
         
         font = pygame.font.Font(str(ASSETS_DIR / "monofur/monof55.ttf"), 22)
-        TextBox(display, self.enchanting_table.items[index], mouse[0], mouse[1], font) 
+        render_info_box(display, self.enchanting_table.items[index], mouse[0], mouse[1], font) 
 
 
 class CompressorWidget(Widget):
@@ -463,7 +463,7 @@ class CompressorWidget(Widget):
                 if self.compressor.items[i].enchantments is not None:
                     surface.blit(context.TC_GLINTS[self.compressor.items[i].name], (cell.x, cell.y))
                 if self.compressor.items[i].durability is not None:
-                    RenderDurabilityBar(surface, cell.x, cell.y, self.compressor.items[i].durability, self.compressor.items[i].max_durability)
+                    render_durability_bar(surface, cell.x, cell.y, self.compressor.items[i].durability, self.compressor.items[i].max_durability)
         
         for i, coordinate in enumerate(self.__numbers):
             text = self.__font.render(numbers[i], False, (255, 255, 255))
@@ -481,7 +481,7 @@ class CompressorWidget(Widget):
             return
         
         font = pygame.font.Font(str(ASSETS_DIR / "monofur/monof55.ttf"), 22)
-        TextBox(display, self.compressor.items[index], mouse[0], mouse[1], font) 
+        render_info_box(display, self.compressor.items[index], mouse[0], mouse[1], font) 
 
 
 class GrindstoneWidget(Widget):
@@ -607,7 +607,7 @@ class GrindstoneWidget(Widget):
                 if self.grindstone.items[i].enchantments is not None:
                     surface.blit(context.TC_GLINTS[self.grindstone.items[i].name], (cell.x, cell.y))
                 if self.grindstone.items[i].durability is not None:
-                    RenderDurabilityBar(surface, cell.x, cell.y, self.grindstone.items[i].durability, self.grindstone.items[i].max_durability)
+                    render_durability_bar(surface, cell.x, cell.y, self.grindstone.items[i].durability, self.grindstone.items[i].max_durability)
 
         for i, coordinate in enumerate(self.__numbers):
             text = self.__font.render(numbers[i], False, (255, 255, 255))
@@ -627,4 +627,4 @@ class GrindstoneWidget(Widget):
             return
         
         font = pygame.font.Font(str(ASSETS_DIR / "monofur/monof55.ttf"), 22)
-        TextBox(display, self.grindstone.items[index], mouse[0], mouse[1], font) 
+        render_info_box(display, self.grindstone.items[index], mouse[0], mouse[1], font) 

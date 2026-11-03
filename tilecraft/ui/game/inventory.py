@@ -1,7 +1,7 @@
 from typing import Optional
 import pygame
 
-from tilecraft.ui.game.item_rendering import TextBox, RenderDurabilityBar
+from tilecraft.ui.game.item_rendering import render_info_box, render_durability_bar
 from tilecraft.ui.widget import Widget
 from tilecraft import ASSETS_DIR
 from tilecraft.constants import Coordinate, Item, Context, ITEM_IMAGE_MAPPING
@@ -159,7 +159,7 @@ class InventoryWidget(Widget):
                 if self.inventory.items[i].enchantments is not None:
                     surface.blit(context.TC_GLINTS[self.inventory.items[i].name], (cell.x, cell.y))
                 if self.inventory.items[i].durability is not None:
-                    RenderDurabilityBar(surface, cell.x, cell.y, self.inventory.items[i].durability, self.inventory.items[i].max_durability)
+                    render_durability_bar(surface, cell.x, cell.y, self.inventory.items[i].durability, self.inventory.items[i].max_durability)
 
         # draw numbers
         for i, coordinate in enumerate(self.__number_coordinates):
@@ -179,7 +179,7 @@ class InventoryWidget(Widget):
             return
         
         font = pygame.font.Font(str(ASSETS_DIR / "monofur/monof55.ttf"), 22)
-        TextBox(display, self.inventory.items[index], mouse[0], mouse[1], font) 
+        render_info_box(display, self.inventory.items[index], mouse[0], mouse[1], font) 
 
 
 class ArmourWidget(Widget):
@@ -295,7 +295,7 @@ class ArmourWidget(Widget):
                 if self.armour.items[i].enchantments is not None:
                     surface.blit(context.TC_GLINTS[self.armour.items[i].name], (cell.x, cell.y))
                 if self.armour.items[i].durability is not None:
-                    RenderDurabilityBar(surface, cell.x, cell.y, self.armour.items[i].durability, self.armour.items[i].max_durability)
+                    render_durability_bar(surface, cell.x, cell.y, self.armour.items[i].durability, self.armour.items[i].max_durability)
 
         pygame.draw.rect(surface, (0, 0, 0), (self.x, self.y, 330, 240)) #Draw Black Background
         pygame.draw.rect(surface, (255, 0, 0), (self.x + 127, self.y + 82, 75, 75)) #Draw Player Icon
@@ -318,7 +318,7 @@ class ArmourWidget(Widget):
             return
         
         font = pygame.font.Font(str(ASSETS_DIR / "monofur/monof55.ttf"), 22)
-        TextBox(display, self.armour.items[index], mouse[0], mouse[1], font) 
+        render_info_box(display, self.armour.items[index], mouse[0], mouse[1], font) 
 
 
 class HotbarWidget(Widget):
@@ -384,7 +384,7 @@ class HotbarWidget(Widget):
                 if self.inventory.items[i+27].enchantments is not None:
                     surface.blit(context.TC_GLINTS[self.inventory.items[i+27].name], (coordinate.x, coordinate.y))
                 if self.inventory.items[i+27].durability is not None:
-                    RenderDurabilityBar(surface, coordinate.x, coordinate.y, self.inventory.items[i+27].durability, self.inventory.items[i+27].max_durability)
+                    render_durability_bar(surface, coordinate.x, coordinate.y, self.inventory.items[i+27].durability, self.inventory.items[i+27].max_durability)
 
         # draw background rects based on selected hotbar value
         for i in range(9):
@@ -436,4 +436,4 @@ class HoldingItemWidget(Widget):
             if self.holding_item.item.enchantments is not None:
                 surface.blit(context.TC_GLINTS[self.holding_item.item.name], (x, y))
             if self.holding_item.item.durability is not None:
-                RenderDurabilityBar(surface, x, y, self.holding_item.item.durability, self.holding_item.item.max_durability)
+                render_durability_bar(surface, x, y, self.holding_item.item.durability, self.holding_item.item.max_durability)
