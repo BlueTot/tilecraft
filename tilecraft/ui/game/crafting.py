@@ -58,15 +58,19 @@ class SmallCraftingWidget(Widget):
         self.__arrow_font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftBold-nMK1.otf"), 36)
 
 
-    def handle_event(self, event: pygame.event.Event) -> None:
+    def handle_event(self, event: pygame.event.Event) -> bool:
         mouse = pygame.mouse.get_pos()
 
         if event.type == pygame.MOUSEBUTTONDOWN: #Mouse Button Down Clicking Event
             if pygame.mouse.get_pressed(3)[0]: #Left Click
                 self.__handle_left_click(mouse)
+                return True
 
             elif pygame.mouse.get_pressed(3)[2]: #Right Click
                 self.__handle_right_click(mouse)
+                return True
+
+        return False
 
 
     def __get_hover_box(self, mouse: tuple[int, int]) -> Optional[int]:
@@ -76,28 +80,38 @@ class SmallCraftingWidget(Widget):
         return None
 
 
-    def __handle_left_click(self, mouse: tuple[int, int]):
+    def __handle_left_click(self, mouse: tuple[int, int]) -> None:
         if (index := self.__get_hover_box(mouse)) is None:
             return
 
         # main crafting grid
         if index != 4:
-            if self.holding_item.item is not None and self.small_crafting_grid.items[index] is not None: #Items can be combined
-                if self.holding_item.item.name == self.small_crafting_grid.items[index].name and (self.small_crafting_grid.items[index].number + self.holding_item.item.number <= self.holding_item.item.stackNum):
-                    self.small_crafting_grid.items[index].number += self.holding_item.item.number
-                    self.holding_item.item = None
-                else:
-                    self.holding_item.item, self.small_crafting_grid.items[index] = self.small_crafting_grid.items[index], self.holding_item.item
-            else:
-                self.holding_item.item, self.small_crafting_grid.items[index] = self.small_crafting_grid.items[index], self.holding_item.item
 
-        # result cell 
-        else:
-            if self.small_crafting_grid.items[4] is not None:
-                self.inventory.add(self.small_crafting_grid.items[4])
-                for i in range(4):
-                    if self.small_crafting_grid.items[i] is not None:
-                        self.small_crafting_grid.items[i].number -= 1
+            held = self.holding_item.item
+            slot = self.small_crafting_grid.items[index]
+
+            if (
+                held is not None and
+                slot is not None and
+                held.name == slot.name and
+                slot.number + held.number <= held.stackNum
+            ):
+                slot.number += held.number
+                self.holding_item.item = None
+            else:
+                self.holding_item.item, self.small_crafting_grid.items[index] = slot, held
+            return
+
+        # otherwise, result cell
+        result = self.small_crafting_grid.items[4]
+        if result is None:
+            return
+
+        self.inventory.add(result)
+
+        for item in self.small_crafting_grid.items[:4]:
+            if item is not None:
+                item.number -= 1
 
 
     def __handle_right_click(self, mouse: tuple[int, int]) -> None:
@@ -107,15 +121,17 @@ class SmallCraftingWidget(Widget):
         if index == 4: # cannot right click on the results box
             return
 
-        if self.holding_item.item is None:
+        held = self.holding_item.item
+        if held is None:
             return
         
-        if self.small_crafting_grid.items[index] is None:
-            self.small_crafting_grid.items[index] = Item(self.holding_item.item.name, 1, self.holding_item.item.enchantments, self.holding_item.item.durability)
-            self.holding_item.item.number -= 1
-        elif self.small_crafting_grid.items[index] is not None and self.small_crafting_grid.items[index].name == self.holding_item.item.name and (self.small_crafting_grid.items[index].number + 1 <= self.small_crafting_grid.items[index].stackNum):
-            self.small_crafting_grid.items[index].number += 1
-            self.holding_item.item.number -= 1
+        slot = self.small_crafting_grid.items[index]
+        if slot is None:
+            self.small_crafting_grid.items[index] = Item(held.name, 1, held.enchantments, held.durability)
+            held.number -= 1
+        elif slot.name == held.name and slot.number + 1 <= slot.stackNum:
+            slot.number += 1
+            held.number -= 1
 
 
     def render(self, surface: pygame.Surface, context: Context) -> None:
