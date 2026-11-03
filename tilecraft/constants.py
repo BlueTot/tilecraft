@@ -11,7 +11,10 @@ SCREEN_WIDTH = 750
 SCREEN_HEIGHT = 750
 
 class Button:
-    def __init__(self, length, width, x, y, colour):
+    """
+        Original button class used in the UI
+    """
+    def __init__(self, length: int, width: int, x: int, y: int, colour: tuple[int, int, int]) -> None:
         self.length = length
         self.width = width
         self.x = x
@@ -19,7 +22,10 @@ class Button:
         self.colour = colour
         self.rect = pygame.Rect((x, y), (length, width))
 
-    def render(self, display, text, size):
+    def render(self, display: pygame.Surface, text: str, size: int) -> None:
+        """
+            Render the button onto the `display`
+        """
         self.font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), size)
         self.text = self.font.render(text, False, (0, 0, 0))
         pygame.draw.rect(display, self.colour, self.rect)
@@ -30,19 +36,6 @@ class Button:
         self.text_y = (self.width - size) // 2
         display.blit(self.text, (self.x + self.text_x, self.y + self.text_y))
 
-class Grid:
-    def __init__(self, colour, rect, width, img):
-        self.colour = colour
-        self.rect = rect
-        self.width = width
-        self.img = img
-
-class Text:
-    def __init__(self, surface, x, y):
-        self.surface = surface
-        self.x = x
-        self.y = y
-
 @dataclass
 class Coordinate:
     x: int
@@ -52,13 +45,13 @@ class Coordinate:
 class ItemType: #Class to store item details for every item in game
     type: str
     stack: int
-    tier: Optional[str]
+    tier: Optional[int]
     max_durability: Optional[int]
     rarity: int
 
 @dataclass
 class TileType: #Class to store tile details for every tile type in the game
-    breaking_time: Optional[int]
+    breaking_time: Optional[float]
     tool: Optional[str]
     tier: Optional[int]
 
@@ -215,30 +208,37 @@ class Enchantment:
     level: int
 
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if self.level == 0:
             raise ValueError("Enchantment level must not be 0")
 
 
     @classmethod
     def new_optional(cls, name: str, level: int) -> Optional[Enchantment]:
+        """
+            Returns None if `level` is 0, otherwise a new Enchantment
+        """
         if level == 0:
             return None
         return cls(name, level)
 
 
     @classmethod
-    def clone(cls, enchantment: Enchantment):
+    def clone(cls, enchantment: Enchantment) -> Enchantment:
         """ Clones the enchantment object """
         return cls(enchantment.name, enchantment.level)
 
 
-class Item: #Item in the inventory
-    def __init__(self, name: str, number: int, enchantments, durability):
+class Item: 
+    """
+        Item in the inventory
+    """
+
+    def __init__(self, name: str, number: int, enchantments: Optional[list[Enchantment]], durability: Optional[int]):
         self.name: str = name #Item Name
         self.number: int = number #Quantity
         self.enchantments: Optional[list[Enchantment]] = enchantments #Enchantments List
-        self.durability = durability #Durability of tool
+        self.durability: Optional[int] = durability #Durability of tool
         # self.img = context.ITEM_TYPES[self.name].img #Image
         self.stackNum = ITEM_TYPES[self.name].stack #Stackability
         self.itemType = ITEM_TYPES[self.name].type #Type of item
@@ -308,18 +308,19 @@ class Item: #Item in the inventory
             Checks if two optional items are equal
         """
 
+        if item1 is not None and item2 is not None:
+            return all([
+                item1.name == item2.name,
+                item1.number == item2.number,
+                item1.enchantments == item2.enchantments,
+                item1.durability == item2.durability
+            ])
+
         if (item1 is None and item2 is None):
             return True
 
-        if (item1 is not None and item2 is None) or (item1 is None and item2 is not None):
-            return False
-
-        return all([
-            item1.name == item2.name,
-            item1.number == item2.number,
-            item1.enchantments == item2.enchantments,
-            item1.durability == item2.durability
-        ])
+        # one is None and the other is not
+        return False
 
     
     def is_stackable_with(self, other: Item) -> bool:
@@ -340,24 +341,6 @@ class Item: #Item in the inventory
         """
         return f"Item({self.name}, {self.number}, {self.enchantments}, {self.durability})"
 
-
-class Recipe:
-    def __init__(self, requirements, result):
-        self.requirements = requirements
-        self.result = (result.name, result.number, result.enchantments, result.durability)
-
-    def canCraft(self, crafting_grid: list[Optional[Item]]):
-        for i in range(9):
-            if crafting_grid[i] is not None:
-                if crafting_grid[i].name != self.requirements[i]:
-                    return False
-            elif crafting_grid[i] != self.requirements[i]:
-                return False
-        return True
-
-    def craft(self, crafting_grid: list[Optional[Item]]):
-        if crafting_grid[9] != Item(self.result[0], self.result[1], self.result[2], self.result[3]):
-            crafting_grid[9] = Item(self.result[0], self.result[1], self.result[2], self.result[3])
 
 @dataclass
 class TileImageEntry:
