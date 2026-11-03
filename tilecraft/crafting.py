@@ -85,10 +85,10 @@ class SmallCraftingGrid(CraftingGrid):
         )
     ]
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(self.NUM_INPUT_SLOTS)
 
-    def update(self):
+    def update(self) -> None:
         return super()._update(self.RECIPES)
 
 
@@ -321,9 +321,9 @@ class LargeCraftingGrid(CraftingGrid):
         ),
     ]
  
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(self.NUM_INPUT_SLOTS)
 
 
-    def update(self):
+    def update(self) -> None:
         return super()._update(self.RECIPES)

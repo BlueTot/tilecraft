@@ -21,19 +21,19 @@ class Inventory:
         Player's inventory consists of 36 slots, the last 9 slots belong to the hotbar
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.items: list[Optional[Item]] = [None]*36
         self.__selected_hotbar: int = 0
     
     @property
-    def selected_hotbar(self):
+    def selected_hotbar(self) -> int:
         """
             Gets the index of the selected hotbar from 0-8
         """ 
         return self.__selected_hotbar
 
     @selected_hotbar.setter
-    def selected_hotbar(self, index: int):
+    def selected_hotbar(self, index: int) -> None:
         """
             Sets the index of the selected hotbar, from 0-8
         """
@@ -105,7 +105,7 @@ class Armour:
         1) tier 1 plate, 2) tier 2 plate, 3) tier 3 plate, 4) shield
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.items: list[Optional[Item]] = [None]*4
 
 
@@ -114,14 +114,14 @@ class FurnaceInterface:
         Smelting interrface in the inventory screen
         Consists of a fuel slot, item slot, and result slot
     """
-    def __init__(self):
+    def __init__(self) -> None:
 
         self.items: list[Optional[Item]] = [None]*3
         self.fuel_val = 0
         self.smelting_time = 0
 
 
-    def smelt(self, fps: float, experience: Experience):
+    def smelt(self, fps: float, experience: Experience) -> None:
         """
             Progress smelting an item by one tick
         """

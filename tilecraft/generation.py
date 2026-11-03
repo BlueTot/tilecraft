@@ -4,7 +4,10 @@ import noise
 from .constants import TILE_TYPES, RandomNumberGenerator
 
 class Tile:
-    def __init__(self, tile, x, y):
+    """
+        A tile is a block on the world at a given coordinate
+    """
+    def __init__(self, tile: str, x: int, y: int):
         self.tile = tile
         self.x = x
         self.y = y

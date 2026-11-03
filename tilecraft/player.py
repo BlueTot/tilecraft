@@ -24,8 +24,8 @@ class Player:
         self.image = pygame.Surface((32, 32))  # Create Player Image
         self.image.fill((255, 0, 0))  # Fill Player Red
         self.rect = pygame.Rect((359, 359), (32, 32))  # Create Player Rect
-        self.x = 0  # Set Starting X Coordinate
-        self.y = 0  # Set Starting Y Coordinate
+        self.x = 0.0  # Set Starting X Coordinate
+        self.y = 0.0  # Set Starting Y Coordinate
         self.actualX = 0
         self.actualY = 0
         self.dimension = "Overworld"
@@ -82,21 +82,21 @@ class Player:
             Returns true if okay, false otherwise
         """
 
+        if self.inventory.hotbar_item is None:
+            raise ValueError("Hotbar item must not be None when trying to eat")
+
         if self.hunger.value < 20:
 
             if self.inventory.hotbar_item.name == 'Bread':
-                index = self.inventory.items.index(self.inventory.hotbar_item)
-                self.inventory.items[index].number -= 1
+                self.inventory.hotbar_item.number -= 1
                 self.hunger.value += 5
 
             elif self.inventory.hotbar_item.name == 'Golden Carrot':
-                index = self.inventory.items.index(self.inventory.hotbar_item)
-                self.inventory.items[index].number -= 1
+                self.inventory.hotbar_item.number -= 1
                 self.hunger.value += 6
 
             elif self.inventory.hotbar_item.name == 'Golden Apple':
-                index = self.inventory.items.index(self.inventory.hotbar_item)
-                self.inventory.items[index].number -= 1
+                self.inventory.hotbar_item.number -= 1
                 self.hunger.value += 5
                 self.regenerate_start_time = 0
                 self.regenerate_val = True
@@ -160,7 +160,7 @@ class Player:
                     self.holding_item.item = None
 
 
-    def collide(self) -> None: #Collisions with tiles
+    def collide(self) -> bool: #Collisions with tiles
         self.canMove = True
         try:
             if self.dimension == "Overworld": #Overworld dimension
@@ -372,7 +372,14 @@ class Player:
             self.world.generate_chunks(self.dimension)
 
 
-    def place_tile(self) -> None: #Place tiles
+    def place_tile(self) -> None:
+        """
+            Place a tile onto the world
+        """
+
+        if self.inventory.hotbar_item is None:
+            raise ValueError("Hotbar item must not be None when placing a tile")
+
         if self.isShifting: #is shifting = can edit background tiles
             if self.dimension == "Overworld": #Overworld background tiles
                 if self.inventory.hotbar_item.hasTile:
@@ -677,7 +684,14 @@ class Player:
                     self.break_add_item(value, fps)
                 self.world.UndergroundTiles[(value.x, value.y)] = Tile("Air", self.target[0], self.target[1])
 
-    def pick_up_liquid(self) -> None: #Picking up liquids with a bucket
+    def pick_up_liquid(self) -> None:
+        """
+            Picking up liquids with a bucket
+        """
+
+        if self.inventory.hotbar_item is None:
+            raise ValueError("Hotbar item must not be None when picking up a liquid")
+
         if self.dimension == "Overworld": #Overworld
             if self.isShifting: #Background tiles
                 if self.world.UnderTiles[(self.target[0], self.target[1])].tile == "Water": #Wate
@@ -718,6 +732,13 @@ class Player:
                     self.world.UndergroundTiles[(self.target[0], self.target[1])] = Tile("Air", self.target[0], self.target[1])
 
     def place_liquid(self) -> None:
+        """
+            Place liquid from a filled bucket
+        """
+
+        if self.inventory.hotbar_item is None:
+            raise ValueError("Hotbar item must not be None when placing a liquid")
+
         if self.dimension == "Overworld":
             if self.isShifting:
                 if self.inventory.hotbar_item.name == "Water Bucket":
@@ -757,7 +778,10 @@ class Player:
                     self.inventory.add(Item("Bucket", 1, None, None))
                     self.world.UndergroundTiles[(self.target[0], self.target[1])] = Tile("Lava", self.target[0], self.target[1])
 
-    def render(self, display: pygame.Surface):
+    def render(self, display: pygame.Surface) -> None:
+        """
+            Render the player onto the `display`
+        """
 
         if self.breaking_delay > 0:
             self.breaking_delay -= 1
