@@ -1,14 +1,32 @@
 # Tilecraft 
 
-Rewrite of an old project started in 2021, a 2D recreation of minecraft.
+Rewrite of my first project started in 2021, a 2D recreation of Minecraft.
 
 ## Installation
 
 Install [uv](https://docs.astral.sh/uv/getting-started/installation/), then open a terminal in the cloned repository. The project requires Python 3.10 or newer; CI currently tests Python 3.10 and 3.13.
 
-For a full development setup, use Python 3.13 and install the locked dependencies:
+Checkout the code at the **latest alpha release**, and install dependencies:
 
 ```powershell
+git checkout v0.9.0a4
+uv sync --python 3.13 --no-dev
+```
+
+And then, run the game:
+
+```
+uv run --locked --no-dev python -m tilecraft
+```
+
+To run the latest *stable* release, check out the `v0.8.5` tag instead. Note that this release does not use `uv`, so dependencies have to be installed manually.
+
+## Development
+
+For a full development setup, check out the development branch and install the locked dependencies:
+
+```powershell
+git checkout develop
 uv sync --locked --python 3.13
 ```
 
@@ -19,17 +37,6 @@ Run the game from the repository root:
 ```powershell
 uv run --locked python -m tilecraft
 ```
-
-To install and run only the game dependencies:
-
-```powershell
-uv sync --locked --python 3.13 --no-dev
-uv run --locked --no-dev python -m tilecraft
-```
-
-This runs the Python application but does not build a standalone executable.
-
-## Development
 
 To run tests (including the configured coverage report):
 
@@ -42,3 +49,12 @@ To run type checking:
 ```powershell
 uv run --locked mypy tilecraft
 ```
+
+## Past Versions
+
+This repository tracks versioning starting from `v0.9.0a3` onwards, but archived past versions are also available. You can find the `v0.8.5` and `v0.9.0a2` releases in the **Releases** tab on GitHub.
+
+<figure>
+  <img src="./assets/tilecraft-versions.png" alt="Past Versions">
+  <figcaption align="center"><i>Iterations of the main screen throughout the project's history</i></figcaption>
+</figure>
