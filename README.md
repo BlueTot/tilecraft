@@ -56,5 +56,5 @@ This repository tracks versioning starting from `v0.9.0a3` onwards, but archived
 
 <figure>
   <img src="./assets/tilecraft-versions.png" alt="Past Versions">
-  <figcaption align="center"><i>Iterations of the title screen throughout the project's history</i></figcaption>
+  <figcaption align="center"><i>Iterations of the main screen throughout the project's history</i></figcaption>
 </figure>
