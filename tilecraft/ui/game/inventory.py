@@ -24,55 +24,66 @@ class InventoryWidget(ItemContainerWidget):
         self.holding_item = holding_item
         self.__font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 25)
 
-        self.__inventory_slots: list[pygame.Rect] = [None]*36
+        self.__inventory_slots: list[pygame.Rect] = []
         for row in range(4):
             for col in range(9):
-                index = row*9 + col
-                self.__inventory_slots[index] = pygame.Rect(
-                    (x + self.CELL_SIZE*col, y + self.CELL_SIZE*row), 
+                self.__inventory_slots.append(pygame.Rect(
+                    (x + self.CELL_SIZE*col, y + self.CELL_SIZE*row),
                     (self.CELL_SIZE, self.CELL_SIZE)
-                )
+                ))
 
-        self.__number_coordinates: list[Coordinate] = [None]*36
+        self.__number_coordinates: list[Coordinate] = []
         for row in range(4):
             for col in range(9):
-                index = row*9 + col
-                self.__number_coordinates[index] = Coordinate(
+                self.__number_coordinates.append(Coordinate(
                     x + self.NUMBER_OFFSET_X + self.CELL_SIZE*col, 
                     y + self.NUMBER_OFFSET_Y + self.CELL_SIZE*row
-                )
+                ))
 
 
-    def handle_event(self, event: pygame.event.Event) -> None:
+    def handle_event(self, event: pygame.event.Event) -> bool:
         mouse = pygame.mouse.get_pos()
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_1: #1
                 self.__hotbar_swap(mouse, 1)
+                return True
             elif event.key == pygame.K_2: #2
                 self.__hotbar_swap(mouse, 2)
+                return True
             elif event.key == pygame.K_3: #3
                 self.__hotbar_swap(mouse, 3)
+                return True
             elif event.key == pygame.K_4: #4
                 self.__hotbar_swap(mouse, 4)
+                return True
             elif event.key == pygame.K_5: #5
                 self.__hotbar_swap(mouse, 5)
+                return True
             elif event.key == pygame.K_6: #6
                 self.__hotbar_swap(mouse, 6)
+                return True
             elif event.key == pygame.K_7: #7
                 self.__hotbar_swap(mouse, 7)
+                return True
             elif event.key == pygame.K_8: #8
                 self.__hotbar_swap(mouse, 8)
+                return True
             elif event.key == pygame.K_9: #9
                 self.__hotbar_swap(mouse, 9)
+                return True
 
         elif event.type == pygame.MOUSEBUTTONDOWN: #Mouse Button Down Clicking Event
             
             if pygame.mouse.get_pressed(3)[0]: #Left Click
                 self.__handle_left_click(mouse)
+                return True
 
             elif pygame.mouse.get_pressed(3)[2]: #Right Click
                 self.__handle_right_click(mouse)
+                return True
+
+        return False
 
 
     def __get_hover_box(self, mouse: tuple[int, int]) -> Optional[int]:
@@ -95,71 +106,57 @@ class InventoryWidget(ItemContainerWidget):
         if (index := self.__get_hover_box(mouse)) is None:
             return
 
-        if self.holding_item.item is not None and self.inventory.items[index] is not None:
-            if self.holding_item.item.name == self.inventory.items[index].name and (self.inventory.items[index].number + self.holding_item.item.number <= self.holding_item.item.stackNum): #Items can be combined
-                self.inventory.items[index].number += self.holding_item.item.number
-                self.holding_item.item = None
-            else:
-                self.holding_item.item, self.inventory.items[index] = self.inventory.items[index], self.holding_item.item
+        held = self.holding_item.item
+        slot = self.inventory.items[index]
+
+        if held is not None and slot is not None and held.name == slot.name and slot.number + held.number <= held.stackNum:
+            slot.number += held.number
+            self.holding_item.item = None
         else:
-            self.holding_item.item, self.inventory.items[index] = self.inventory.items[index], self.holding_item.item
+            self.holding_item.item, self.inventory.items[index] = slot, held
 
 
     def __handle_right_click(self, mouse: tuple[int, int]) -> None:
         if (index := self.__get_hover_box(mouse)) is None:
             return
 
-        if self.holding_item.item is None:
+        held = self.holding_item.item
+        if held is None:
             return
 
-        if self.inventory.items[index] is None:
-            self.inventory.items[index] = Item(self.holding_item.item.name, 1, self.holding_item.item.enchantments, self.holding_item.item.durability)
-            self.holding_item.item.number -= 1
-        elif self.inventory.items[index] is not None and self.inventory.items[index].name == self.holding_item.item.name and (self.inventory.items[index].number + 1 <= self.inventory.items[index].stackNum):
-            self.inventory.items[index].number += 1
-            self.holding_item.item.number -= 1
+        slot = self.inventory.items[index]
+        if slot is None:
+            self.inventory.items[index] = Item(held.name, 1, held.enchantments, held.durability)
+            held.number -= 1
+        elif slot.name == held.name and slot.number + 1 <= held.stackNum:
+            slot.number += 1
+            held.number -= 1
 
 
-    def render(self, surface: pygame.Surface, context: Context):
-        """
-            Render inventory widget to screen
-        """
-
+    def render(self, surface: pygame.Surface, context: Context) -> None:
         mouse = pygame.mouse.get_pos()
+        images: list[pygame.Surface] = []
+        numbers: list[str] = []
 
-        images = [None]*36
-        numbers = ['']*36
-
-        # Remove Values with 0
-        for i in range(len(self.inventory.items)):
-            if self.inventory.items[i] is not None:
-                if self.inventory.items[i].number == 0:
-                    self.inventory.items[i] = None
-
-        # Create images list and number list
+        # remove values with 0
         for i, item in enumerate(self.inventory.items):
-            if item is None:  # Set White Background for NONE Slots
-                images[i] = context.ITEM_IMAGES["none_img"]
-                numbers[i] = ''
-            else:
-                images[i] = context.ITEM_IMAGES[ITEM_IMAGE_MAPPING[item.name]]
-                numbers[i] = str(item.number)
+            if item is not None and item.number == 0:
+                self.inventory.items[i] = None
 
-        # Remove Value if Number is 1
-        for i in range(len(self.inventory.items)):
-            if self.inventory.items[i] is not None:
-                if self.inventory.items[i].number == 1:
-                    numbers[i] = ''
+        # populate images list and number list
+        for item in self.inventory.items:
+            images.append(self._surface_from(context, item))
+            numbers.append(self._quantity_from(item))
 
         # draw images
         for i, cell in enumerate(self.__inventory_slots):
             surface.blit(images[i], (cell.x, cell.y))
             pygame.draw.rect(surface, self.COLOUR, cell, self.WIDTH)
-            if self.inventory.items[i] is not None:
-                if self.inventory.items[i].enchantments is not None:
-                    surface.blit(context.TC_GLINTS[self.inventory.items[i].name], (cell.x, cell.y))
-                if self.inventory.items[i].durability is not None:
-                    render_durability_bar(surface, cell.x, cell.y, self.inventory.items[i].durability, self.inventory.items[i].max_durability)
+            if (item := self.inventory.items[i]) is not None:
+                if item.enchantments is not None:
+                    surface.blit(context.TC_GLINTS[item.name], (cell.x, cell.y))
+                if item.durability is not None and item.max_durability is not None:
+                    render_durability_bar(surface, cell.x, cell.y, item.durability, item.max_durability)
 
         # draw numbers
         for i, coordinate in enumerate(self.__number_coordinates):
@@ -171,7 +168,7 @@ class InventoryWidget(ItemContainerWidget):
             self.render_hovering_item(surface, mouse)
 
 
-    def render_hovering_item(self, display: pygame.Surface, mouse: tuple[int, int]):
+    def render_hovering_item(self, display: pygame.Surface, mouse: tuple[int, int]) -> None:
         """
             Render the item description for the item being hovered over (if not None)
         """
@@ -179,7 +176,7 @@ class InventoryWidget(ItemContainerWidget):
             return
         
         font = pygame.font.Font(str(ASSETS_DIR / "monofur/monof55.ttf"), 22)
-        render_info_box(display, self.inventory.items[index], mouse[0], mouse[1], font) 
+        render_info_box(display, self.inventory.items[index], mouse[0], mouse[1], font)
 
 
 class ArmourWidget(ItemContainerWidget):
@@ -188,6 +185,7 @@ class ArmourWidget(ItemContainerWidget):
     """
 
     CELL_SIZE = 82
+    ITEM_TYPE_MAPPING = {0: "Tier1", 1: "Tier2", 2: "Tier3", 3: "Shield"}
     
     def __init__(self, x: int, y: int, armour: Armour, holding_item: HoldingItem):
         self.x = x
@@ -200,13 +198,15 @@ class ArmourWidget(ItemContainerWidget):
             self.__cells.append(pygame.Rect((self.x + self.CELL_SIZE*i, self.y + 240), (self.CELL_SIZE, self.CELL_SIZE)))
 
 
-    def handle_event(self, event):
+    def handle_event(self, event: pygame.event.Event) -> bool:
         mouse = pygame.mouse.get_pos()
 
         if event.type == pygame.MOUSEBUTTONDOWN: #Mouse Button Down Clicking Event
             if pygame.mouse.get_pressed(3)[0]: #Left Click
                 self.__handle_left_click(mouse)
+                return True
 
+        return False
 
     def __get_hover_box(self, mouse: tuple[int, int]) -> Optional[int]:
         for i, rect in enumerate(self.__cells):
@@ -219,45 +219,24 @@ class ArmourWidget(ItemContainerWidget):
         if (index := self.__get_hover_box(mouse)) is None:
             return
 
-        if index == 0: #Tier 1
-            if self.holding_item.item is not None and self.armour.items[index] is None:
-                if self.holding_item.item.itemType == 'Tier1':
-                    self.holding_item.item, self.armour.items[index] = self.armour.items[index], self.holding_item.item
-            elif self.holding_item.item is None and self.armour.items[index] is not None:
-                self.holding_item.item, self.armour.items[index] = self.armour.items[index], self.holding_item.item
-            elif self.holding_item.item is not None and self.armour.items[index] is not None:
-                if self.holding_item.item.itemType == 'Tier1' and self.armour.items[index].itemType == 'Tier1':
-                    self.holding_item.item, self.armour.items[index] = self.armour.items[index], self.holding_item.item
+        if index not in (0, 1, 2, 3):
+            raise ValueError("Index for armour widget must be in (0, 1, 2, 3)")
 
-        elif index == 1: #Tier 2
-            if self.holding_item.item is not None and self.armour.items[index] is None:
-                if self.holding_item.item.itemType == 'Tier2':
-                    self.holding_item.item, self.armour.items[index] = self.armour.items[index], self.holding_item.item
-            elif self.holding_item.item is None and self.armour.items[index] is not None:
-                self.holding_item.item, self.armour.items[index] = self.armour.items[index], self.holding_item.item
-            elif self.holding_item.item is not None and self.armour.items[index] is not None:
-                if self.holding_item.item.itemType == 'Tier2' and self.armour.items[index].itemType == 'Tier2':
-                    self.holding_item.item, self.armour.items[index] = self.armour.items[index], self.holding_item.item
+        held = self.holding_item.item
+        slot = self.armour.items[index]
 
-        elif index == 2: #Tier 3
-            if self.holding_item.item is not None and self.armour.items[index] is None:
-                if self.holding_item.item.itemType == 'Tier3':
-                    self.holding_item.item, self.armour.items[index] = self.armour.items[index], self.holding_item.item
-            elif self.holding_item.item is None and self.armour.items[index] is not None:
-                self.holding_item.item, self.armour.items[index] = self.armour.items[index], self.holding_item.item
-            elif self.holding_item.item is not None and self.armour.items[index] is not None:
-                if self.holding_item.item.itemType == 'Tier3' and self.armour.items[index].itemType == 'Tier3':
-                    self.holding_item.item, self.armour.items[index] = self.armour.items[index], self.holding_item.item
+        # each slot has an expected item type that is only allowed there
+        expected_item_type = self.ITEM_TYPE_MAPPING[index]
 
-        elif index == 3: #Shield
-            if self.holding_item.item is not None and self.armour.items[index] is None:
-                if self.holding_item.item.itemType == 'Shield':
-                    self.holding_item.item, self.armour.items[index] = self.armour.items[index], self.holding_item.item
-            elif self.holding_item.item is None and self.armour.items[index] is not None:
-                self.holding_item.item, self.armour.items[index] = self.armour.items[index], self.holding_item.item
+        if (
+            (held is not None and slot is None and held.itemType == expected_item_type) or
+            (held is None and slot is not None) or
+            (held is not None and slot is not None and held.itemType == expected_item_type and slot.itemType == expected_item_type)
+        ):
+            self.holding_item.item, self.armour.items[index] = slot, held
 
 
-    def render(self, surface: pygame.Surface, context: Context):
+    def render(self, surface: pygame.Surface, context: Context) -> None:
         mouse = pygame.mouse.get_pos()
         is_holding = self.holding_item.item is not None
 

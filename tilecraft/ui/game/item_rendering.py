@@ -54,7 +54,7 @@ def decimal_to_roman(num: str | int) -> str:
     return roman_value
 
 
-def render_info_box(display: pygame.Surface, item: Item, x: int, y: int, font: pygame.font.Font) -> None:
+def render_info_box(display: pygame.Surface, item: Optional[Item], x: int, y: int, font: pygame.font.Font) -> None:
     """
         Info Box for Items (with and without enchantments)
     """
