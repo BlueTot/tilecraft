@@ -4,8 +4,7 @@ import pygame
 from tilecraft import ASSETS_DIR
 from tilecraft.constants import Coordinate, Context
 from tilecraft.ui.widget import Widget
-from tilecraft.inventory import Experience
-from tilecraft.player_info import Health, Hunger
+from tilecraft.player_info import Health, Hunger, Experience
 
 
 class ExperienceBarWidget(Widget):

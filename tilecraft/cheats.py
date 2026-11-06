@@ -1,5 +1,6 @@
 from .constants import ITEM_TYPES, Item
-from .inventory import Inventory, Experience
+from .inventory import Inventory
+from .player_info import Experience
 
 #Print Item List
 def print_cheats(screen, name: str):

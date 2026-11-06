@@ -3,9 +3,9 @@ from typing import Optional
 import pygame
 
 from tilecraft.ui.game.item_rendering import render_info_box, render_durability_bar
-from tilecraft.ui.widget import ItemContainerWidget 
+from tilecraft.ui.widget import ItemContainerWidget
 from tilecraft import ASSETS_DIR
-from tilecraft.constants import Coordinate, Item, Context, ITEM_IMAGE_MAPPING
+from tilecraft.constants import Coordinate, Item, Context 
 from tilecraft.inventory import Inventory, Armour, HoldingItem
 
 class InventoryWidget(ItemContainerWidget):
@@ -338,29 +338,40 @@ class HotbarWidget(ItemContainerWidget):
         self.__font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 24)
 
 
-    def handle_event(self, event):
+    def handle_event(self, event: pygame.event.Event) -> bool:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_1:
                 self.inventory.selected_hotbar = 0
+                return True
             if event.key == pygame.K_2:
                 self.inventory.selected_hotbar = 1
+                return True
             if event.key == pygame.K_3:
                 self.inventory.selected_hotbar = 2
+                return True
             if event.key == pygame.K_4:
                 self.inventory.selected_hotbar = 3
+                return True
             if event.key == pygame.K_5:
                 self.inventory.selected_hotbar = 4
+                return True
             if event.key == pygame.K_6:
                 self.inventory.selected_hotbar = 5
+                return True
             if event.key == pygame.K_7:
                 self.inventory.selected_hotbar = 6
+                return True
             if event.key == pygame.K_8:
                 self.inventory.selected_hotbar = 7
+                return True
             if event.key == pygame.K_9:
                 self.inventory.selected_hotbar = 8
+                return True
+
+        return False
 
 
-    def render(self, surface: pygame.Surface, context: Context):
+    def render(self, surface: pygame.Surface, context: Context) -> None:
         images: list[pygame.Surface] = []
         numbers: list[str] = []
 
@@ -402,29 +413,22 @@ class HoldingItemWidget(ItemContainerWidget):
         self.__font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 25)
 
 
-    def handle_event(self, event: pygame.event.Event) -> None:
-        pass
+    def handle_event(self, event: pygame.event.Event) -> bool:
+        return False
 
 
-    def render(self, surface: pygame.Surface, context: Context):
-
-        if self.holding_item.item is None:
-            image = context.ITEM_IMAGES["none_img"]
-            number = ''
-        else:
-            image = context.ITEM_IMAGES[ITEM_IMAGE_MAPPING[self.holding_item.item.name]]
-            number = str(self.holding_item.item.number)
-
-        if self.holding_item.item is not None:
-            if self.holding_item.item.number == 1:
-                number = ''
+    def render(self, surface: pygame.Surface, context: Context) -> None:
+        image = self._surface_from(context, self.holding_item.item)
+        number = self._quantity_from(self.holding_item.item)
 
         x, y = pygame.mouse.get_pos()
 
-        if self.holding_item.item is not None:
-            surface.blit(image, (x, y))
-            surface.blit(self.__font.render(number, False, (255, 255, 255)), (x + 52, y + 52))
-            if self.holding_item.item.enchantments is not None:
-                surface.blit(context.TC_GLINTS[self.holding_item.item.name], (x, y))
-            if self.holding_item.item.durability is not None:
-                render_durability_bar(surface, x, y, self.holding_item.item.durability, self.holding_item.item.max_durability)
+        if (item := self.holding_item.item) is None:
+            return
+
+        surface.blit(image, (x, y))
+        surface.blit(self.__font.render(number, False, (255, 255, 255)), (x + 52, y + 52))
+        if item.enchantments is not None:
+            surface.blit(context.TC_GLINTS[item.name], (x, y))
+        if item.durability is not None and item.max_durability is not None:
+            render_durability_bar(surface, x, y, item.durability, item.max_durability)
