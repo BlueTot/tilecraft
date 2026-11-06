@@ -3,12 +3,12 @@ import pygame
 
 from tilecraft import ASSETS_DIR
 from tilecraft.constants import Coordinate, Context, ITEM_IMAGE_MAPPING, Item, Button
-from tilecraft.ui.widget import Widget
+from tilecraft.ui.widget import ItemContainerWidget
 from tilecraft.ui.game.item_rendering import render_info_box, render_durability_bar
 from tilecraft.inventory import Inventory, FurnaceInterface, EnchantingTable, Compressor, Grindstone, HoldingItem
 
 
-class FurnaceWidget(Widget):
+class FurnaceWidget(ItemContainerWidget):
     """
         Widget for furnace smelting interface to be rendered in the inventory
     """
@@ -165,7 +165,7 @@ class FurnaceWidget(Widget):
         render_info_box(display, self.furnace.items[index], mouse[0], mouse[1], font) 
 
 
-class EnchantingTableWidget(Widget):
+class EnchantingTableWidget(ItemContainerWidget):
     """
         Widget for enchanting table interface to be rendered on the screen
     """
@@ -335,7 +335,7 @@ class EnchantingTableWidget(Widget):
         render_info_box(display, self.enchanting_table.items[index], mouse[0], mouse[1], font) 
 
 
-class CompressorWidget(Widget):
+class CompressorWidget(ItemContainerWidget):
     """
         Widget to show the compressing interface on the screen
     """
@@ -484,7 +484,7 @@ class CompressorWidget(Widget):
         render_info_box(display, self.compressor.items[index], mouse[0], mouse[1], font) 
 
 
-class GrindstoneWidget(Widget):
+class GrindstoneWidget(ItemContainerWidget):
     """
         Repairing and disenchanting interface to be rendered on the screen
     """

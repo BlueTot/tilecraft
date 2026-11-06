@@ -3,13 +3,13 @@ import pygame
 
 from tilecraft import ASSETS_DIR
 from tilecraft.constants import Coordinate, Context, ITEM_IMAGE_MAPPING, Item
-from tilecraft.ui.widget import Widget
+from tilecraft.ui.widget import ItemContainerWidget
 from tilecraft.ui.game.item_rendering import render_info_box, render_durability_bar
 from tilecraft.inventory import Inventory, HoldingItem
 from tilecraft.crafting import SmallCraftingGrid, LargeCraftingGrid
 
 
-class SmallCraftingWidget(Widget):
+class SmallCraftingWidget(ItemContainerWidget):
     """
         2x2 crafting grid widget in the player's inventory
     """
@@ -182,7 +182,7 @@ class SmallCraftingWidget(Widget):
         render_info_box(display, self.small_crafting_grid.items[index], mouse[0], mouse[1], font) 
 
 
-class CraftingTableWidget(Widget):
+class CraftingTableWidget(ItemContainerWidget):
     """
         3x3 crafting grid widget to be rendered on crafting table interface
     """

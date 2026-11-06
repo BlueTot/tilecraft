@@ -2,12 +2,12 @@ from typing import Optional
 import pygame
 
 from tilecraft.ui.game.item_rendering import render_info_box, render_durability_bar
-from tilecraft.ui.widget import Widget
+from tilecraft.ui.widget import ItemContainerWidget 
 from tilecraft import ASSETS_DIR
 from tilecraft.constants import Coordinate, Item, Context, ITEM_IMAGE_MAPPING
 from tilecraft.inventory import Inventory, Armour, HoldingItem
 
-class InventoryWidget(Widget):
+class InventoryWidget(ItemContainerWidget):
     """
         Reusable widget that renders the player's inventory slots
         Each cell is fixed to 82x82 pixels (for now)
@@ -182,7 +182,7 @@ class InventoryWidget(Widget):
         render_info_box(display, self.inventory.items[index], mouse[0], mouse[1], font) 
 
 
-class ArmourWidget(Widget):
+class ArmourWidget(ItemContainerWidget):
     """
         Widget to render the player's armour items and a small model of the player
     """
@@ -321,7 +321,7 @@ class ArmourWidget(Widget):
         render_info_box(display, self.armour.items[index], mouse[0], mouse[1], font) 
 
 
-class HotbarWidget(Widget):
+class HotbarWidget(ItemContainerWidget):
     """
         Hotbar to be rendered to the main game screen at the bottom
     """
@@ -363,28 +363,23 @@ class HotbarWidget(Widget):
 
 
     def render(self, surface: pygame.Surface, context: Context):
+        images: list[pygame.Surface] = []
+        numbers: list[str] = []
 
-        images = [None]*9
-        numbers = ['']*9
-        
         # populate images and numbers arrays
-        for i in range(9):
-            if self.inventory.items[i+27] is None: # Set White Background for NONE Slots
-                images[i] = context.INFOBAR_IMAGES["slot"]
-            else: # no enchantments
-                images[i] = context.ITEM_IMAGES[ITEM_IMAGE_MAPPING[self.inventory.items[i+27].name]]
-                if self.inventory.items[i+27].number != 1:
-                    numbers[i] = str(self.inventory.items[i+27].number)
+        for item in self.inventory.items[27:36]:
+            images.append(self._surface_from(context, item))
+            numbers.append(self._quantity_from(item))
 
         # draw images
         for i, coordinate in enumerate(self.__coordinates):
             surface.blit(context.INFOBAR_IMAGES["slot"], (coordinate.x, coordinate.y)) # background
             surface.blit(images[i], (coordinate.x, coordinate.y))
-            if self.inventory.items[i+27] is not None:
-                if self.inventory.items[i+27].enchantments is not None:
-                    surface.blit(context.TC_GLINTS[self.inventory.items[i+27].name], (coordinate.x, coordinate.y))
-                if self.inventory.items[i+27].durability is not None:
-                    render_durability_bar(surface, coordinate.x, coordinate.y, self.inventory.items[i+27].durability, self.inventory.items[i+27].max_durability)
+            if (item := self.inventory.items[i+27]) is not None:
+                if item.enchantments is not None:
+                    surface.blit(context.TC_GLINTS[item.name], (coordinate.x, coordinate.y))
+                if item.durability is not None and item.max_durability is not None:
+                    render_durability_bar(surface, coordinate.x, coordinate.y, item.durability, item.max_durability)
 
         # draw background rects based on selected hotbar value
         for i in range(9):
@@ -395,13 +390,11 @@ class HotbarWidget(Widget):
 
         # draw numbers
         for i in range(9):
-            surface = self.__font.render(numbers[i], True, (255, 0, 0), (255, 255, 255))
-            x = 60 + 82*i
-            y = 720
-            surface.blit(surface, (x, y))
+            text = self.__font.render(numbers[i], True, (255, 0, 0), (255, 255, 255))
+            surface.blit(text, (60 + 82*i, 720))
 
 
-class HoldingItemWidget(Widget):
+class HoldingItemWidget(ItemContainerWidget):
     """
         Widget to render the holding item on the inventory screens
     """
