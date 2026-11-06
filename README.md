@@ -52,7 +52,7 @@ uv run --locked mypy tilecraft
 
 ## Past Versions
 
-This repository tracks versioning starting from `v0.9.0a3` onwards, but archived past versions are also available. You can find the `v0.8.5` and `v0.9.0a2` releases in the **Releases** tab on GitHub.
+This repository tracks versioning starting from `v0.8.0`, with a few minor versions missed. You can find the archived releases in the **Releases** tab on GitHub.
 
 <figure>
   <img src="./assets/tilecraft-versions.png" alt="Past Versions">
