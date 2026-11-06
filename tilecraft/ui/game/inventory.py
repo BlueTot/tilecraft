@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Optional
 import pygame
 
@@ -179,6 +180,15 @@ class InventoryWidget(ItemContainerWidget):
         render_info_box(display, self.inventory.items[index], mouse[0], mouse[1], font)
 
 
+@dataclass
+class LayerListElement:
+    """
+        A layer of armour consists of a renderable colour and layer number
+    """
+    colour: tuple[int, int, int]
+    level: int
+
+
 class ArmourWidget(ItemContainerWidget):
     """
         Widget to render the player's armour items and a small model of the player
@@ -238,61 +248,70 @@ class ArmourWidget(ItemContainerWidget):
 
     def render(self, surface: pygame.Surface, context: Context) -> None:
         mouse = pygame.mouse.get_pos()
-        is_holding = self.holding_item.item is not None
+        images: list[pygame.Surface] = []
+        layer_list: list[Optional[LayerListElement]] = []
 
-        images = []
-        layer_list = []
-
-        # Create armour image list for armour slots
+        # populate armour image list for armour slots
         for item in self.armour.items:
-            if item is None:  # Set White Background for NONE Slots
-                images.append(context.ITEM_IMAGES["none_img"])
-            else:
-                images.append(context.ITEM_IMAGES[ITEM_IMAGE_MAPPING[item.name]])
+            images.append(self._surface_from(context, item))
 
+        # populate layer list
         for item in self.armour.items:
-            if item is not None:
-                if item.name == 'Tier 1 Iron Plate':
-                    layer_list.append([(200, 200, 200), 1])
-                elif item.name == 'Tier 2 Iron Plate':
-                    layer_list.append([(200, 200, 200), 2])
-                elif item.name == 'Tier 3 Iron Plate':
-                    layer_list.append([(200, 200, 200), 3])
-                elif item.name == 'Tier 1 Diamond Plate':
-                    layer_list.append([(75, 237, 219), 1])
-                elif item.name == 'Tier 2 Diamond Plate':
-                    layer_list.append([(75, 237, 219), 2])
-                elif item.name == 'Tier 3 Diamond Plate':
-                    layer_list.append([(75, 237, 219), 3])
-            else:
+            if item is None:
                 layer_list.append(None)
+                continue
+            match item.name:
+                case "Tier 1 Iron Plate":
+                    layer_list.append(LayerListElement((200, 200, 200), 1))
+                case "Tier 2 Iron Plate":
+                    layer_list.append(LayerListElement((200, 200, 200), 2))
+                case "Tier 3 Iron Plate":
+                    layer_list.append(LayerListElement((200, 200, 200), 3))
+                case "Tier 1 Diamond Plate":
+                    layer_list.append(LayerListElement((75, 237, 219), 1))
+                case "Tier 2 Diamond Plate":
+                    layer_list.append(LayerListElement((75, 237, 219), 2))
+                case "Tier 3 Diamond Plate":
+                    layer_list.append(LayerListElement((75, 237, 219), 3))
+                case "Shield":
+                    # Shield does not produce an armour layer
+                    pass
+                case _:
+                    raise ValueError("Invalid armour type encontered when constructing layer list")
 
+        # render items to the display
         for i, cell in enumerate(self.__cells):
             surface.blit(images[i], (cell.x, cell.y))
             pygame.draw.rect(surface, (83, 83, 83), cell, 2)
-            if self.armour.items[i] is not None:
-                if self.armour.items[i].enchantments is not None:
-                    surface.blit(context.TC_GLINTS[self.armour.items[i].name], (cell.x, cell.y))
-                if self.armour.items[i].durability is not None:
-                    render_durability_bar(surface, cell.x, cell.y, self.armour.items[i].durability, self.armour.items[i].max_durability)
+            if (item := self.armour.items[i]) is not None:
+                if item.enchantments is not None:
+                    surface.blit(context.TC_GLINTS[item.name], (cell.x, cell.y))
+                if item.durability is not None and item.max_durability is not None:
+                    render_durability_bar(surface, cell.x, cell.y, item.durability, item.max_durability)
 
         pygame.draw.rect(surface, (0, 0, 0), (self.x, self.y, 330, 240)) #Draw Black Background
         pygame.draw.rect(surface, (255, 0, 0), (self.x + 127, self.y + 82, 75, 75)) #Draw Player Icon
 
-        for item in layer_list: #Draw Armour Layers
-            if item is not None:
-                if item[1] == 1: #Tier 1
-                    pygame.draw.rect(surface, item[0], (self.x + 112, self.y + 67, 105, 105), 12)
-                elif item[1] == 2: #Tier 2
-                    pygame.draw.rect(surface, item[0], (self.x + 99, self.y + 54, 133, 133), 12)
-                elif item[1] == 3: #Tier 3
-                    pygame.draw.rect(surface, item[0], (self.x + 84, self.y + 39, 165, 165), 12)
+        # draw armour layers
+        for layer in layer_list:
+            if layer is None:
+                continue
+            match layer.level:
+                case 1:
+                    pygame.draw.rect(surface, layer.colour, (self.x + 112, self.y + 67, 105, 105), 12)
+                case 2:
+                    pygame.draw.rect(surface, layer.colour, (self.x + 99, self.y + 54, 133, 133), 12)
+                case 3:
+                    pygame.draw.rect(surface, layer.colour, (self.x + 84, self.y + 39, 165, 165), 12)
+                case _:
+                    raise ValueError("Layer of armour must be in (1, 2, 3)")
 
+        is_holding = self.holding_item.item is not None
         if not is_holding:
             self.render_hovering_item(surface, mouse)
 
 
-    def render_hovering_item(self, display: pygame.Surface, mouse: tuple[int, int]):
+    def render_hovering_item(self, display: pygame.Surface, mouse: tuple[int, int]) -> None:
         if (index := self.__get_hover_box(mouse)) is None:
             return
         
