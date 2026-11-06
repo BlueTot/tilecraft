@@ -44,7 +44,7 @@ class CraftingGrid(ABC):
                 break
                 
             if is_recipe_complete:
-                self.items[self.num_input_slots] = Item.clone(recipe.output)
+                self.items[self.num_input_slots] = Item.clone(recipe.output) if recipe.output is not None else None
                 return
 
         self.items[self.num_input_slots] = None

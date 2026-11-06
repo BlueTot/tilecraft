@@ -2,7 +2,7 @@ from typing import Optional
 import pygame
 
 from tilecraft import ASSETS_DIR
-from tilecraft.constants import Coordinate, Context, ITEM_IMAGE_MAPPING, Item
+from tilecraft.constants import Coordinate, Context, Item
 from tilecraft.ui.widget import ItemContainerWidget
 from tilecraft.ui.game.item_rendering import render_info_box, render_durability_bar
 from tilecraft.inventory import Inventory, HoldingItem
@@ -136,33 +136,22 @@ class SmallCraftingWidget(ItemContainerWidget):
 
     def render(self, surface: pygame.Surface, context: Context) -> None:
         mouse = pygame.mouse.get_pos()
-        is_holding = self.holding_item.item is not None
 
-        images = []
-        numbers = []
+        images: list[pygame.Surface] = []
+        numbers: list[str] = []
 
         for item in self.small_crafting_grid.items:
-            if item is None:  # Set White Background for NONE Slots
-                images.append(context.ITEM_IMAGES["none_img"])
-                numbers.append('')
-            else:
-                images.append(context.ITEM_IMAGES[ITEM_IMAGE_MAPPING[item.name]])
-                numbers.append(str(item.number))
-
-        # Remove Value if Number is 1
-        for j in range(len(self.small_crafting_grid.items)):
-            if self.small_crafting_grid.items[j] is not None:
-                if self.small_crafting_grid.items[j].number == 1:
-                    numbers[j] = ''
+            images.append(self._surface_from(context, item))
+            numbers.append(self._quantity_from(item))
 
         for i, cell in enumerate(self.__cells):
             surface.blit(images[i], (cell.x, cell.y))
             pygame.draw.rect(surface, (83, 83,83), cell, 2)
-            if self.small_crafting_grid.items[i] is not None:
-                if self.small_crafting_grid.items[i].enchantments is not None:
-                    surface.blit(context.TC_GLINTS[self.small_crafting_grid.items[i].name], (cell.x, cell.y))
-                if self.small_crafting_grid.items[i].durability is not None:
-                    render_durability_bar(surface, cell.x, cell.y, self.small_crafting_grid.items[i].durability, self.small_crafting_grid.items[i].max_durability)
+            if (item := self.small_crafting_grid.items[i]) is not None:
+                if item.enchantments is not None:
+                    surface.blit(context.TC_GLINTS[item.name], (cell.x, cell.y))
+                if item.durability is not None and item.max_durability is not None:
+                    render_durability_bar(surface, cell.x, cell.y, item.durability, item.max_durability)
 
         for i, coordinate in enumerate(self.__numbers):
             text = self.__font.render(numbers[i], False, (255, 255, 255))
@@ -170,11 +159,12 @@ class SmallCraftingWidget(ItemContainerWidget):
 
         surface.blit(self.__arrow_font.render('-->', False, (0, 0, 0)), (self.x + 172, self.y + 67))
 
+        is_holding = self.holding_item.item is not None
         if not is_holding:
             self.render_hovering_item(surface, mouse)
 
 
-    def render_hovering_item(self, display: pygame.Surface, mouse: tuple[int, int]):
+    def render_hovering_item(self, display: pygame.Surface, mouse: tuple[int, int]) -> None:
         if (index := self.__get_hover_box(mouse)) is None:
             return
         
@@ -206,23 +196,25 @@ class CraftingTableWidget(ItemContainerWidget):
                 self.__cells.append(pygame.Rect((self.x + j * self.CELL_SIZE, self.y + i * self.CELL_SIZE), (self.CELL_SIZE, self.CELL_SIZE)))
         self.__cells.append(pygame.Rect((self.x + 375, self.y + 82), (self.CELL_SIZE, self.CELL_SIZE)))
 
-        self.__numbers: list[Coordinate] = []
-
         # populate number rendering coordiantes
         self.__numbers: list[Coordinate] = []
         for cell in self.__cells:
             self.__numbers.append(Coordinate(cell.x + 52, cell.y + 52))
 
 
-    def handle_event(self, event: pygame.event.Event) -> None:
+    def handle_event(self, event: pygame.event.Event) -> bool:
         mouse = pygame.mouse.get_pos()
 
         if event.type == pygame.MOUSEBUTTONDOWN: #Mouse Button Down Clicking Event
             if pygame.mouse.get_pressed(3)[0]: #Left Click
                 self.__handle_left_click(mouse)
+                return True
 
             elif pygame.mouse.get_pressed(3)[2]: #Right Click
                 self.__handle_right_click(mouse)
+                return True
+
+        return False
 
 
     def __get_hover_box(self, mouse: tuple[int, int]) -> Optional[int]:
@@ -238,22 +230,28 @@ class CraftingTableWidget(ItemContainerWidget):
 
         # main crafting grid
         if index != 9:
-            if self.holding_item.item is not None and self.crafting_grid.items[index] is not None: #Items can be combined
-                if self.holding_item.item.name == self.crafting_grid.items[index].name and (self.crafting_grid.items[index].number + self.holding_item.item.number <= self.holding_item.item.stackNum):
-                    self.crafting_grid.items[index].number += self.holding_item.item.number
-                    self.holding_item.item = None
-                else:
-                    self.holding_item.item, self.crafting_grid.items[index] = self.crafting_grid.items[index], self.holding_item.item
+
+            held = self.holding_item.item
+            slot = self.crafting_grid.items[index]
+
+            if (
+                held is not None and
+                slot is not None and
+                held.name == slot.name and
+                slot.number + held.number <= held.stackNum
+            ):
+                slot.number += held.number
+                self.holding_item.item = None
             else:
-                self.holding_item.item, self.crafting_grid.items[index] = self.crafting_grid.items[index], self.holding_item.item
+                self.holding_item.item, self.crafting_grid.items[index] = slot, held
 
         # result cell
         else:
             if self.crafting_grid.items[9] is not None:
                 self.inventory.add(self.crafting_grid.items[9])
-                for i in range(9):
-                    if self.crafting_grid.items[i] is not None:
-                        self.crafting_grid.items[i].number -= 1
+                for item in self.crafting_grid.items[:self.crafting_grid.num_input_slots]:
+                    if item is not None:
+                        item.number -= 1
 
 
     def __handle_right_click(self, mouse: tuple[int, int]) -> None:
@@ -266,43 +264,35 @@ class CraftingTableWidget(ItemContainerWidget):
         if self.holding_item.item is None:
             return
 
-        if self.crafting_grid.items[index] is None:
-            self.crafting_grid.items[index] = Item(self.holding_item.item.name, 1, self.holding_item.item.enchantments, self.holding_item.item.durability)
-            self.holding_item.item.number -= 1
-        elif self.crafting_grid.items[index] is not None and self.crafting_grid.items[index].name == self.holding_item.item.name and (self.crafting_grid.items[index].number + 1 <= self.crafting_grid.items[index].stackNum):
-            self.crafting_grid.items[index].number += 1
-            self.holding_item.item.number -= 1
+        held = self.holding_item.item
+        slot = self.crafting_grid.items[index]
+
+        if slot is None:
+            self.crafting_grid.items[index] = Item(held.name, 1, held.enchantments, held.durability)
+            held.number -= 1
+        elif slot.name == held.name and slot.number + 1 <= slot.stackNum:
+            slot.number += 1
+            held.number -= 1
 
 
     def render(self, surface: pygame.Surface, context: Context) -> None:
         mouse = pygame.mouse.get_pos()
-        is_holding = self.holding_item.item is not None
 
-        images = []
-        numbers = []
+        images: list[pygame.Surface] = []
+        numbers: list[str] = []
 
         for item in self.crafting_grid.items:
-            if item is None:  # Set White Background for NONE Slots
-                images.append(context.ITEM_IMAGES["none_img"])
-                numbers.append('')
-            else:
-                images.append(context.ITEM_IMAGES[ITEM_IMAGE_MAPPING[item.name]])
-                numbers.append(str(item.number))
-
-        # Remove Value if Number is 1
-        for i in range(len(self.crafting_grid.items)):
-            if self.crafting_grid.items[i] is not None:
-                if self.crafting_grid.items[i].number == 1:
-                    numbers[i] = ''
+            images.append(self._surface_from(context, item))
+            numbers.append(self._quantity_from(item))
 
         for i, cell in enumerate(self.__cells):
             surface.blit(images[i], (cell.x, cell.y))
             pygame.draw.rect(surface, (83, 83, 83), cell, 2)
-            if self.crafting_grid.items[i] is not None:
-                if self.crafting_grid.items[i].enchantments is not None:
-                    surface.blit(context.TC_GLINTS[self.crafting_grid.items[i].name], (cell.x, cell.y))
-                if self.crafting_grid.items[i].durability is not None:
-                    render_durability_bar(surface, cell.x, cell.y, self.crafting_grid.items[i].durability, self.crafting_grid.items[i].max_durability)
+            if (item := self.crafting_grid.items[i]) is not None:
+                if item.enchantments is not None:
+                    surface.blit(context.TC_GLINTS[item.name], (cell.x, cell.y))
+                if item.durability is not None and item.max_durability is not None:
+                    render_durability_bar(surface, cell.x, cell.y, item.durability, item.max_durability)
 
         for i, coordinate in enumerate(self.__numbers):
             text = self.__font.render(numbers[i], False, (255, 255, 255))
@@ -310,11 +300,12 @@ class CraftingTableWidget(ItemContainerWidget):
 
         surface.blit(self.__arrow_font.render('-->', False, (0, 0, 0)), (self.x + 270, self.y + 105))
 
+        is_holding = self.holding_item.item is not None
         if not is_holding:
             self.render_hovering_item(surface, mouse)
 
 
-    def render_hovering_item(self, display: pygame.Surface, mouse: tuple[int, int]):
+    def render_hovering_item(self, display: pygame.Surface, mouse: tuple[int, int]) -> None:
         if (index := self.__get_hover_box(mouse)) is None:
             return
         
