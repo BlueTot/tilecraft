@@ -2,7 +2,7 @@ from typing import Optional
 import pygame
 
 from tilecraft import ASSETS_DIR
-from tilecraft.constants import Coordinate, Context, ITEM_IMAGE_MAPPING, Item, Button
+from tilecraft.constants import Coordinate, Context, Item, Button
 from tilecraft.ui.widget import ItemContainerWidget
 from tilecraft.ui.game.item_rendering import render_info_box, render_durability_bar
 from tilecraft.inventory import Inventory, FurnaceInterface, EnchantingTable, Compressor, Grindstone, HoldingItem
@@ -349,7 +349,7 @@ class CompressorWidget(ItemContainerWidget):
         self.inventory = inventory
         self.compressor = compressor
         self.holding_item = holding_item
-        self.fps = 0
+        self.fps = 0.0
 
         self.__font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftRegular-Bmg3.otf"), 25)
         self.__arrow_font = pygame.font.Font(str(ASSETS_DIR / "minecraft-font/MinecraftBold-nMK1.otf"), 45)
@@ -438,43 +438,31 @@ class CompressorWidget(ItemContainerWidget):
         self.fps = fps
 
 
-    def render(self, surface: pygame.Surface, context: Context):
-
+    def render(self, surface: pygame.Surface, context: Context) -> None:
         mouse = pygame.mouse.get_pos()
-        is_holding = self.holding_item.item is not None
+        images: list[pygame.Surface] = []
+        numbers: list[str] = []
 
-        images = []
-        numbers = []
+        # remove value if number is 0
+        for i, item in enumerate(self.compressor.items):
+            if item is not None and item.number == 0:
+                self.compressor.items[i] = None
 
-        # Remove Value if Number is 0
-        for i in range(len(self.compressor.items)):
-            if self.compressor.items[i] is not None:
-                if self.compressor.items[i].number == 0:
-                    self.compressor.items[i] = None
-
+        # populate image and number lists
         for item in self.compressor.items:
-            if item is None: #Set Background for NONE Slots
-                images.append(context.ITEM_IMAGES["none_img"])
-                numbers.append('')
-            else:
-                images.append(context.ITEM_IMAGES[ITEM_IMAGE_MAPPING[item.name]])
-                numbers.append(str(item.number))
+            images.append(self._surface_from(context, item))
+            numbers.append(self._quantity_from(item))
 
-        # Remove Value if Number is 1
-        for i in range(len(self.compressor.items)):
-            if self.compressor.items[i] is not None:
-                if self.compressor.items[i].number == 1:
-                    numbers[i] = ''
-
-        
+        # render cells to display
         for i, cell in enumerate(self.__cells):
             surface.blit(images[i], (cell.x, cell.y))
             pygame.draw.rect(surface, (83, 83, 83), cell, 2)
-            if self.compressor.items[i] is not None:
-                if self.compressor.items[i].enchantments is not None:
-                    surface.blit(context.TC_GLINTS[self.compressor.items[i].name], (cell.x, cell.y))
-                if self.compressor.items[i].durability is not None:
-                    render_durability_bar(surface, cell.x, cell.y, self.compressor.items[i].durability, self.compressor.items[i].max_durability)
+            if (item := self.compressor.items[i]) is None:
+                continue
+            if item.enchantments is not None:
+                surface.blit(context.TC_GLINTS[item.name], (cell.x, cell.y))
+            if item.durability is not None and item.max_durability is not None:
+                render_durability_bar(surface, cell.x, cell.y, item.durability, item.max_durability)
         
         for i, coordinate in enumerate(self.__numbers):
             text = self.__font.render(numbers[i], False, (255, 255, 255))
@@ -483,11 +471,12 @@ class CompressorWidget(ItemContainerWidget):
         surface.blit(self.__arrow_font.render('-->', False, (0, 0, 0)), (self.x + 112, self.y + 30))  # Render Arrow
         surface.blit(self.__side_font.render(f"{int(self.compressor.compressing_time / self.fps)}", False, (255, 0, 0)), (self.x + 135, self.y))  # Render Time to Compress
 
+        is_holding = self.holding_item.item is not None
         if not is_holding:
             self.render_hovering_item(surface, mouse)
 
 
-    def render_hovering_item(self, display: pygame.Surface, mouse: tuple[int, int]):
+    def render_hovering_item(self, display: pygame.Surface, mouse: tuple[int, int]) -> None:
         if (index := self.__get_hover_box(mouse)) is None:
             return
         
@@ -523,15 +512,19 @@ class GrindstoneWidget(ItemContainerWidget):
             self.__numbers.append(Coordinate(cell.x, cell.y))
 
 
-    def handle_event(self, event: pygame.event.Event) -> None:
+    def handle_event(self, event: pygame.event.Event) -> bool:
         mouse = pygame.mouse.get_pos()
 
         if event.type == pygame.MOUSEBUTTONDOWN: #Mouse Button Down Clicking Event
             if pygame.mouse.get_pressed(3)[0]: #Left Click
                 self.__handle_left_click(mouse)
+                return True
 
             elif pygame.mouse.get_pressed(3)[2]: #Right Click
                 self.__handle_right_click(mouse)
+                return True
+
+        return False
 
 
     def __get_hover_box(self, mouse: tuple[int, int]) -> Optional[int]:
@@ -547,22 +540,30 @@ class GrindstoneWidget(ItemContainerWidget):
 
         # input boxes
         if index != 2:
-            if self.holding_item.item is not None and self.grindstone.items[index] is not None:  # Items can be combined
-                if self.holding_item.item.name == self.grindstone.items[index].name and (self.grindstone.items[index].number + self.holding_item.item.number <= self.holding_item.item.stackNum):
-                    self.grindstone.items[index].number += self.holding_item.item.number
-                    self.holding_item.item = None
-                else:
-                    self.holding_item.item, self.grindstone.items[index] = self.grindstone.items[index], self.holding_item.item
+
+            held = self.holding_item.item
+            slot = self.grindstone.items[index]
+            if (
+                held is not None and
+                slot is not None and
+                held.name == slot.name and
+                slot.number + held.number <= held.stackNum
+            ):
+                slot.number += held.number
+                self.holding_item.item = None
             else:
-                self.holding_item.item, self.grindstone.items[index] = self.grindstone.items[index], self.holding_item.item
+                self.holding_item.item, self.grindstone.items[index] = slot, held
 
         # result index
         else:
             self.inventory.add(self.grindstone.items[2])
-            if self.grindstone.items[0] is not None and self.grindstone.items[1] is None:
-                if self.grindstone.items[0].enchantments is not None:
-                    self.grindstone.repair_and_disenchant()
-            self.grindstone.items[0], self.grindstone.items[1], self.grindstone.items[2] = None, None, None
+            if (
+                self.grindstone.items[0] is not None and
+                self.grindstone.items[1] is None and
+                self.grindstone.items[0].enchantments is not None
+            ):
+                self.grindstone.repair_and_disenchant()
+            self.grindstone.items = [None, None, None]
 
 
     def __handle_right_click(self, mouse: tuple[int, int]) -> None:
@@ -572,53 +573,44 @@ class GrindstoneWidget(ItemContainerWidget):
         if index == 2: # cannot right click on results box
             return
 
-        if self.holding_item.item is None:
+        held = self.holding_item.item
+        if held is None:
             return
 
-        if self.grindstone.items[index] is None:
-            self.grindstone.items[index] = Item(self.holding_item.item.name, 1, self.holding_item.item.enchantments, self.holding_item.item.durability)
-            self.holding_item.item.number -= 1
-        elif self.grindstone.items[index] is not None and self.grindstone.items[index].name == self.holding_item.item.name and (self.grindstone.items[index].number + 1 <= self.grindstone.items[index].stackNum):
-            self.grindstone.items[index].number += 1
-            self.holding_item.item.number -= 1
+        slot = self.grindstone.items[index]
+        if slot is None:
+            self.grindstone.items[index] = Item(held.name, 1, held.enchantments, held.durability)
+            held.number -= 1
+        elif slot.name == held.name and slot.number + 1 <= slot.stackNum:
+            slot.number += 1
+            held.number -= 1
 
 
-    def render(self, surface: pygame.Surface, context: Context):
-
+    def render(self, surface: pygame.Surface, context: Context) -> None:
         mouse = pygame.mouse.get_pos()
-        is_holding = self.holding_item.item is not None
+        images: list[pygame.Surface] = []
+        numbers: list[str] = []
 
-        images = []
-        numbers = []
+        # remove value if number is 0
+        for i, item in enumerate(self.grindstone.items):
+            if item is not None and item.number == 0:
+                self.grindstone.items[i] = None
 
-        # Remove Value if Number is 0
-        for i in range(len(self.grindstone.items)):
-            if self.grindstone.items[i] is not None:
-                if self.grindstone.items[i].number == 0:
-                    self.grindstone.items[i] = None
-
+        # populate images and numbers list
         for item in self.grindstone.items:
-            if item is None:  # Set Background for NONE Slots
-                images.append(context.ITEM_IMAGES["none_img"])
-                numbers.append('')
-            else:
-                images.append(context.ITEM_IMAGES[ITEM_IMAGE_MAPPING[item.name]])
-                numbers.append(str(item.number))
+            images.append(self._surface_from(context, item))
+            numbers.append(self._quantity_from(item))
 
-        # Remove Value if Number is 1
-        for i in range(len(self.grindstone.items)):
-            if self.grindstone.items[i] is not None:
-                if self.grindstone.items[i].number == 1:
-                    numbers[i] = ''
-
+        # render cells to display
         for i, cell in enumerate(self.__cells):
             surface.blit(images[i], (cell.x, cell.y))
             pygame.draw.rect(surface, (83, 83, 83), cell, 2)
-            if self.grindstone.items[i] is not None:
-                if self.grindstone.items[i].enchantments is not None:
-                    surface.blit(context.TC_GLINTS[self.grindstone.items[i].name], (cell.x, cell.y))
-                if self.grindstone.items[i].durability is not None:
-                    render_durability_bar(surface, cell.x, cell.y, self.grindstone.items[i].durability, self.grindstone.items[i].max_durability)
+            if (item := self.grindstone.items[i]) is None:
+                continue
+            if item.enchantments is not None:
+                surface.blit(context.TC_GLINTS[item.name], (cell.x, cell.y))
+            if item.durability is not None and item.max_durability is not None:
+                render_durability_bar(surface, cell.x, cell.y, item.durability, item.max_durability)
 
         for i, coordinate in enumerate(self.__numbers):
             text = self.__font.render(numbers[i], False, (255, 255, 255))
@@ -629,11 +621,12 @@ class GrindstoneWidget(ItemContainerWidget):
         pygame.draw.rect(surface, (0, 0, 0), (self.x + 92, self.y + 10, 30, 194), 2)
         surface.blit(self.__arrow_font.render('-->', False, (0, 0, 0)), (self.x + 142, self.y + 65))  # Render Arrow
 
+        is_holding = self.holding_item.item is not None
         if not is_holding:
             self.render_hovering_item(surface, mouse)
 
 
-    def render_hovering_item(self, display: pygame.Surface, mouse: tuple[int, int]):
+    def render_hovering_item(self, display: pygame.Surface, mouse: tuple[int, int]) -> None:
         if (index := self.__get_hover_box(mouse)) is None:
             return
         
