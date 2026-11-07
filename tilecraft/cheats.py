@@ -1,4 +1,4 @@
-from .constants import ITEM_TYPES, Item
+from .constants import ITEM_TYPES, Enchantment, Item
 from .inventory import Inventory
 from .player_info import Experience
 
@@ -50,8 +50,7 @@ def teleport(screen, internalX: int, internalY: int, coords):
     return internalX, internalY
 
 #/enchant command
-def enchant(screen, inventory: Inventory, enchantment):
-    # TODO: fix enchant command to use Enchantment class
+def enchant(screen, inventory: Inventory, enchantment: str):
     if inventory.hotbar_item is not None:
         enchantment = enchantment.replace(' ', '') #remove whitespaces
         if ',' in enchantment and enchantment[-1] != ',':
@@ -63,9 +62,9 @@ def enchant(screen, inventory: Inventory, enchantment):
                 if name == "protection" or name == "efficiency" or name == "unbreaking":
                     enchantments = inventory.hotbar_item.enchantments
                     if enchantments is not None:
-                        enchantments.append([name.capitalize(), lvl])
+                        enchantments.append(Enchantment(name.capitalize(), lvl))
                     else:
-                        enchantments = [[name.capitalize(), lvl]]
+                        enchantments = [Enchantment(name.capitalize(), lvl)]
                     return Item(inventory.hotbar_item.name, inventory.hotbar_item.number, enchantments, inventory.hotbar_item.durability)
             except ValueError:
                 screen.print("Invalid Input")

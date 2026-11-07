@@ -606,9 +606,9 @@ class Player:
         if self.inventory.hotbar_item is not None:
             if self.inventory.hotbar_item.durability is not None:
                 if self.inventory.hotbar_item.enchantments is not None:
-                    for i in self.inventory.hotbar_item.enchantments:
-                        if i[0] == "Unbreaking":
-                            if self.rng.next_random(1, i[1] + 1) == 1:
+                    for enchantment in self.inventory.hotbar_item.enchantments:
+                        if enchantment.name == "Unbreaking":
+                            if self.rng.next_random(1, enchantment.level + 1) == 1:
                                 self.inventory.hotbar_item.durability -= 1
                             break
                     else:
