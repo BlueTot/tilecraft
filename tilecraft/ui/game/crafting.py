@@ -94,7 +94,7 @@ class SmallCraftingWidget(ItemContainerWidget):
                 held is not None and
                 slot is not None and
                 held.name == slot.name and
-                slot.number + held.number <= held.stackNum
+                slot.number + held.number <= held.max_quantity
             ):
                 slot.number += held.number
                 self.holding_item.item = None
@@ -129,7 +129,7 @@ class SmallCraftingWidget(ItemContainerWidget):
         if slot is None:
             self.small_crafting_grid.items[index] = Item(held.name, 1, held.enchantments, held.durability)
             held.number -= 1
-        elif slot.name == held.name and slot.number + 1 <= slot.stackNum:
+        elif slot.name == held.name and slot.number + 1 <= slot.max_quantity:
             slot.number += 1
             held.number -= 1
 
@@ -238,7 +238,7 @@ class CraftingTableWidget(ItemContainerWidget):
                 held is not None and
                 slot is not None and
                 held.name == slot.name and
-                slot.number + held.number <= held.stackNum
+                slot.number + held.number <= held.max_quantity
             ):
                 slot.number += held.number
                 self.holding_item.item = None
@@ -270,7 +270,7 @@ class CraftingTableWidget(ItemContainerWidget):
         if slot is None:
             self.crafting_grid.items[index] = Item(held.name, 1, held.enchantments, held.durability)
             held.number -= 1
-        elif slot.name == held.name and slot.number + 1 <= slot.stackNum:
+        elif slot.name == held.name and slot.number + 1 <= slot.max_quantity:
             slot.number += 1
             held.number -= 1
 

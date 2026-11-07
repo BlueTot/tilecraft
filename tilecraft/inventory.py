@@ -70,9 +70,9 @@ class Inventory:
             if (
                 item_at is not None and 
                 item_at.name == item_to_add.name and # same name
-                item_at.number < item_at.stackNum # not full stack
+                item_at.number < item_at.max_quantity # not full stack
             ):
-                amount_remaining = min(item_at.stackNum - item_at.number, remaining) # do not over subtract
+                amount_remaining = min(item_at.max_quantity - item_at.number, remaining) # do not over subtract
                 item_at.number += amount_remaining
                 remaining -= amount_remaining
 
@@ -81,7 +81,7 @@ class Inventory:
 
             for index, item_at in enumerate(self.items):
                 if item_at is None:
-                    amount_to_add = min(remaining, item_to_add.stackNum)
+                    amount_to_add = min(remaining, item_to_add.max_quantity)
                     self.items[index] = Item(
                         name=item_to_add.name, 
                         number=amount_to_add,
@@ -314,8 +314,8 @@ class EnchantingTable:
             case _:
                 raise ValueError("Enchanting table level must be 0-5")
 
-        if self.items[0].itemType in self.DEFAULT_ENCHANTMENTS:
-            default_enchantment = self.DEFAULT_ENCHANTMENTS[self.items[0].itemType]
+        if self.items[0].item_type in self.DEFAULT_ENCHANTMENTS:
+            default_enchantment = self.DEFAULT_ENCHANTMENTS[self.items[0].item_type]
             self.__options = [
                 EnchantmentPair(
                     Enchantment.new_optional(default_enchantment, level1),

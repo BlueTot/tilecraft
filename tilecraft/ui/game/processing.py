@@ -76,7 +76,7 @@ class FurnaceWidget(ItemContainerWidget):
                 held is not None and
                 slot is not None and
                 held.name == slot.name and
-                slot.number + held.number <= held.stackNum
+                slot.number + held.number <= held.max_quantity
             ):
                 slot.number += held.number
                 self.holding_item.item = None
@@ -104,7 +104,7 @@ class FurnaceWidget(ItemContainerWidget):
         if slot is None:
             self.furnace.items[index] = Item(held.name, 1, held.enchantments, held.durability)
             held.number -= 1
-        elif slot is not None and slot.name == held.name and slot.number + 1 <= slot.stackNum:
+        elif slot is not None and slot.name == held.name and slot.number + 1 <= slot.max_quantity:
             slot.number += 1
             held.number -= 1
 
@@ -235,7 +235,7 @@ class EnchantingTableWidget(ItemContainerWidget):
                 held is not None and
                 slot is not None and
                 held.name == slot.name and
-                slot.number + held.number <= held.stackNum
+                slot.number + held.number <= held.max_quantity
             ):
                 slot.number += held.number
                 self.holding_item.item = None
@@ -277,7 +277,7 @@ class EnchantingTableWidget(ItemContainerWidget):
         if slot is None:
             self.enchanting_table.items[index] = Item(held.name, 1, held.enchantments, held.durability)
             held.number -= 1
-        elif slot is not None and slot.name == held.name and slot.number + 1 <= slot.stackNum:
+        elif slot is not None and slot.name == held.name and slot.number + 1 <= slot.max_quantity:
             slot.number += 1
             held.number -= 1
 
@@ -401,7 +401,7 @@ class CompressorWidget(ItemContainerWidget):
                 held is not None and 
                 slot is not None and 
                 held.name == slot.name and 
-                slot.number + held.number <= held.stackNum
+                slot.number + held.number <= held.max_quantity
             ):
                 slot.number += held.number
                 self.holding_item.item = None
@@ -429,7 +429,7 @@ class CompressorWidget(ItemContainerWidget):
         if slot is None:
             self.compressor.items[index] = Item(held.name, 1, held.enchantments, held.durability)
             held.number -= 1
-        elif slot is not None and slot.name == held.name and (slot.number + 1 <= slot.stackNum):
+        elif slot is not None and slot.name == held.name and (slot.number + 1 <= slot.max_quantity):
             slot.number += 1
             held.number -= 1
 
@@ -547,7 +547,7 @@ class GrindstoneWidget(ItemContainerWidget):
                 held is not None and
                 slot is not None and
                 held.name == slot.name and
-                slot.number + held.number <= held.stackNum
+                slot.number + held.number <= held.max_quantity
             ):
                 slot.number += held.number
                 self.holding_item.item = None
@@ -581,7 +581,7 @@ class GrindstoneWidget(ItemContainerWidget):
         if slot is None:
             self.grindstone.items[index] = Item(held.name, 1, held.enchantments, held.durability)
             held.number -= 1
-        elif slot.name == held.name and slot.number + 1 <= slot.stackNum:
+        elif slot.name == held.name and slot.number + 1 <= slot.max_quantity:
             slot.number += 1
             held.number -= 1
 

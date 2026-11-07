@@ -63,7 +63,7 @@ class GameScreen(GameRunningScreen):
                         self.game_state.screen.print("You are not holding a food item!")
                         return
 
-                    if self.game_state.player.inventory.hotbar_item.itemType != "Food":
+                    if self.game_state.player.inventory.hotbar_item.item_type != "Food":
                         self.game_state.screen.print("You are not holding a food item!")
                         return
 

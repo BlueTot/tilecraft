@@ -110,7 +110,7 @@ class InventoryWidget(ItemContainerWidget):
         held = self.holding_item.item
         slot = self.inventory.items[index]
 
-        if held is not None and slot is not None and held.name == slot.name and slot.number + held.number <= held.stackNum:
+        if held is not None and slot is not None and held.name == slot.name and slot.number + held.number <= held.max_quantity:
             slot.number += held.number
             self.holding_item.item = None
         else:
@@ -129,7 +129,7 @@ class InventoryWidget(ItemContainerWidget):
         if slot is None:
             self.inventory.items[index] = Item(held.name, 1, held.enchantments, held.durability)
             held.number -= 1
-        elif slot.name == held.name and slot.number + 1 <= held.stackNum:
+        elif slot.name == held.name and slot.number + 1 <= held.max_quantity:
             slot.number += 1
             held.number -= 1
 
@@ -239,9 +239,9 @@ class ArmourWidget(ItemContainerWidget):
         expected_item_type = self.ITEM_TYPE_MAPPING[index]
 
         if (
-            (held is not None and slot is None and held.itemType == expected_item_type) or
+            (held is not None and slot is None and held.item_type == expected_item_type) or
             (held is None and slot is not None) or
-            (held is not None and slot is not None and held.itemType == expected_item_type and slot.itemType == expected_item_type)
+            (held is not None and slot is not None and held.item_type == expected_item_type and slot.item_type == expected_item_type)
         ):
             self.holding_item.item, self.armour.items[index] = slot, held
 
