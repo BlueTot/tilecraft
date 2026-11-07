@@ -89,7 +89,7 @@ class HungerBarWidget(Widget):
         return False
 
 
-    def render(self, surface: pygame.Surface, context: Context):
+    def render(self, surface: pygame.Surface, context: Context) -> None:
         curr = self.hunger.value 
         for coordinate in self.__coordinates:
             if curr >= 2:
