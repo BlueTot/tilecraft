@@ -72,39 +72,49 @@ class ScrollableTextBox(Widget):
     def scroll_to_bottom(self) -> None:
         self.scroll_y = self.max_scroll
 
-    def handle_event(self, event: pygame.event.Event) -> None:
+    def handle_event(self, event: pygame.event.Event) -> bool:
         """Handle scrolling input while the mouse is over the box."""
 
         mouse_position = pygame.mouse.get_pos()
+        event_handled = False
 
         if event.type == pygame.MOUSEWHEEL:
             if self.rect.collidepoint(mouse_position):
                 distance = self.font.get_linesize() * self.scroll_lines
                 self.scroll_y -= event.y * distance
                 self._clamp_scroll()
+                event_handled = True
 
         elif event.type == pygame.KEYDOWN and self.hovered:
             line_height = self.font.get_linesize()
 
             if event.key == pygame.K_UP:
                 self.scroll_y -= line_height
+                event_handled = True
 
             elif event.key == pygame.K_DOWN:
                 self.scroll_y += line_height
+                event_handled = True
 
             elif event.key == pygame.K_PAGEUP:
                 self.scroll_y -= self.content_rect.height
+                event_handled = True
 
             elif event.key == pygame.K_PAGEDOWN:
                 self.scroll_y += self.content_rect.height
+                event_handled = True
 
             elif event.key == pygame.K_HOME:
                 self.scroll_to_top()
+                event_handled = True
 
             elif event.key == pygame.K_END:
                 self.scroll_to_bottom()
+                event_handled = True
 
             self._clamp_scroll()
+
+        return event_handled
 
     def update(self, fps: float) -> None:
         """Update hover state."""

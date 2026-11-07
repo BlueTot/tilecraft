@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from errno import EFAULT
 from typing import Optional
+
 
 from .constants import Enchantment, Item, RandomNumberGenerator
 from .player_info import Experience
@@ -13,7 +13,7 @@ class HoldingItem:
         Item that the user is holding in the inventory menus
         Can be an item or nothing.
     """
-    def __init__(self):
+    def __init__(self) -> None:
         self.item: Optional[Item] = None
 
 
@@ -22,19 +22,19 @@ class Inventory:
         Player's inventory consists of 36 slots, the last 9 slots belong to the hotbar
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.items: list[Optional[Item]] = [None]*36
         self.__selected_hotbar: int = 0
     
     @property
-    def selected_hotbar(self):
+    def selected_hotbar(self) -> int:
         """
             Gets the index of the selected hotbar from 0-8
         """ 
         return self.__selected_hotbar
 
     @selected_hotbar.setter
-    def selected_hotbar(self, index: int):
+    def selected_hotbar(self, index: int) -> None:
         """
             Sets the index of the selected hotbar, from 0-8
         """
@@ -70,9 +70,9 @@ class Inventory:
             if (
                 item_at is not None and 
                 item_at.name == item_to_add.name and # same name
-                item_at.number < item_at.stackNum # not full stack
+                item_at.number < item_at.max_quantity # not full stack
             ):
-                amount_remaining = min(item_at.stackNum - item_at.number, remaining) # do not over subtract
+                amount_remaining = min(item_at.max_quantity - item_at.number, remaining) # do not over subtract
                 item_at.number += amount_remaining
                 remaining -= amount_remaining
 
@@ -81,7 +81,7 @@ class Inventory:
 
             for index, item_at in enumerate(self.items):
                 if item_at is None:
-                    amount_to_add = min(remaining, item_to_add.stackNum)
+                    amount_to_add = min(remaining, item_to_add.max_quantity)
                     self.items[index] = Item(
                         name=item_to_add.name, 
                         number=amount_to_add,
@@ -106,7 +106,7 @@ class Armour:
         1) tier 1 plate, 2) tier 2 plate, 3) tier 3 plate, 4) shield
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.items: list[Optional[Item]] = [None]*4
 
 
@@ -115,14 +115,14 @@ class FurnaceInterface:
         Smelting interrface in the inventory screen
         Consists of a fuel slot, item slot, and result slot
     """
-    def __init__(self):
+    def __init__(self) -> None:
 
         self.items: list[Optional[Item]] = [None]*3
         self.fuel_val = 0
         self.smelting_time = 0
 
 
-    def smelt(self, fps: float, experience: Experience):
+    def smelt(self, fps: float, experience: Experience) -> None:
         """
             Progress smelting an item by one tick
         """
@@ -149,11 +149,13 @@ class FurnaceInterface:
             self.smelting_time += 1
         else:
             self.smelting_time = 0
+            return
 
         # Finish Smelting Item
         if self.smelting_time >= 5 * fps:
             self.smelting_time = 0
-            self.items[0] = Item(self.items[0].name, self.items[0].number - 1, self.items[0].enchantments, self.items[0].durability)
+            self.items[0] = Item.clone(self.items[0])
+            self.items[0].number -= 1
             self.fuel_val -= 1
             if self.items[2] is None:
                 self.items[2] = Item.new("Iron Ingot", 1)
@@ -248,7 +250,7 @@ class EnchantingTable:
 
 
     @staticmethod
-    def __option_string(enchantment: Optional[Enchantment]):
+    def __option_string(enchantment: Optional[Enchantment]) -> str:
         if enchantment is None or enchantment.level == 0:
             return ""
         return f"{enchantment.name} {enchantment.level}"
@@ -312,8 +314,8 @@ class EnchantingTable:
             case _:
                 raise ValueError("Enchanting table level must be 0-5")
 
-        if self.items[0].itemType in self.DEFAULT_ENCHANTMENTS:
-            default_enchantment = self.DEFAULT_ENCHANTMENTS[self.items[0].itemType]
+        if self.items[0].item_type in self.DEFAULT_ENCHANTMENTS:
+            default_enchantment = self.DEFAULT_ENCHANTMENTS[self.items[0].item_type]
             self.__options = [
                 EnchantmentPair(
                     Enchantment.new_optional(default_enchantment, level1),
@@ -394,12 +396,12 @@ class Compressor:
         CompressorRecipe(Item.new("Diamond", 2), Item.new("Diamond Plate", 1))
     ]
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.items: list[Optional[Item]] = [None, None]
         self.compressing_time = 0
 
 
-    def compress(self, fps: float):
+    def compress(self, fps: float) -> None:
         """
             Advances the compressing state by one frame
         """
@@ -421,6 +423,7 @@ class Compressor:
                 break
         else:
             self.compressing_time = 0
+            return
 
         # finish compressing item
         if self.compressing_time >= 5 * fps:
@@ -438,12 +441,12 @@ class Grindstone:
         Consists of two input slots and one output slot
     """
 
-    def __init__(self, experience: Experience):
+    def __init__(self, experience: Experience) -> None:
         self.experience = experience
         self.items: list[Optional[Item]] = [None, None, None]
 
 
-    def update(self):
+    def update(self) -> None:
         """
             Update the result slot's information
         """
@@ -455,8 +458,7 @@ class Grindstone:
 
         # disenchant main slot
         if self.items[1] is None and self.items[0].enchantments is not None:
-            self.items[2] = Item.clone(self.items[0])
-            self.items[2].enchantments = None
+            self.items[2] = Item.clone(self.items[0]).disenchant()
             return
 
         # repair and combine
@@ -464,21 +466,24 @@ class Grindstone:
             self.items[1] is not None and
             self.items[0].name == self.items[1].name and
             self.items[0].durability is not None and
-            self.items[1].durability is not None
+            self.items[1].durability is not None and 
+            self.items[0].max_durability is not None
         ):
             total_durability = min(self.items[0].max_durability, self.items[0].durability + self.items[1].durability)
-            self.items[2] = Item.clone(self.items[0])
-            self.items[2].enchantments = None
-            self.items[2].durability = total_durability
+            self.items[2] = Item.clone(self.items[0]).disenchant().set_durability(total_durability)
             return
 
         # otherwise, leave output empty
         self.items[2] = None
 
 
-    def repair_and_disenchant(self):
+    def repair_and_disenchant(self) -> None:
         """
             Add experience to player
         """
-        for enchantment in self.items[0].enchantments:
+
+        if self.items[0] is None:
+            raise ValueError("Cannot disenchant an empty slot")
+
+        for enchantment in (self.items[0].enchantments or []):
             self.experience.add_points(int(enchantment.level) * 8)

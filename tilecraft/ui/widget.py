@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
+from typing import Optional
 import pygame
 
-from tilecraft.constants import Context
+from tilecraft.constants import ITEM_IMAGE_MAPPING, Context, Item
 
 
 class Widget(ABC):
@@ -27,3 +28,26 @@ class Widget(ABC):
         """
             Render the widget
         """
+
+class ItemContainerWidget(Widget):
+    """
+        Base class for all inventory-related container widgets
+    """
+
+    @staticmethod
+    def _surface_from(context: Context, item: Optional[Item]) -> pygame.Surface:
+        """
+            Returns the renderable surface for a slot
+        """
+        if item is None:
+            return context.INFOBAR_IMAGES["slot"]
+        return context.ITEM_IMAGES[ITEM_IMAGE_MAPPING[item.name]]
+
+    @staticmethod
+    def _quantity_from(item: Optional[Item]) -> str:
+        """
+            Returns the renderable number for a slot
+        """
+        if item is None or item.number == 1:
+            return ""
+        return str(item.number)

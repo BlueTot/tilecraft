@@ -1,9 +1,9 @@
 import pygame
 
 from tilecraft import ASSETS_DIR
-from tilecraft.constants import SCREEN_WIDTH
+from tilecraft.constants import SCREEN_WIDTH, Context
 from tilecraft.interfaces.interface import Interface, GameRunningScreen, ScreenID
-from tilecraft.game_state import advancements_update
+from tilecraft.game_state import advancements_update, GameState
 from tilecraft.ui.game import (
     DebugWidget,
     ExperienceBarWidget,
@@ -18,7 +18,7 @@ class GameScreen(GameRunningScreen):
         Main game window
     """
 
-    def __init__(self, display, context, game_state):
+    def __init__(self, display: pygame.Surface, context: Context, game_state: GameState):
         super().__init__(display, context, game_state)
 
         self.health_bar_widget = HealthBarWidget(self.game_state.player.health)
@@ -63,7 +63,7 @@ class GameScreen(GameRunningScreen):
                         self.game_state.screen.print("You are not holding a food item!")
                         return
 
-                    if self.game_state.player.inventory.hotbar_item.itemType != "Food":
+                    if self.game_state.player.inventory.hotbar_item.item_type != "Food":
                         self.game_state.screen.print("You are not holding a food item!")
                         return
 
@@ -200,7 +200,7 @@ class DeathScreen(Interface):
         Screen shown when the player dies
     """
 
-    def __init__(self, display, context, game_state):
+    def __init__(self, display: pygame.Surface, context: Context, game_state: GameState):
         super().__init__(display, context, game_state)
 
         minute = int(self.game_state.play_time_seconds // 60)

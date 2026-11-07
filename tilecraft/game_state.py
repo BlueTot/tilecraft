@@ -2,12 +2,13 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
+from typing import Optional
 
 import pygame
 
 from tilecraft import ASSETS_DIR
 from .cheats import print_cheats, give, enchant, teleport, experience
-from .constants import ITEM_TYPES, Item, RandomNumberGenerator
+from .constants import ITEM_TYPES, Enchantment, Item, RandomNumberGenerator
 from .player import Player
 from .world import TilecraftWorld
 
@@ -23,7 +24,7 @@ class SpeedrunTimer:
         self.running = True 
         self.latest_time_string = ""
 
-    def render(self, display: pygame.Surface, play_time_seconds: float):
+    def render(self, display: pygame.Surface, play_time_seconds: float) -> None:
         """
             Render the speedrun timer to the display
             If not enabled, it will not render
@@ -61,22 +62,14 @@ class SpeedrunTimer:
 
 
 #Check for completed advancements
-def advancements_update(screen: Screen, timer: SpeedrunTimer, advancements, inventory_list, armour_list, dimension):
-    name_list = []
-    enchantments_list = []
-    for i in inventory_list: #Compile list of item names and enchantments
-        if i is not None:
-            name_list.append(i.name)
-            enchantments_list.append(i.enchantments)
-        else:
-            name_list.append(None)
-            enchantments_list.append(None)
-    armour_enchantment_list = []
-    for i in armour_list: #Compile list of enchantments for armour list
-        if i is not None:
-            armour_enchantment_list.append(i.enchantments)
-        else:
-            armour_enchantment_list.append(None)
+def advancements_update(screen: Screen, timer: SpeedrunTimer, advancements: list[str], inventory_list: list[Optional[Item]], armour_list: list[Optional[Item]], dimension: str) -> list[str]:
+    """
+        Update the advancements list
+    """
+
+    name_list = [item.name if item is not None else None for item in inventory_list]
+    enchantments_list = [item.enchantments if item is not None else None for item in inventory_list]
+    armour_enchantment_list = [item.enchantments if item is not None else None for item in armour_list]
 
     if "Stone Age" not in advancements and "Cobblestone" in name_list: #Get Cobblestone
         advancements.append("Stone Age")
@@ -108,29 +101,37 @@ def advancements_update(screen: Screen, timer: SpeedrunTimer, advancements, inve
     if "We Need to Go Deeper" not in advancements and dimension == 'Nether': #Go to the Nether
         screen.print("Advancement unlocked: We Need to Go Deeper")
         advancements.append("We Need to Go Deeper")
-    for i in enchantments_list:
-        if i is not None and "Enchanter" not in advancements: #Get an enchanted tool or armour piece
+
+    for enchantment in (enchantments_list + armour_enchantment_list):
+        if enchantment is not None and "Enchanter" not in advancements: #Get an enchanted tool or armour piece
             advancements.append("Enchanter")
             screen.print("Advancement unlocked: Enchanter")
             break
 
-    max_t1 = False
-    max_t2 = False
-    max_t3 = False
+    slot1, slot2, slot3 = armour_list[0], armour_list[1], armour_list[2]
+    max_t1 = (
+        slot1 is not None and
+        slot1.enchantments is not None and
+        slot1.name == "Tier 1 Diamond Plate" and
+        Enchantment("Protection", 5) in slot1.enchantments and
+        Enchantment("Unbreaking", 3) in slot1.enchantments
+    )
+    max_t2 = (
+        slot2 is not None and
+        slot2.enchantments is not None and
+        slot2.name == "Tier 2 Diamond Plate" and
+        Enchantment("Protection", 5) in slot2.enchantments and
+        Enchantment("Unbreaking", 3) in slot2.enchantments
+    )
+    max_t3 = (
+        slot3 is not None and
+        slot3.enchantments is not None and
+        slot3.name == "Tier 3 Diamond Plate" and
+        Enchantment("Protection", 5) in slot3.enchantments and
+        Enchantment("Unbreaking", 3) in slot3.enchantments
+    )
 
-    if armour_list[0] is not None:
-        if armour_list[0].enchantments is not None:
-            if armour_list[0].name == 'Tier 1 Diamond Plate' and armour_list[0].enchantments == [['Protection', 5], ['Unbreaking', 3]]:
-                max_t1 = True
-    if armour_list[1] is not None:
-        if armour_list[1].enchantments is not None:
-            if armour_list[1].name == 'Tier 2 Diamond Plate' and armour_list[1].enchantments == [['Protection', 5], ['Unbreaking', 3]]:
-                max_t2 = True
-    if armour_list[2] is not None:
-        if armour_list[2].enchantments is not None:
-            if armour_list[2].name == 'Tier 3 Diamond Plate' and armour_list[2].enchantments == [['Protection', 5], ['Unbreaking', 3]]:
-                max_t3 = True
-    if max_t1 and max_t2 and max_t3 and 'God Gear' not in advancements: #Get a full set of Protection V Unbreaking III Diamond Armour
+    if max_t1 and max_t2 and max_t3 and "God Gear" not in advancements: #Get a full set of Protection V Unbreaking III Diamond Armour
         advancements.append("God Gear")
         screen.print("Advancement unlocked: God Gear")
         timer.running = False
@@ -138,7 +139,10 @@ def advancements_update(screen: Screen, timer: SpeedrunTimer, advancements, inve
     return advancements
 
 
-def MusicPlayer(screen: Screen, timer: SpeedrunTimer, advancements):
+def check_music_player(screen: Screen, timer: SpeedrunTimer, advancements: list[str]) -> list[str]:
+    """
+        Update the music player advancement's status
+    """
     if "Music Player" not in advancements:  # Music Player: Play Pigstep
         advancements.append("Music Player")
         screen.print("Advancement unlocked: Music Player")
@@ -160,24 +164,24 @@ class Screen:
 
         self.game_state = game_state 
 
-    def scroll_up(self):
+    def scroll_up(self) -> None:
         if self.position < len(self.print_list) - 15:
             self.position += 1
 
-    def scroll_down(self):
+    def scroll_down(self) -> None:
         if self.position > 0:
             self.position -= 1
 
-    def start_typing(self, text):
+    def start_typing(self, text) -> None:
         self.input_line = 15
         self.isTyping = True
         self.foretext = text
         self.timer = 0
 
-    def type(self, char):
+    def type(self, char) -> None:
         self.typingText += char
 
-    def stop_typing(self):
+    def stop_typing(self) -> None:
         self.input_line = 0
         self.isTyping = False
         length = len(list(ITEM_TYPES.keys())) - 1
@@ -200,10 +204,10 @@ class Screen:
         self.typingText = ''
         self.position = 0
 
-    def delete(self):
+    def delete(self) -> None:
         self.typingText = self.typingText[0:-1]
 
-    def text_validate(self):
+    def text_validate(self) -> None:
         if len(self.typingText) != 0:
             if self.typingText[0] == '/':
                 self.typingText = self.typingText.replace(' ', '')  # REMOVE WHITESPACES
@@ -224,11 +228,11 @@ class Screen:
             else:
                 self.print(f"<Player> {self.typingText}")
 
-    def print(self, text):
+    def print(self, text: str) -> None:
         self.timer = 0
         self.print_list.append(text)
 
-    def render(self, display: pygame.Surface):
+    def render(self, display: pygame.Surface) -> None:
         if self.timer == 600:
             return
 
@@ -278,7 +282,7 @@ class GameState:
     debug_mode: bool
 
 
-def commands(number: int, val: str, game_state: GameState):
+def commands(number: int, val: str, game_state: GameState) -> None:
     """
         Legcay commands and cheat commands to play the game
         This is to be gradually deprecated in favour of new game mechanics
@@ -506,7 +510,7 @@ def commands(number: int, val: str, game_state: GameState):
                 pygame.mixer.music.load(str(ASSETS_DIR / "pigstep.mp3"))
                 pygame.mixer.music.set_volume(10)
                 pygame.mixer.music.play()
-                MusicPlayer(game_state.screen, game_state.timer, game_state.player.advancements) #Update Advancement and Speedrun Details
+                check_music_player(game_state.screen, game_state.timer, game_state.player.advancements) #Update Advancement and Speedrun Details
             else:
                 game_state.screen.print("Error: Not Enough Resources")
 
@@ -642,7 +646,7 @@ def commands(number: int, val: str, game_state: GameState):
             game_state.screen.print("Invalid Function")
 
 
-def try_set_empty_village(world: TilecraftWorld, actualX: int, actualY: int):
+def try_set_empty_village(world: TilecraftWorld, actualX: int, actualY: int) -> None:
     """
         Try to mark a villge structure as empty
         actualX, actualY are the coordinates of the village
@@ -670,7 +674,7 @@ def try_set_empty_village(world: TilecraftWorld, actualX: int, actualY: int):
         world.empty_vil_total.append([actualX, actualY])
 
 
-def try_set_empty_ruined_portal(world: TilecraftWorld, actualX: int, actualY: int):
+def try_set_empty_ruined_portal(world: TilecraftWorld, actualX: int, actualY: int) -> None:
     """
         Try to mark a ruined portal structure as empty
         actualX, actualY are the coordinates of the ruined portal

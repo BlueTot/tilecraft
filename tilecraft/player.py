@@ -24,8 +24,8 @@ class Player:
         self.image = pygame.Surface((32, 32))  # Create Player Image
         self.image.fill((255, 0, 0))  # Fill Player Red
         self.rect = pygame.Rect((359, 359), (32, 32))  # Create Player Rect
-        self.x = 0  # Set Starting X Coordinate
-        self.y = 0  # Set Starting Y Coordinate
+        self.x = 0.0  # Set Starting X Coordinate
+        self.y = 0.0  # Set Starting Y Coordinate
         self.actualX = 0
         self.actualY = 0
         self.dimension = "Overworld"
@@ -82,21 +82,21 @@ class Player:
             Returns true if okay, false otherwise
         """
 
+        if self.inventory.hotbar_item is None:
+            raise ValueError("Hotbar item must not be None when trying to eat")
+
         if self.hunger.value < 20:
 
             if self.inventory.hotbar_item.name == 'Bread':
-                index = self.inventory.items.index(self.inventory.hotbar_item)
-                self.inventory.items[index].number -= 1
+                self.inventory.hotbar_item.number -= 1
                 self.hunger.value += 5
 
             elif self.inventory.hotbar_item.name == 'Golden Carrot':
-                index = self.inventory.items.index(self.inventory.hotbar_item)
-                self.inventory.items[index].number -= 1
+                self.inventory.hotbar_item.number -= 1
                 self.hunger.value += 6
 
             elif self.inventory.hotbar_item.name == 'Golden Apple':
-                index = self.inventory.items.index(self.inventory.hotbar_item)
-                self.inventory.items[index].number -= 1
+                self.inventory.hotbar_item.number -= 1
                 self.hunger.value += 5
                 self.regenerate_start_time = 0
                 self.regenerate_val = True
@@ -107,7 +107,7 @@ class Player:
         return True
 
 
-    def hunger_mechanism(self):
+    def hunger_mechanism(self) -> None:
         """
             Hunger mechanism to decrease hunger as distance travelled increases
         """
@@ -116,7 +116,7 @@ class Player:
             self.hunger_subtracted += 1
 
 
-    def health_update(self, frame_count: int):
+    def health_update(self, frame_count: int) -> None:
         """
             Update Health and Regeneration
         """
@@ -136,7 +136,7 @@ class Player:
                 self.regenerate_val = False
 
 
-    def remove_items(self):
+    def remove_items(self) -> None:
         """
             Remove items that shouldn't be there
         """
@@ -160,7 +160,7 @@ class Player:
                     self.holding_item.item = None
 
 
-    def collide(self): #Collisions with tiles
+    def collide(self) -> bool: #Collisions with tiles
         self.canMove = True
         try:
             if self.dimension == "Overworld": #Overworld dimension
@@ -215,7 +215,7 @@ class Player:
         return self.canMove
 
     #Player Move Keybinds
-    def move(self):
+    def move(self) -> None:
         # Position calculation
         self.left = self.x * 32 - 359
         self.right = self.x * 32 + 391
@@ -372,47 +372,54 @@ class Player:
             self.world.generate_chunks(self.dimension)
 
 
-    def place_tile(self): #Place tiles
+    def place_tile(self) -> None:
+        """
+            Place a tile onto the world
+        """
+
+        if self.inventory.hotbar_item is None:
+            raise ValueError("Hotbar item must not be None when placing a tile")
+
         if self.isShifting: #is shifting = can edit background tiles
             if self.dimension == "Overworld": #Overworld background tiles
-                if self.inventory.hotbar_item.hasTile:
+                if self.inventory.hotbar_item.has_tile:
                     if self.world.UnderTiles[(self.target[0], self.target[1])].tile == "Air" or \
                             self.world.UnderTiles[(self.target[0], self.target[1])].tile == "Water" or \
                             self.world.UnderTiles[(self.target[0], self.target[1])].tile == "Lava": #Open space to place tile
-                        self.world.UnderTiles[(self.target[0], self.target[1])] = Tile(self.inventory.hotbar_item.targetTile, self.target[0], self.target[1]) #Place tile
+                        self.world.UnderTiles[(self.target[0], self.target[1])] = Tile(self.inventory.hotbar_item.target_tile, self.target[0], self.target[1]) #Place tile
                         self.inventory.hotbar_item.number -= 1 #Subtract 1 from item in hand
                         if self.inventory.hotbar_item.number == 0:
                             self.inventory.hotbar_item = None #Remove from inventory
             elif self.dimension == "Underground": #Underground background tiles
-                if self.inventory.hotbar_item.hasTile:
+                if self.inventory.hotbar_item.has_tile:
                     if self.world.UndergroundUnderTiles[(self.target[0], self.target[1])].tile == "Air" or \
                             self.world.UndergroundUnderTiles[(self.target[0], self.target[1])].tile == "Water" or \
                             self.world.UndergroundUnderTiles[(self.target[0], self.target[1])].tile == "Lava":  # Open space to place tile
-                        self.world.UndergroundUnderTiles[(self.target[0], self.target[1])] = Tile(self.inventory.hotbar_item.targetTile, self.target[0], self.target[1])  # Place tile
+                        self.world.UndergroundUnderTiles[(self.target[0], self.target[1])] = Tile(self.inventory.hotbar_item.target_tile, self.target[0], self.target[1])  # Place tile
                         self.inventory.hotbar_item.number -= 1  # Subtract 1 from item in hand
                         if self.inventory.hotbar_item.number == 0:
                             self.inventory.hotbar_item = None  # Remove from inventory
         else:
             if self.dimension == "Overworld": #Overworld Collision tiles
-                if self.inventory.hotbar_item.hasTile:
+                if self.inventory.hotbar_item.has_tile:
                     if self.world.Tiles[(self.target[0], self.target[1])].tile == "Air" or \
                             self.world.Tiles[(self.target[0], self.target[1])].tile == "Water" or \
                             self.world.Tiles[(self.target[0], self.target[1])].tile == "Lava":  # Open space to place tile
-                        self.world.Tiles[(self.target[0], self.target[1])] = Tile(self.inventory.hotbar_item.targetTile, self.target[0], self.target[1])  # Place tile
+                        self.world.Tiles[(self.target[0], self.target[1])] = Tile(self.inventory.hotbar_item.target_tile, self.target[0], self.target[1])  # Place tile
                         self.inventory.hotbar_item.number -= 1  # Subtract 1 from item in hand
                         if self.inventory.hotbar_item.number == 0:
                             self.inventory.hotbar_item = None  # Remove from inventory
             elif self.dimension == "Underground": #Underground Collision Tiles
-                if self.inventory.hotbar_item.hasTile:
+                if self.inventory.hotbar_item.has_tile:
                     if self.world.UndergroundTiles[(self.target[0], self.target[1])].tile == "Air" or \
                             self.world.UndergroundTiles[(self.target[0], self.target[1])].tile == "Water" or \
                             self.world.UndergroundTiles[(self.target[0], self.target[1])].tile == "Lava":  # Open space to place tile
-                        self.world.UndergroundTiles[(self.target[0], self.target[1])] = Tile(self.inventory.hotbar_item.targetTile, self.target[0], self.target[1])  # Place tile
+                        self.world.UndergroundTiles[(self.target[0], self.target[1])] = Tile(self.inventory.hotbar_item.target_tile, self.target[0], self.target[1])  # Place tile
                         self.inventory.hotbar_item.number -= 1  # Subtract 1 from item in hand
                         if self.inventory.hotbar_item.number == 0:
                             self.inventory.hotbar_item = None  # Remove from inventory
 
-    def breaking(self, fps: float): #Breaking process of tile
+    def breaking(self, fps: float) -> None: #Breaking process of tile
         if self.breaking_delay == 0:
             if self.isShifting: #can edit background tiles
                 if self.dimension == "Overworld": #Overworld background tiles
@@ -425,8 +432,8 @@ class Player:
                             try:
                                 CALLED = False
                                 if self.inventory.hotbar_item is not None:  # not holding any item
-                                    if self.inventory.hotbar_item.toolTier is not None:  # is holding item
-                                        if self.inventory.hotbar_item.itemType == tile.requireTool and self.inventory.hotbar_item.toolTier >= tile.requireToolTier:  # correct tool and tier
+                                    if self.inventory.hotbar_item.tool_tier is not None:  # is holding item
+                                        if self.inventory.hotbar_item.item_type == tile.requireTool and self.inventory.hotbar_item.tool_tier >= tile.requireToolTier:  # correct tool and tier
                                             if (1 + self.inventory.hotbar_item.mining_speed) / (tile.breaking_time * 30) >= 1:
                                                 self.breaking_time += 7
                                                 self.isInstantMining = True
@@ -434,7 +441,7 @@ class Player:
                                                 self.breaking_time += ((7 / fps) / (tile.breaking_time * 1.5)) * (1 + self.inventory.hotbar_item.mining_speed)
                                                 self.isInstantMining = False
                                             CALLED = True
-                                        elif self.inventory.hotbar_item.itemType == tile.requireTool and self.inventory.hotbar_item.toolTier < tile.requireToolTier:  # correct tool but incorrect tier
+                                        elif self.inventory.hotbar_item.item_type == tile.requireTool and self.inventory.hotbar_item.tool_tier < tile.requireToolTier:  # correct tool but incorrect tier
                                             self.breaking_time += ((7 / fps) / (tile.breaking_time * 5)) * (1 + self.inventory.hotbar_item.mining_speed)
                                             CALLED = True
                                             self.isInstantMining = False
@@ -457,8 +464,8 @@ class Player:
                             try:
                                 CALLED = False
                                 if self.inventory.hotbar_item is not None:  # not holding any item
-                                    if self.inventory.hotbar_item.toolTier is not None:  # is holding item
-                                        if self.inventory.hotbar_item.itemType == tile.requireTool and self.inventory.hotbar_item.toolTier >= tile.requireToolTier:  # correct tool and tier
+                                    if self.inventory.hotbar_item.tool_tier is not None:  # is holding item
+                                        if self.inventory.hotbar_item.item_type == tile.requireTool and self.inventory.hotbar_item.tool_tier >= tile.requireToolTier:  # correct tool and tier
                                             if (1 + self.inventory.hotbar_item.mining_speed) / (tile.breaking_time * fps * 1.5) >= 1 / (fps/20):
                                                 self.breaking_time += 7
                                                 self.isInstantMining = True
@@ -466,7 +473,7 @@ class Player:
                                                 self.breaking_time += ((7 / fps) / (tile.breaking_time * 1.5)) * (1 + self.inventory.hotbar_item.mining_speed)
                                                 self.isInstantMining = False
                                             CALLED = True
-                                        elif self.inventory.hotbar_item.itemType == tile.requireTool and self.inventory.hotbar_item.toolTier < tile.requireToolTier:  # correct tool but incorrect tier
+                                        elif self.inventory.hotbar_item.item_type == tile.requireTool and self.inventory.hotbar_item.tool_tier < tile.requireToolTier:  # correct tool but incorrect tier
                                             self.breaking_time += ((7 / fps) / (tile.breaking_time * 5)) * (1 + self.inventory.hotbar_item.mining_speed)
                                             CALLED = True
                                             self.isInstantMining = False
@@ -490,8 +497,8 @@ class Player:
                             try:
                                 CALLED = False
                                 if self.inventory.hotbar_item is not None:  # not holding any item
-                                    if self.inventory.hotbar_item.toolTier is not None:  # is holding item
-                                        if self.inventory.hotbar_item.itemType == tile.requireTool and self.inventory.hotbar_item.toolTier >= tile.requireToolTier:  # correct tool and tier
+                                    if self.inventory.hotbar_item.tool_tier is not None:  # is holding item
+                                        if self.inventory.hotbar_item.item_type == tile.requireTool and self.inventory.hotbar_item.tool_tier >= tile.requireToolTier:  # correct tool and tier
                                             if (1 + self.inventory.hotbar_item.mining_speed) / (tile.breaking_time * fps * 1.5) >= 1 / (fps/20):
                                                 self.breaking_time += 7
                                                 self.isInstantMining = True
@@ -499,7 +506,7 @@ class Player:
                                                 self.breaking_time += ((7 / fps) / (tile.breaking_time * 1.5)) * (1 + self.inventory.hotbar_item.mining_speed)
                                                 self.isInstantMining = False
                                             CALLED = True
-                                        elif self.inventory.hotbar_item.itemType == tile.requireTool and self.inventory.hotbar_item.toolTier < tile.requireToolTier:  # correct tool but incorrect tier
+                                        elif self.inventory.hotbar_item.item_type == tile.requireTool and self.inventory.hotbar_item.tool_tier < tile.requireToolTier:  # correct tool but incorrect tier
                                             self.breaking_time += ((7 / fps) / (tile.breaking_time * 5)) * (1 + self.inventory.hotbar_item.mining_speed)
                                             CALLED = True
                                             self.isInstantMining = False
@@ -522,8 +529,8 @@ class Player:
                             try:
                                 CALLED = False
                                 if self.inventory.hotbar_item is not None:  # not holding any item
-                                    if self.inventory.hotbar_item.toolTier is not None:  # is holding item
-                                        if self.inventory.hotbar_item.itemType == tile.requireTool and self.inventory.hotbar_item.toolTier >= tile.requireToolTier:  # correct tool and tier
+                                    if self.inventory.hotbar_item.tool_tier is not None:  # is holding item
+                                        if self.inventory.hotbar_item.item_type == tile.requireTool and self.inventory.hotbar_item.tool_tier >= tile.requireToolTier:  # correct tool and tier
                                             if (1 + self.inventory.hotbar_item.mining_speed) / (tile.breaking_time * fps * 1.5) >= 1 / (fps/20):
                                                 self.breaking_time += 7
                                                 self.isInstantMining = True
@@ -531,7 +538,7 @@ class Player:
                                                 self.breaking_time += ((7 / fps) / (tile.breaking_time * 1.5)) * (1 + self.inventory.hotbar_item.mining_speed)
                                                 self.isInstantMining = False
                                             CALLED = True
-                                        elif self.inventory.hotbar_item.itemType == tile.requireTool and self.inventory.hotbar_item.toolTier < tile.requireToolTier:  # correct tool but incorrect tier
+                                        elif self.inventory.hotbar_item.item_type == tile.requireTool and self.inventory.hotbar_item.tool_tier < tile.requireToolTier:  # correct tool but incorrect tier
                                             self.breaking_time += ((7 / fps) / (tile.breaking_time * 5)) * (1 + self.inventory.hotbar_item.mining_speed)
                                             CALLED = True
                                             self.isInstantMining = False
@@ -545,7 +552,7 @@ class Player:
                             except ZeroDivisionError:
                                 self.breaking_time += 7
 
-    def break_add_item(self, value, fps: float):
+    def break_add_item(self, value, fps: float) -> None:
         if not self.isInstantMining:
             self.breaking_delay = fps * 3/10
         if self.dimension == "Overworld":
@@ -599,9 +606,9 @@ class Player:
         if self.inventory.hotbar_item is not None:
             if self.inventory.hotbar_item.durability is not None:
                 if self.inventory.hotbar_item.enchantments is not None:
-                    for i in self.inventory.hotbar_item.enchantments:
-                        if i[0] == "Unbreaking":
-                            if self.rng.next_random(1, i[1] + 1) == 1:
+                    for enchantment in self.inventory.hotbar_item.enchantments:
+                        if enchantment.name == "Unbreaking":
+                            if self.rng.next_random(1, enchantment.level + 1) == 1:
                                 self.inventory.hotbar_item.durability -= 1
                             break
                     else:
@@ -609,12 +616,12 @@ class Player:
                 else:
                     self.inventory.hotbar_item.durability -= 1
 
-    def break_tile(self, value, fps: float):
+    def break_tile(self, value, fps: float) -> None:
         if self.isShifting:
             if self.dimension == "Overworld":
                 if self.inventory.hotbar_item is not None:
-                    if self.inventory.hotbar_item.itemType == value.requireTool:
-                        if self.inventory.hotbar_item.toolTier >= value.requireToolTier:
+                    if self.inventory.hotbar_item.item_type == value.requireTool:
+                        if self.inventory.hotbar_item.tool_tier >= value.requireToolTier:
                             if self.inventory.hotbar_item.name == value.tile:
                                 self.inventory.hotbar_item.number += 1
                             else:
@@ -629,8 +636,8 @@ class Player:
                 self.world.UnderTiles[(value.x, value.y)] = Tile("Air", self.target[0], self.target[1])
             elif self.dimension == "Underground":
                 if self.inventory.hotbar_item is not None:
-                    if self.inventory.hotbar_item.itemType == value.requireTool:
-                        if self.inventory.hotbar_item.toolTier >= value.requireToolTier:
+                    if self.inventory.hotbar_item.item_type == value.requireTool:
+                        if self.inventory.hotbar_item.tool_tier >= value.requireToolTier:
                             if self.inventory.hotbar_item.name == value.tile:
                                 self.inventory.hotbar_item.number += 1
                             else:
@@ -646,8 +653,8 @@ class Player:
         else:
             if self.dimension == "Overworld":
                 if self.inventory.hotbar_item is not None:
-                    if self.inventory.hotbar_item.itemType == value.requireTool:
-                        if self.inventory.hotbar_item.toolTier >= value.requireToolTier:
+                    if self.inventory.hotbar_item.item_type == value.requireTool:
+                        if self.inventory.hotbar_item.tool_tier >= value.requireToolTier:
                             if self.inventory.hotbar_item.name == value.tile:
                                 self.inventory.hotbar_item.number += 1
                             else:
@@ -662,8 +669,8 @@ class Player:
                 self.world.Tiles[(value.x, value.y)] = Tile("Air", self.target[0], self.target[1])
             elif self.dimension == "Underground":
                 if self.inventory.hotbar_item is not None:
-                    if self.inventory.hotbar_item.itemType == value.requireTool:
-                        if self.inventory.hotbar_item.toolTier >= value.requireToolTier:
+                    if self.inventory.hotbar_item.item_type == value.requireTool:
+                        if self.inventory.hotbar_item.tool_tier >= value.requireToolTier:
                             if self.inventory.hotbar_item.name == value.tile:
                                 self.inventory.hotbar_item.number += 1
                             else:
@@ -677,7 +684,14 @@ class Player:
                     self.break_add_item(value, fps)
                 self.world.UndergroundTiles[(value.x, value.y)] = Tile("Air", self.target[0], self.target[1])
 
-    def pick_up_liquid(self): #Picking up liquids with a bucket
+    def pick_up_liquid(self) -> None:
+        """
+            Picking up liquids with a bucket
+        """
+
+        if self.inventory.hotbar_item is None:
+            raise ValueError("Hotbar item must not be None when picking up a liquid")
+
         if self.dimension == "Overworld": #Overworld
             if self.isShifting: #Background tiles
                 if self.world.UnderTiles[(self.target[0], self.target[1])].tile == "Water": #Wate
@@ -717,7 +731,14 @@ class Player:
                     self.inventory.add(Item("Lava Bucket", 1, None, None))
                     self.world.UndergroundTiles[(self.target[0], self.target[1])] = Tile("Air", self.target[0], self.target[1])
 
-    def place_liquid(self):
+    def place_liquid(self) -> None:
+        """
+            Place liquid from a filled bucket
+        """
+
+        if self.inventory.hotbar_item is None:
+            raise ValueError("Hotbar item must not be None when placing a liquid")
+
         if self.dimension == "Overworld":
             if self.isShifting:
                 if self.inventory.hotbar_item.name == "Water Bucket":
@@ -757,7 +778,10 @@ class Player:
                     self.inventory.add(Item("Bucket", 1, None, None))
                     self.world.UndergroundTiles[(self.target[0], self.target[1])] = Tile("Lava", self.target[0], self.target[1])
 
-    def render(self, display: pygame.Surface):
+    def render(self, display: pygame.Surface) -> None:
+        """
+            Render the player onto the `display`
+        """
 
         if self.breaking_delay > 0:
             self.breaking_delay -= 1

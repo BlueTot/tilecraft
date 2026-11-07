@@ -20,20 +20,24 @@ class TextInput(Widget):
         self.cursor_visible = False
         self.last_cursor_toggle = pygame.time.get_ticks()
 
-    def handle_event(self, event: pygame.event.Event) -> None:
+    def handle_event(self, event: pygame.event.Event) -> bool:
+        event_handled = False
 
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             self.active = self.rect.collidepoint(event.pos)
             self.cursor_visible = self.active
             self.last_cursor_toggle = pygame.time.get_ticks()
+            event_handled = True
 
         elif event.type == pygame.KEYDOWN and self.active:
             if event.key == pygame.K_BACKSPACE:
                 self.text = self.text[:-1]
+                event_handled = True
 
             elif event.key in (pygame.K_RETURN, pygame.K_ESCAPE):
                 self.active = False
                 self.cursor_visible = False
+                event_handled = True
 
             elif (event.unicode.isprintable() and len(self.text) < self.max_length):
                 proposed_text = self.text + event.unicode
@@ -44,8 +48,12 @@ class TextInput(Widget):
                 if self.font.size(proposed_text)[0] <= available_width:
                     self.text = proposed_text
 
+                event_handled = True
+
             self.cursor_visible = True
             self.last_cursor_toggle = pygame.time.get_ticks()
+
+        return event_handled
 
     def update(self, fps: float) -> None:
         if not self.active:
