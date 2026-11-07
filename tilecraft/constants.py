@@ -338,8 +338,10 @@ class Item:
         return self
 
 
-    def set_durability(self, durability: Optional[int]) -> Item:
+    def set_durability(self, durability: int) -> Item:
         """ Sets the Item's durability """
+        if self.max_durability is None:
+            raise ValueError(f"Cannot set durability on {self.name}, which has no max durability")
         if durability > self.max_durability:
             raise ValueError(f"Cannot set {self}'s durability to be more than the maximum")
         self.durability = durability

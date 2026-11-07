@@ -21,6 +21,8 @@ def durability_colour(durability: int, max_durability: int) -> Optional[str]:
         return "#ff0000"
     elif 0 < percentage <= 5:
         return "#000000"
+    elif percentage <= 0:
+        return None
     
     raise ValueError("Something bad went wrong")
 
