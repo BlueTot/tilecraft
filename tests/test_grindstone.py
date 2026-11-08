@@ -24,10 +24,10 @@ def mock_experience():
 
 
 @pytest.mark.parametrize(("item", "experience_points"), [
-    (Item("Wooden Pickaxe", 1, [Enchantment("Efficiency", 5)], 0), 40),
-    (Item("Stone Pickaxe", 1, [Enchantment("Efficiency", 5)], 0), 40),
-    (Item("Iron Pickaxe", 1, [Enchantment("Efficiency", 5)], 0), 40),
-    (Item("Diamond Pickaxe", 1, [Enchantment("Efficiency", 5)], 0), 40),
+    (Item("Wooden Pickaxe", 1, [Enchantment("Efficiency", 5)], 1), 40),
+    (Item("Stone Pickaxe", 1, [Enchantment("Efficiency", 5)], 1), 40),
+    (Item("Iron Pickaxe", 1, [Enchantment("Efficiency", 5)], 1), 40),
+    (Item("Diamond Pickaxe", 1, [Enchantment("Efficiency", 5)], 1), 40),
 ])
 def test_grindstone_produces_right_output_and_levels(item: Item, experience_points: int):
     """
@@ -129,7 +129,7 @@ def test_grindstone_clears_previous_output_for_mismatched_tools():
     assert grindstone.items[2] is None
 
 
-@pytest.mark.parametrize("input_slot", [None, Item.new("Iron Pickaxe", 1).set_max_durability()])
+@pytest.mark.parametrize("input_slot", [None, Item.new("Iron Pickaxe", 1)])
 def test_grindstone_does_not_disenchant_invalid_input(input_slot: Optional[Item]):
     """
         Test that grindstone does not preview any output when input is invalid

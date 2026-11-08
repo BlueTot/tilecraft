@@ -44,7 +44,6 @@ def test_compressor_produces_correct_output_after_five_seconds(compressor: Compr
     """
         Test that the compressor produces correct output after one cycle
     """
-    ingredient.number += 2
     compressor.items[0] = Item.clone(ingredient)
 
     advance(compressor, 5 * fps - 1, fps)
@@ -54,7 +53,7 @@ def test_compressor_produces_correct_output_after_five_seconds(compressor: Compr
     compressor.compress(fps)
 
     assert Item.equals_optional(compressor.items[1], product)
-    assert compressor.items[0].number == ingredient.number - 2
+    assert compressor.items[0] is None
 
 
 @pytest.mark.parametrize("item", [None, Item.new("Dirt", 1), Item.new("Iron Ingot", 1)])

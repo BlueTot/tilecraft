@@ -578,7 +578,7 @@ def commands(number: int, val: str, game_state: GameState) -> None:
 
                     if flint_and_steel_bool and obsidian_bool:
                         if obsidian_num > 0:
-                            game_state.player.inventory.items[obsidian_index].number -= obsidian_num
+                            game_state.player.inventory.items[obsidian_index] = game_state.player.inventory.items[obsidian_index].adjust_number(-obsidian_num)
                             game_state.screen.print(f"-{obsidian_num} Obsidian")
                             game_state.screen.print("Ruined Portal has been completed")
                         else:

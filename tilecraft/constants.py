@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Optional
 import os
 import pygame
@@ -229,22 +229,31 @@ class Enchantment:
         return cls(enchantment.name, enchantment.level)
 
 
+@dataclass(frozen=True)
 class Item:
-    """
-        Item in the inventory
-    """
+    """ Item in the inventory """
+
+    name: str
+    number: int
+    enchantments: Optional[list[Enchantment]]
+    durability: Optional[int]
 
     VALID_TILES = {
         "Bookshelf", "Cobblestone", "Gravel", "Hay Bale", "Iron Ore", "Oak Log", 
         "Oak Planks", "Obsidian", "Mine Entrance", "Dirt", "Sand", "Snow"
     }
 
-    def __init__(self, name: str, number: int, enchantments: Optional[list[Enchantment]], durability: Optional[int]):
-        self.name: str = name
-        self.number: int = number
-        self.enchantments: Optional[list[Enchantment]] = enchantments
-        self.durability: Optional[int] = durability
+    def __post_init__(self) -> None:
+        if self.number <= 0:
+            raise ValueError("number must be positive")
+        if self.durability is not None and self.durability <= 0:
+            raise ValueError("durability must be positive")
+        if self.durability is not None and self.max_durability is not None and self.durability > self.max_durability:
+            raise ValueError(f"durability cannot exceed the maximum value of {self.max_durability}")
 
+    #########################################################
+    #                      GETTERS                          #
+    #########################################################
 
     @property
     def max_quantity(self) -> int:
@@ -308,16 +317,15 @@ class Item:
         return self.name if self.has_tile else None
 
 
+    #########################################################
+    #                    CONSTRUCTORS                       #
+    #########################################################
+
+
     @classmethod
     def new(cls, name: str, number: int) -> Item:
-        """ Return a new unenchanted item with no durability """
-        return cls(name, number, None, None)
-
-
-    @classmethod
-    def clone_with_enchantments(cls, item: Item, enchantments: Optional[list[Enchantment]]) -> Item:
-        """ Clones the item but sets its enchantments to be `enchantments` """
-        return cls(item.name, item.number, enchantments, item.durability)
+        """ Return a new unenchanted item set to the maximum durability """
+        return cls(name, number, None, ITEM_TYPES[name].max_durability)
 
 
     @classmethod
@@ -326,26 +334,65 @@ class Item:
         return cls(item.name, item.number, item.enchantments, item.durability)
 
 
-    def set_max_durability(self) -> Item:
-        """ Sets the item to have max durability """
-        self.durability = ITEM_TYPES[self.name].max_durability
-        return self
+    def with_number(self, number: int) -> Optional[Item]:
+        """
+            Returns a new instance of the item with the number field set to `number`
+            returns None if the resulting item has number = 0.
+        """
+        if number < 0:
+            raise ValueError("number cannot be negative")
+        if number == 0:
+            return None
+        return replace(self, number=number)
+
+
+    def adjust_number(self, delta: int) -> Optional[Item]:
+        """
+            Returns a new instance of the item, adding `delta` to the number field.
+            Returns None if the resulting item has number = 0.
+        """
+        return self.with_number(self.number + delta)
+
+
+    def with_enchantments(self, enchantments: Optional[list[Enchantment]]) -> Item:
+        """ Returns a new instance of the item with the enchantments field set to `enchantments` """
+        return replace(self, enchantments=enchantments)
+
+
+    def add_enchantment(self, enchantment: Enchantment) -> Item:
+        """ Returns a new instance of the item with an added enchantment """
+        return self.with_enchantments((self.enchantments or []) + [enchantment])
+
+
+    def with_durability(self, durability: int) -> Optional[Item]:
+        """
+            Returns a new instance of the item with the durability field set to `durability`
+            Returns None if the resulting item has durability = 0.
+        """
+        if self.durability is None or self.max_durability is None:
+            raise ValueError(f"Cannot set durability of item {self.name}")
+        if durability < 0:
+            raise ValueError("durability cannot be negative")
+        if durability > self.max_durability:
+            raise ValueError("durability cannot exceed the item's max durability")
+        if durability == 0:
+            return None
+        return replace(self, durability=durability)
+
+
+    def adjust_durability(self, delta: int) -> Optional[Item]:
+        """
+            Returns a new instance of the item, adding `delta` to the durability field
+            Returns None if the resulting item has durability = 0.
+        """
+        if self.durability is None or self.max_durability is None:
+            raise ValueError(f"Cannot set durability of item {self.name}")
+        return self.with_durability(self.durability + delta)
 
 
     def disenchant(self) -> Item:
-        """ Sets the Item's enchantments to None """
-        self.enchantments = None
-        return self
-
-
-    def set_durability(self, durability: int) -> Item:
-        """ Sets the Item's durability """
-        if self.max_durability is None:
-            raise ValueError(f"Cannot set durability on {self.name}, which has no max durability")
-        if durability > self.max_durability:
-            raise ValueError(f"Cannot set {self}'s durability to be more than the maximum")
-        self.durability = durability
-        return self
+        """ Returns a new instance of the item, with all enchantments removed """
+        return self.with_enchantments(None)
 
 
     @staticmethod

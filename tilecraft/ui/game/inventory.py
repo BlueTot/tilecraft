@@ -5,7 +5,7 @@ import pygame
 from tilecraft.ui.game.item_rendering import render_info_box, render_durability_bar
 from tilecraft.ui.widget import ItemContainerWidget
 from tilecraft import ASSETS_DIR
-from tilecraft.constants import Coordinate, Item, Context 
+from tilecraft.constants import Coordinate, Context 
 from tilecraft.inventory import Inventory, Armour, HoldingItem
 
 class InventoryWidget(ItemContainerWidget):
@@ -111,7 +111,7 @@ class InventoryWidget(ItemContainerWidget):
         slot = self.inventory.items[index]
 
         if held is not None and slot is not None and held.name == slot.name and slot.number + held.number <= held.max_quantity:
-            slot.number += held.number
+            self.inventory.items[index] = slot.adjust_number(held.number)
             self.holding_item.item = None
         else:
             self.holding_item.item, self.inventory.items[index] = slot, held
@@ -127,11 +127,11 @@ class InventoryWidget(ItemContainerWidget):
 
         slot = self.inventory.items[index]
         if slot is None:
-            self.inventory.items[index] = Item(held.name, 1, held.enchantments, held.durability)
-            held.number -= 1
+            self.inventory.items[index] = held.with_number(1)
+            self.holding_item.item = held.adjust_number(-1)
         elif slot.name == held.name and slot.number + 1 <= held.max_quantity:
-            slot.number += 1
-            held.number -= 1
+            self.inventory.items[index] = slot.adjust_number(1)
+            self.holding_item.item = held.adjust_number(-1)
 
 
     def render(self, surface: pygame.Surface, context: Context) -> None:

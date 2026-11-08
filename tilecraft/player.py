@@ -88,15 +88,15 @@ class Player:
         if self.hunger.value < 20:
 
             if self.inventory.hotbar_item.name == 'Bread':
-                self.inventory.hotbar_item.number -= 1
+                self.inventory.hotbar_item = self.inventory.hotbar_item.adjust_number(-1)
                 self.hunger.value += 5
 
             elif self.inventory.hotbar_item.name == 'Golden Carrot':
-                self.inventory.hotbar_item.number -= 1
+                self.inventory.hotbar_item = self.inventory.hotbar_item.adjust_number(-1)
                 self.hunger.value += 6
 
             elif self.inventory.hotbar_item.name == 'Golden Apple':
-                self.inventory.hotbar_item.number -= 1
+                self.inventory.hotbar_item = self.inventory.hotbar_item.adjust_number(-1)
                 self.hunger.value += 5
                 self.regenerate_start_time = 0
                 self.regenerate_val = True
@@ -387,18 +387,14 @@ class Player:
                             self.world.UnderTiles[(self.target[0], self.target[1])].tile == "Water" or \
                             self.world.UnderTiles[(self.target[0], self.target[1])].tile == "Lava": #Open space to place tile
                         self.world.UnderTiles[(self.target[0], self.target[1])] = Tile(self.inventory.hotbar_item.target_tile, self.target[0], self.target[1]) #Place tile
-                        self.inventory.hotbar_item.number -= 1 #Subtract 1 from item in hand
-                        if self.inventory.hotbar_item.number == 0:
-                            self.inventory.hotbar_item = None #Remove from inventory
+                        self.inventory.hotbar_item = self.inventory.hotbar_item.adjust_number(-1)
             elif self.dimension == "Underground": #Underground background tiles
                 if self.inventory.hotbar_item.has_tile:
                     if self.world.UndergroundUnderTiles[(self.target[0], self.target[1])].tile == "Air" or \
                             self.world.UndergroundUnderTiles[(self.target[0], self.target[1])].tile == "Water" or \
                             self.world.UndergroundUnderTiles[(self.target[0], self.target[1])].tile == "Lava":  # Open space to place tile
                         self.world.UndergroundUnderTiles[(self.target[0], self.target[1])] = Tile(self.inventory.hotbar_item.target_tile, self.target[0], self.target[1])  # Place tile
-                        self.inventory.hotbar_item.number -= 1  # Subtract 1 from item in hand
-                        if self.inventory.hotbar_item.number == 0:
-                            self.inventory.hotbar_item = None  # Remove from inventory
+                        self.inventory.hotbar_item = self.inventory.hotbar_item.adjust_number(-1)
         else:
             if self.dimension == "Overworld": #Overworld Collision tiles
                 if self.inventory.hotbar_item.has_tile:
@@ -406,18 +402,14 @@ class Player:
                             self.world.Tiles[(self.target[0], self.target[1])].tile == "Water" or \
                             self.world.Tiles[(self.target[0], self.target[1])].tile == "Lava":  # Open space to place tile
                         self.world.Tiles[(self.target[0], self.target[1])] = Tile(self.inventory.hotbar_item.target_tile, self.target[0], self.target[1])  # Place tile
-                        self.inventory.hotbar_item.number -= 1  # Subtract 1 from item in hand
-                        if self.inventory.hotbar_item.number == 0:
-                            self.inventory.hotbar_item = None  # Remove from inventory
+                        self.inventory.hotbar_item = self.inventory.hotbar_item.adjust_number(-1)
             elif self.dimension == "Underground": #Underground Collision Tiles
                 if self.inventory.hotbar_item.has_tile:
                     if self.world.UndergroundTiles[(self.target[0], self.target[1])].tile == "Air" or \
                             self.world.UndergroundTiles[(self.target[0], self.target[1])].tile == "Water" or \
                             self.world.UndergroundTiles[(self.target[0], self.target[1])].tile == "Lava":  # Open space to place tile
                         self.world.UndergroundTiles[(self.target[0], self.target[1])] = Tile(self.inventory.hotbar_item.target_tile, self.target[0], self.target[1])  # Place tile
-                        self.inventory.hotbar_item.number -= 1  # Subtract 1 from item in hand
-                        if self.inventory.hotbar_item.number == 0:
-                            self.inventory.hotbar_item = None  # Remove from inventory
+                        self.inventory.hotbar_item = self.inventory.hotbar_item.adjust_number(-1)
 
     def breaking(self, fps: float) -> None: #Breaking process of tile
         if self.breaking_delay == 0:
@@ -609,12 +601,12 @@ class Player:
                     for enchantment in self.inventory.hotbar_item.enchantments:
                         if enchantment.name == "Unbreaking":
                             if self.rng.next_random(1, enchantment.level + 1) == 1:
-                                self.inventory.hotbar_item.durability -= 1
+                                self.inventory.hotbar_item = self.inventory.hotbar_item.adjust_durability(-1)
                             break
                     else:
-                        self.inventory.hotbar_item.durability -= 1
+                        self.inventory.hotbar_item = self.inventory.hotbar_item.adjust_durability(-1)
                 else:
-                    self.inventory.hotbar_item.durability -= 1
+                    self.inventory.hotbar_item = self.inventory.hotbar_item.adjust_durability(-1)
 
     def break_tile(self, value, fps: float) -> None:
         if self.isShifting:
@@ -623,12 +615,12 @@ class Player:
                     if self.inventory.hotbar_item.item_type == value.requireTool:
                         if self.inventory.hotbar_item.tool_tier >= value.requireToolTier:
                             if self.inventory.hotbar_item.name == value.tile:
-                                self.inventory.hotbar_item.number += 1
+                                self.inventory.hotbar_item = self.inventory.hotbar_item.adjust_number(1)
                             else:
                                 self.break_add_item(value, fps)
                     elif value.requireToolTier == 0:
                         if self.inventory.hotbar_item.name == value.tile:
-                            self.inventory.hotbar_item.number += 1
+                            self.inventory.hotbar_item = self.inventory.hotbar_item.adjust_number(1)
                         else:
                             self.break_add_item(value, fps)
                 elif value.requireToolTier == 0:
@@ -639,12 +631,12 @@ class Player:
                     if self.inventory.hotbar_item.item_type == value.requireTool:
                         if self.inventory.hotbar_item.tool_tier >= value.requireToolTier:
                             if self.inventory.hotbar_item.name == value.tile:
-                                self.inventory.hotbar_item.number += 1
+                                self.inventory.hotbar_item = self.inventory.hotbar_item.adjust_number(1)
                             else:
                                 self.break_add_item(value, fps)
                     elif value.requireToolTier == 0:
                         if self.inventory.hotbar_item.name == value.tile:
-                            self.inventory.hotbar_item.number += 1
+                            self.inventory.hotbar_item = self.inventory.hotbar_item.adjust_number(1)
                         else:
                             self.break_add_item(value, fps)
                 elif value.requireToolTier == 0:
@@ -656,12 +648,12 @@ class Player:
                     if self.inventory.hotbar_item.item_type == value.requireTool:
                         if self.inventory.hotbar_item.tool_tier >= value.requireToolTier:
                             if self.inventory.hotbar_item.name == value.tile:
-                                self.inventory.hotbar_item.number += 1
+                                self.inventory.hotbar_item = self.inventory.hotbar_item.adjust_number(1)
                             else:
                                 self.break_add_item(value, fps)
                     elif value.requireToolTier == 0:
                         if self.inventory.hotbar_item.name == value.tile:
-                            self.inventory.hotbar_item.number += 1
+                            self.inventory.hotbar_item = self.inventory.hotbar_item.adjust_number(1)
                         else:
                             self.break_add_item(value, fps)
                 elif value.requireToolTier == 0:
@@ -672,12 +664,12 @@ class Player:
                     if self.inventory.hotbar_item.item_type == value.requireTool:
                         if self.inventory.hotbar_item.tool_tier >= value.requireToolTier:
                             if self.inventory.hotbar_item.name == value.tile:
-                                self.inventory.hotbar_item.number += 1
+                                self.inventory.hotbar_item = self.inventory.hotbar_item.adjust_number(1)
                             else:
                                 self.break_add_item(value, fps)
                     elif value.requireToolTier == 0:
                         if self.inventory.hotbar_item.name == value.tile:
-                            self.inventory.hotbar_item.number += 1
+                            self.inventory.hotbar_item = self.inventory.hotbar_item.adjust_number(1)
                         else:
                             self.break_add_item(value, fps)
                 elif value.requireToolTier == 0:
@@ -695,39 +687,39 @@ class Player:
         if self.dimension == "Overworld": #Overworld
             if self.isShifting: #Background tiles
                 if self.world.UnderTiles[(self.target[0], self.target[1])].tile == "Water": #Wate
-                    self.inventory.hotbar_item.number -= 1
+                    self.inventory.hotbar_item = self.inventory.hotbar_item.adjust_number(-1)
                     self.inventory.add(Item("Water Bucket", 1, None, None))
                     self.world.UnderTiles[(self.target[0], self.target[1])] = Tile("Air", self.target[0], self.target[1])
                 elif self.world.UnderTiles[(self.target[0], self.target[1])].tile == "Lava": #Lava
-                    self.inventory.hotbar_item.number -= 1
+                    self.inventory.hotbar_item = self.inventory.hotbar_item.adjust_number(-1)
                     self.inventory.add(Item("Lava Bucket", 1, None, None))
                     self.world.UnderTiles[(self.target[0], self.target[1])] = Tile("Air", self.target[0], self.target[1])
             else: #Collision tiles
                 if self.world.Tiles[(self.target[0], self.target[1])].tile == "Water": #Water
-                    self.inventory.hotbar_item.number -= 1
+                    self.inventory.hotbar_item = self.inventory.hotbar_item.adjust_number(-1)
                     self.inventory.add(Item("Water Bucket", 1, None, None))
                     self.world.Tiles[(self.target[0], self.target[1])] = Tile("Air", self.target[0], self.target[1],)
                 elif self.world.Tiles[(self.target[0], self.target[1])].tile == "Lava": #Lava
-                    self.inventory.hotbar_item.number -= 1
+                    self.inventory.hotbar_item = self.inventory.hotbar_item.adjust_number(-1)
                     self.inventory.add(Item("Lava Bucket", 1, None, None))
                     self.world.Tiles[(self.target[0], self.target[1])] = Tile("Air", self.target[0], self.target[1])
         elif self.dimension == "Underground": #Underground
             if self.isShifting: #Background Tiles
                 if self.world.UndergroundUnderTiles[(self.target[0], self.target[1])].tile == "Water": #Water
-                    self.inventory.hotbar_item.number -= 1
+                    self.inventory.hotbar_item = self.inventory.hotbar_item.adjust_number(-1)
                     self.inventory.add(Item("Water Bucket", 1, None, None))
                     self.world.UndergroundUnderTiles[(self.target[0], self.target[1])] = Tile("Air", self.target[0], self.target[1])
                 elif self.world.UndergroundUnderTiles[(self.target[0], self.target[1])].tile == "Lava": #Lava
-                    self.inventory.hotbar_item.number -= 1
+                    self.inventory.hotbar_item = self.inventory.hotbar_item.adjust_number(-1)
                     self.inventory.add(Item("Lava Bucket", 1, None, None))
                     self.world.UndergroundUnderTiles[(self.target[0], self.target[1])] = Tile("Air", self.target[0], self.target[1])
             else: #Collision Tiles
                 if self.world.UndergroundTiles[(self.target[0], self.target[1])].tile == "Water": #Water
-                    self.inventory.hotbar_item.number -= 1
+                    self.inventory.hotbar_item = self.inventory.hotbar_item.adjust_number(-1)
                     self.inventory.add(Item("Water Bucket", 1, None, None))
                     self.world.UndergroundTiles[(self.target[0], self.target[1])] = Tile("Air", self.target[0], self.target[1])
                 elif self.world.UndergroundTiles[(self.target[0], self.target[1])].tile == "Lava": #Lava
-                    self.inventory.hotbar_item.number -= 1
+                    self.inventory.hotbar_item = self.inventory.hotbar_item.adjust_number(-1)
                     self.inventory.add(Item("Lava Bucket", 1, None, None))
                     self.world.UndergroundTiles[(self.target[0], self.target[1])] = Tile("Air", self.target[0], self.target[1])
 
@@ -742,39 +734,39 @@ class Player:
         if self.dimension == "Overworld":
             if self.isShifting:
                 if self.inventory.hotbar_item.name == "Water Bucket":
-                    self.inventory.hotbar_item.number -= 1
+                    self.inventory.hotbar_item = self.inventory.hotbar_item.adjust_number(-1)
                     self.inventory.add(Item("Bucket", 1, None, None))
                     self.world.UnderTiles[(self.target[0], self.target[1])] = Tile("Water", self.target[0], self.target[1])
                 elif self.inventory.hotbar_item.name == "Lava Bucket":
-                    self.inventory.hotbar_item.number -= 1
+                    self.inventory.hotbar_item = self.inventory.hotbar_item.adjust_number(-1)
                     self.inventory.add(Item("Bucket", 1, None, None))
                     self.world.UnderTiles[(self.target[0], self.target[1])] = Tile("Lava", self.target[0], self.target[1])
             else:
                 if self.inventory.hotbar_item.name == "Water Bucket":
-                    self.inventory.hotbar_item.number -= 1
+                    self.inventory.hotbar_item = self.inventory.hotbar_item.adjust_number(-1)
                     self.inventory.add(Item("Bucket", 1, None, None))
                     self.world.Tiles[(self.target[0], self.target[1])] = Tile("Water", self.target[0], self.target[1])
                 elif self.inventory.hotbar_item.name == "Lava Bucket":
-                    self.inventory.hotbar_item.number -= 1
+                    self.inventory.hotbar_item = self.inventory.hotbar_item.adjust_number(-1)
                     self.inventory.add(Item("Bucket", 1, None, None))
                     self.world.Tiles[(self.target[0], self.target[1])] = Tile("Lava", self.target[0], self.target[1])
         elif self.dimension == "Underground":
             if self.isShifting:
                 if self.inventory.hotbar_item.name == "Water Bucket":
-                    self.inventory.hotbar_item.number -= 1
+                    self.inventory.hotbar_item = self.inventory.hotbar_item.adjust_number(-1)
                     self.inventory.add(Item("Bucket", 1, None, None))
                     self.world.UndergroundUnderTiles[(self.target[0], self.target[1])] = Tile("Water", self.target[0], self.target[1])
                 elif self.inventory.hotbar_item.name == "Lava Bucket":
-                    self.inventory.hotbar_item.number -= 1
+                    self.inventory.hotbar_item = self.inventory.hotbar_item.adjust_number(-1)
                     self.inventory.add(Item("Bucket", 1, None, None))
                     self.world.UndergroundUnderTiles[(self.target[0], self.target[1])] = Tile("Lava", self.target[0], self.target[1])
             else:
                 if self.inventory.hotbar_item.name == "Water Bucket":
-                    self.inventory.hotbar_item.number -= 1
+                    self.inventory.hotbar_item = self.inventory.hotbar_item.adjust_number(-1)
                     self.inventory.add(Item("Bucket", 1, None, None))
                     self.world.UndergroundTiles[(self.target[0], self.target[1])] = Tile("Water", self.target[0], self.target[1])
                 elif self.inventory.hotbar_item.name == "Lava Bucket":
-                    self.inventory.hotbar_item.number -= 1
+                    self.inventory.hotbar_item = self.inventory.hotbar_item.adjust_number(-1)
                     self.inventory.add(Item("Bucket", 1, None, None))
                     self.world.UndergroundTiles[(self.target[0], self.target[1])] = Tile("Lava", self.target[0], self.target[1])
 

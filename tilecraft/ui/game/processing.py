@@ -2,7 +2,7 @@ from typing import Optional
 import pygame
 
 from tilecraft import ASSETS_DIR
-from tilecraft.constants import Coordinate, Context, Item, Button
+from tilecraft.constants import Coordinate, Context, Button
 from tilecraft.ui.widget import ItemContainerWidget
 from tilecraft.ui.game.item_rendering import render_info_box, render_durability_bar
 from tilecraft.inventory import Inventory, FurnaceInterface, EnchantingTable, Compressor, Grindstone, HoldingItem
@@ -78,7 +78,7 @@ class FurnaceWidget(ItemContainerWidget):
                 held.name == slot.name and
                 slot.number + held.number <= held.max_quantity
             ):
-                slot.number += held.number
+                self.furnace.items[index] = slot.adjust_number(held.number)
                 self.holding_item.item = None
             else:
                 self.holding_item.item, self.furnace.items[index] = slot, held
@@ -102,11 +102,11 @@ class FurnaceWidget(ItemContainerWidget):
 
         slot = self.furnace.items[index]
         if slot is None:
-            self.furnace.items[index] = Item(held.name, 1, held.enchantments, held.durability)
-            held.number -= 1
+            self.furnace.items[index] = held.with_number(1)
+            self.holding_item.item = held.adjust_number(-1)
         elif slot is not None and slot.name == held.name and slot.number + 1 <= slot.max_quantity:
-            slot.number += 1
-            held.number -= 1
+            self.furnace.items[index] = slot.adjust_number(1)
+            self.holding_item.item = held.adjust_number(-1)
 
 
     def update(self, fps: float) -> None:
@@ -237,7 +237,7 @@ class EnchantingTableWidget(ItemContainerWidget):
                 held.name == slot.name and
                 slot.number + held.number <= held.max_quantity
             ):
-                slot.number += held.number
+                self.enchanting_table.items[index] = slot.adjust_number(held.number)
                 self.holding_item.item = None
             else:
                 self.holding_item.item, self.enchanting_table.items[index] = slot, held
@@ -275,11 +275,11 @@ class EnchantingTableWidget(ItemContainerWidget):
 
         slot = self.enchanting_table.items[index]
         if slot is None:
-            self.enchanting_table.items[index] = Item(held.name, 1, held.enchantments, held.durability)
-            held.number -= 1
+            self.enchanting_table.items[index] = held.with_number(1)
+            self.holding_item.item = held.adjust_number(-1)
         elif slot is not None and slot.name == held.name and slot.number + 1 <= slot.max_quantity:
-            slot.number += 1
-            held.number -= 1
+            self.enchanting_table.items[index] = slot.adjust_number(1)
+            self.holding_item.item = held.adjust_number(-1)
 
 
     def render(self, surface: pygame.Surface, context: Context) -> None:
@@ -403,7 +403,7 @@ class CompressorWidget(ItemContainerWidget):
                 held.name == slot.name and 
                 slot.number + held.number <= held.max_quantity
             ):
-                slot.number += held.number
+                self.compressor.items[index] = slot.adjust_number(held.number)
                 self.holding_item.item = None
             else:
                 self.holding_item.item, self.compressor.items[index] = slot, held
@@ -427,11 +427,11 @@ class CompressorWidget(ItemContainerWidget):
 
         slot = self.compressor.items[index]
         if slot is None:
-            self.compressor.items[index] = Item(held.name, 1, held.enchantments, held.durability)
-            held.number -= 1
+            self.compressor.items[index] = held.with_number(1)
+            self.holding_item.item = held.adjust_number(-1)
         elif slot is not None and slot.name == held.name and (slot.number + 1 <= slot.max_quantity):
-            slot.number += 1
-            held.number -= 1
+            self.compressor.items[index] = slot.adjust_number(1)
+            self.holding_item.item = held.adjust_number(-1)
 
 
     def update(self, fps: float) -> None:
@@ -549,7 +549,7 @@ class GrindstoneWidget(ItemContainerWidget):
                 held.name == slot.name and
                 slot.number + held.number <= held.max_quantity
             ):
-                slot.number += held.number
+                self.grindstone.items[index] = slot.adjust_number(held.number)
                 self.holding_item.item = None
             else:
                 self.holding_item.item, self.grindstone.items[index] = slot, held
@@ -579,11 +579,11 @@ class GrindstoneWidget(ItemContainerWidget):
 
         slot = self.grindstone.items[index]
         if slot is None:
-            self.grindstone.items[index] = Item(held.name, 1, held.enchantments, held.durability)
-            held.number -= 1
+            self.grindstone.items[index] = held.with_number(1)
+            self.holding_item.item = held.adjust_number(-1)
         elif slot.name == held.name and slot.number + 1 <= slot.max_quantity:
-            slot.number += 1
-            held.number -= 1
+            self.grindstone.items[index] = slot.adjust_number(1)
+            self.holding_item.item = held.adjust_number(-1)
 
 
     def render(self, surface: pygame.Surface, context: Context) -> None:

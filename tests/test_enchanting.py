@@ -26,7 +26,7 @@ def prepare_enchanting(table: EnchantingTable, *, lapis, experience) -> Item:
     """
     original = Item("Iron Pickaxe", 1, None, 10)
     table.items[0] = original
-    table.items[1] = Item.new("Lapis Lazuli", lapis)
+    table.items[1] = Item.new("Lapis Lazuli", lapis) if lapis > 0 else None
     table.experience.levels = float(experience)
     table.enchanting_level = 2
     table.update()
@@ -157,7 +157,10 @@ def test_enchanting_does_not_consume_resources_when_cost_cannot_be_paid(table: E
     assert table.items[0] is original
     assert original.enchantments is None
     assert original.durability == 10
-    assert table.items[1].number == lapis_count
+    if lapis_count > 0:
+        assert table.items[1].number == lapis_count
+    else:
+        assert table.items[1] is None
     table.experience.subtract.assert_not_called()
 
 
@@ -180,7 +183,7 @@ def test_enchanting_upgrade_cost_and_maximum_level(
     original = Item("Iron Pickaxe", 1, None, 10)
     table.items[0] = original
     table.items[1] = Item.new("Lapis Lazuli", 7)
-    table.items[2] = Item.new("Bookshelf", bookshelves)
+    table.items[2] = Item.new("Bookshelf", bookshelves) if bookshelves > 0 else None
     table.experience.levels = 0.0
     table.update()
     previous_options = option_snapshot(table)
@@ -190,8 +193,12 @@ def test_enchanting_upgrade_cost_and_maximum_level(
 
     should_upgrade = level < 5 and bookshelves >= 4
     assert table.enchanting_level == level + int(should_upgrade)
-    assert table.items[2].name == "Bookshelf"
-    assert table.items[2].number == bookshelves - (4 if should_upgrade else 0)
+    expected_remaining = bookshelves - (4 if should_upgrade else 0)
+    if expected_remaining > 0:
+        assert table.items[2].name == "Bookshelf"
+        assert table.items[2].number == expected_remaining 
+    else:
+        assert table.items[2] is None
     assert table.items[0] is original
     assert original.enchantments is None
     assert original.durability == 10
@@ -249,7 +256,7 @@ def test_enchanting_upgrade_without_enchantable_input(table: EnchantingTable, le
     table.upgrade()
 
     assert table.enchanting_level == level + 1
-    assert table.items[2].number == 0
+    assert table.items[2] is None
     assert table.items[0] is original
     if enchanted:
         assert original.enchantments == [Enchantment("Efficiency", 1)]

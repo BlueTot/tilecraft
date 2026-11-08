@@ -65,7 +65,7 @@ class Inventory:
         remaining = item_to_add.number
 
         # attempt to add into existing stacks
-        for item_at in self.items:
+        for i, item_at in enumerate(self.items):
 
             if (
                 item_at is not None and 
@@ -73,7 +73,7 @@ class Inventory:
                 item_at.number < item_at.max_quantity # not full stack
             ):
                 amount_remaining = min(item_at.max_quantity - item_at.number, remaining) # do not over subtract
-                item_at.number += amount_remaining
+                self.items[i] = item_at.adjust_number(amount_remaining)
                 remaining -= amount_remaining
 
         # attempt to add to empty slots
@@ -130,10 +130,10 @@ class FurnaceInterface:
         # Load Fuel
         if (
             self.items[1] is not None and
-            self.items[1].name == "Coal" and 
+            self.items[1].name == "Coal" and
             self.fuel_val == 0
         ):
-            self.items[1] = Item(self.items[1].name, self.items[1].number - 1, self.items[1].enchantments, self.items[1].durability)
+            self.items[1] = self.items[1].adjust_number(-1)
             self.fuel_val = 8
 
         # Smelting Process
@@ -154,13 +154,12 @@ class FurnaceInterface:
         # Finish Smelting Item
         if self.smelting_time >= 5 * fps:
             self.smelting_time = 0
-            self.items[0] = Item.clone(self.items[0])
-            self.items[0].number -= 1
+            self.items[0] = self.items[0].adjust_number(-1)
             self.fuel_val -= 1
             if self.items[2] is None:
                 self.items[2] = Item.new("Iron Ingot", 1)
             else:
-                self.items[2].number += 1
+                self.items[2] = self.items[2].adjust_number(1)
             experience.add_points(12)
 
 
@@ -348,7 +347,7 @@ class EnchantingTable:
         if self.enchanting_level >= 5:
             return
 
-        self.items[2].number -= self.COST_OF_UPGRADE.number
+        self.items[2] = self.items[2].adjust_number(-self.COST_OF_UPGRADE.number)
         self.enchanting_level += 1
         self.update()
 
@@ -369,8 +368,8 @@ class EnchantingTable:
         if self.__options[box-1].main_enchantment is None or self.items[0] is None:
             return
 
-        self.items[0] = Item.clone_with_enchantments(self.items[0], self.__options[box-1].enchantment_list())
-        self.items[1].number -= self.MIN_LAPIS[box]
+        self.items[0] = self.items[0].with_enchantments(self.__options[box-1].enchantment_list())
+        self.items[1] = self.items[1].adjust_number(-self.MIN_LAPIS[box])
         self.experience.subtract(self.MIN_EXPERIENCE[box])
         self.update()
 
@@ -428,11 +427,11 @@ class Compressor:
         # finish compressing item
         if self.compressing_time >= 5 * fps:
             self.compressing_time = 0
-            self.items[0].number -= 2
+            self.items[0] = self.items[0].adjust_number(-2)
             if self.items[1] is None and expected_output is not None:
                 self.items[1] = expected_output
             else:
-                self.items[1].number += 1
+                self.items[1] = self.items[1].adjust_number(1)
 
 
 class Grindstone:
@@ -470,7 +469,7 @@ class Grindstone:
             self.items[0].max_durability is not None
         ):
             total_durability = min(self.items[0].max_durability, self.items[0].durability + self.items[1].durability)
-            self.items[2] = Item.clone(self.items[0]).disenchant().set_durability(total_durability)
+            self.items[2] = self.items[0].disenchant().with_durability(total_durability)
             return
 
         # otherwise, leave output empty
