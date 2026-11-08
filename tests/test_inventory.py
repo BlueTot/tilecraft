@@ -1,6 +1,6 @@
 import pytest
 
-from tilecraft.constants import Item
+from tilecraft.constants import Enchantment, Item
 from tilecraft.inventory import Inventory
 
 
@@ -252,9 +252,9 @@ def test_adding_items_to_inventory_preserves_enchantments_and_durability():
     """
 
     inventory = Inventory()
-    assert inventory.add(Item("Dirt", 48, [["Efficiency", 5]], 10)) == 0
+    assert inventory.add(Item("Dirt", 48, [Enchantment("Efficiency", 5)], 10)) == 0
 
-    assert inventory.items[0].enchantments == [["Efficiency", 5]]
+    assert inventory.items[0].enchantments == (Enchantment("Efficiency", 5),)
     assert inventory.items[0].durability == 10
 
 

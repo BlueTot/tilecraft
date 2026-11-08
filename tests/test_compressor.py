@@ -2,7 +2,7 @@ from typing import Optional
 
 import pytest
 
-from tilecraft.constants import Item
+from tilecraft.constants import Enchantment, Item
 from tilecraft.inventory import Compressor
 
 
@@ -84,7 +84,7 @@ def test_compressor_adds_to_existing_output_stack(compressor: Compressor):
 @pytest.mark.parametrize("output", [
     Item.new("Dirt", 1),
     Item.new("Iron Plate", 64),
-    Item("Iron Plate", 1, [["Efficiency", 5]], None)
+    Item("Iron Plate", 1, [Enchantment("Efficiency", 5)], None)
 ])
 def test_compressor_does_not_process_when_output_blocked(compressor: Compressor, output: Item):
     """

@@ -135,7 +135,7 @@ def test_enchanting_applies_selected_option_and_charges_exact_cost(table: Enchan
 
     assert table.items[0].name == "Iron Pickaxe"
     assert table.items[0].number == 1
-    assert table.items[0].enchantments == [Enchantment("Efficiency", expected_strength)]
+    assert table.items[0].enchantments == (Enchantment("Efficiency", expected_strength),)
     assert table.items[1].number == surplus
     table.experience.subtract.assert_called_once_with(choice)
     assert options(table) == ("", "", "")
@@ -259,7 +259,7 @@ def test_enchanting_upgrade_without_enchantable_input(table: EnchantingTable, le
     assert table.items[2] is None
     assert table.items[0] is original
     if enchanted:
-        assert original.enchantments == [Enchantment("Efficiency", 1)]
+        assert original.enchantments == (Enchantment("Efficiency", 1),)
         assert original.durability == 10
     assert options(table) == ("", "", "")
     table.rng.next_random.assert_not_called()

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
-from typing import Optional
+from typing import Iterable, Optional
 import os
 import pygame
 
@@ -201,7 +201,7 @@ ITEM_IMAGE_MAPPING = {
     "Hay Bale": "hay",
 }
 
-@dataclass
+@dataclass(frozen=True)
 class Enchantment:
     """ An enchantment has a name and a level >= 1 """
     name: str
@@ -235,7 +235,7 @@ class Item:
 
     name: str
     number: int
-    enchantments: Optional[list[Enchantment]]
+    enchantments: Optional[tuple[Enchantment, ...]]
     durability: Optional[int]
 
     VALID_TILES = {
@@ -244,6 +244,11 @@ class Item:
     }
 
     def __post_init__(self) -> None:
+
+        # normalise enchantments as tuple, as type hints do not prevent passing a list at runtime
+        if self.enchantments is not None:
+            object.__setattr__(self, "enchantments", tuple(self.enchantments))
+
         if self.number <= 0:
             raise ValueError("number must be positive")
         if self.durability is not None and self.durability <= 0:
@@ -354,14 +359,14 @@ class Item:
         return self.with_number(self.number + delta)
 
 
-    def with_enchantments(self, enchantments: Optional[list[Enchantment]]) -> Item:
+    def with_enchantments(self, enchantments: Optional[Iterable[Enchantment]]) -> Item:
         """ Returns a new instance of the item with the enchantments field set to `enchantments` """
-        return replace(self, enchantments=enchantments)
+        return replace(self, enchantments=(tuple(enchantments) if enchantments is not None else None))
 
 
     def add_enchantment(self, enchantment: Enchantment) -> Item:
         """ Returns a new instance of the item with an added enchantment """
-        return self.with_enchantments((self.enchantments or []) + [enchantment])
+        return self.with_enchantments((self.enchantments or ()) + (enchantment,))
 
 
     def with_durability(self, durability: int) -> Optional[Item]:

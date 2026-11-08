@@ -1,6 +1,6 @@
 import pytest
 
-from tilecraft.constants import Item
+from tilecraft.constants import Enchantment, Item
 from tilecraft.inventory import FurnaceInterface
 from tilecraft.player_info import Experience
 
@@ -193,7 +193,7 @@ def test_furnace_does_not_smelt_depleted_input(furnace, experience):
 @pytest.mark.parametrize("blocked_output", [
     Item.new("Dirt", 1),  # different item
     Item.new("Iron Ingot", 64),  # stack full
-    Item("Iron Ingot", 1, [["Efficiency", 5]], None) # enchantments do not stack
+    Item("Iron Ingot", 1, [Enchantment("Efficiency", 5)], None) # enchantments do not stack
 ])
 def test_furnace_does_not_smelt_into_blocked_output(furnace, experience, blocked_output: Item):
     """

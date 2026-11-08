@@ -86,7 +86,7 @@ def test_grindstone_previews_disenchanted_output_without_changing_input_or_exper
     assert output.number == 1
     assert output.durability == 10
     assert output.enchantments is None
-    assert item.enchantments == [Enchantment("Efficiency", 5)]
+    assert item.enchantments == (Enchantment("Efficiency", 5),)
     experience.add_points.assert_not_called()
 
 
