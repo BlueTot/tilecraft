@@ -42,7 +42,10 @@ class Coordinate:
     y: int
 
 @dataclass
-class ItemType: #Class to store item details for every item in game
+class ItemType:
+    """
+        Class to store item details for every item in game
+    """
     type: str
     stack: int
     tier: Optional[int]
