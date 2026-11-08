@@ -2,7 +2,7 @@ from typing import Optional
 import pygame
 
 from tilecraft import ASSETS_DIR
-from tilecraft.constants import Coordinate, Context, Item
+from tilecraft.constants import Coordinate, Context
 from tilecraft.ui.widget import ItemContainerWidget
 from tilecraft.ui.game.item_rendering import render_info_box, render_durability_bar
 from tilecraft.inventory import Inventory, HoldingItem
@@ -96,7 +96,7 @@ class SmallCraftingWidget(ItemContainerWidget):
                 held.name == slot.name and
                 slot.number + held.number <= held.max_quantity
             ):
-                slot.number += held.number
+                self.small_crafting_grid.items[index] = slot.adjust_number(held.number)
                 self.holding_item.item = None
             else:
                 self.holding_item.item, self.small_crafting_grid.items[index] = slot, held
@@ -109,9 +109,9 @@ class SmallCraftingWidget(ItemContainerWidget):
 
         self.inventory.add(result)
 
-        for item in self.small_crafting_grid.items[:4]:
+        for i, item in enumerate(self.small_crafting_grid.items[:4]):
             if item is not None:
-                item.number -= 1
+                self.small_crafting_grid.items[i] = item.adjust_number(-1)
 
 
     def __handle_right_click(self, mouse: tuple[int, int]) -> None:
@@ -127,11 +127,11 @@ class SmallCraftingWidget(ItemContainerWidget):
         
         slot = self.small_crafting_grid.items[index]
         if slot is None:
-            self.small_crafting_grid.items[index] = Item(held.name, 1, held.enchantments, held.durability)
-            held.number -= 1
+            self.small_crafting_grid.items[index] = held.with_number(1)
+            self.holding_item.item = held.adjust_number(-1)
         elif slot.name == held.name and slot.number + 1 <= slot.max_quantity:
-            slot.number += 1
-            held.number -= 1
+            self.small_crafting_grid.items[index] = slot.adjust_number(1)
+            self.holding_item.item = held.adjust_number(-1)
 
 
     def render(self, surface: pygame.Surface, context: Context) -> None:
@@ -148,7 +148,7 @@ class SmallCraftingWidget(ItemContainerWidget):
             surface.blit(images[i], (cell.x, cell.y))
             pygame.draw.rect(surface, (83, 83,83), cell, 2)
             if (item := self.small_crafting_grid.items[i]) is not None:
-                if item.enchantments is not None:
+                if item.is_enchanted:
                     surface.blit(context.TC_GLINTS[item.name], (cell.x, cell.y))
                 if item.durability is not None and item.max_durability is not None:
                     render_durability_bar(surface, cell.x, cell.y, item.durability, item.max_durability)
@@ -240,7 +240,7 @@ class CraftingTableWidget(ItemContainerWidget):
                 held.name == slot.name and
                 slot.number + held.number <= held.max_quantity
             ):
-                slot.number += held.number
+                self.crafting_grid.items[index] = slot.adjust_number(held.number)
                 self.holding_item.item = None
             else:
                 self.holding_item.item, self.crafting_grid.items[index] = slot, held
@@ -249,9 +249,9 @@ class CraftingTableWidget(ItemContainerWidget):
         else:
             if self.crafting_grid.items[9] is not None:
                 self.inventory.add(self.crafting_grid.items[9])
-                for item in self.crafting_grid.items[:self.crafting_grid.num_input_slots]:
+                for i, item in enumerate(self.crafting_grid.items[:self.crafting_grid.num_input_slots]):
                     if item is not None:
-                        item.number -= 1
+                        self.crafting_grid.items[i] = item.adjust_number(-1)
 
 
     def __handle_right_click(self, mouse: tuple[int, int]) -> None:
@@ -268,11 +268,11 @@ class CraftingTableWidget(ItemContainerWidget):
         slot = self.crafting_grid.items[index]
 
         if slot is None:
-            self.crafting_grid.items[index] = Item(held.name, 1, held.enchantments, held.durability)
-            held.number -= 1
+            self.crafting_grid.items[index] = held.with_number(1)
+            self.holding_item.item = held.adjust_number(-1)
         elif slot.name == held.name and slot.number + 1 <= slot.max_quantity:
-            slot.number += 1
-            held.number -= 1
+            self.crafting_grid.items[index] = slot.adjust_number(1)
+            self.holding_item.item = held.adjust_number(-1)
 
 
     def render(self, surface: pygame.Surface, context: Context) -> None:
@@ -289,7 +289,7 @@ class CraftingTableWidget(ItemContainerWidget):
             surface.blit(images[i], (cell.x, cell.y))
             pygame.draw.rect(surface, (83, 83, 83), cell, 2)
             if (item := self.crafting_grid.items[i]) is not None:
-                if item.enchantments is not None:
+                if item.is_enchanted:
                     surface.blit(context.TC_GLINTS[item.name], (cell.x, cell.y))
                 if item.durability is not None and item.max_durability is not None:
                     render_durability_bar(surface, cell.x, cell.y, item.durability, item.max_durability)

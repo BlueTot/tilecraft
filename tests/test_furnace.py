@@ -1,6 +1,6 @@
 import pytest
 
-from tilecraft.constants import Item
+from tilecraft.constants import Enchantment, Item
 from tilecraft.inventory import FurnaceInterface
 from tilecraft.player_info import Experience
 
@@ -177,15 +177,15 @@ def test_furnace_stops_when_stored_fuel_runs_out(furnace, experience):
 
 def test_furnace_does_not_smelt_depleted_input(furnace, experience):
     """
-        Tests that furnace does not smelt input item with count 0
+        Tests that furnace does not smelt input item that's empty
     """
-    furnace.items[0] = Item.new("Iron Ore", 0)
+    furnace.items[0] = None
     furnace.fuel_val = 8
 
     advance(furnace, experience, 300)
 
     assert furnace.items[2] is None
-    assert furnace.items[0].number == 0
+    assert furnace.items[0] is None
     assert furnace.fuel_val == 8
     assert experience.levels == 0
 
@@ -193,7 +193,7 @@ def test_furnace_does_not_smelt_depleted_input(furnace, experience):
 @pytest.mark.parametrize("blocked_output", [
     Item.new("Dirt", 1),  # different item
     Item.new("Iron Ingot", 64),  # stack full
-    Item("Iron Ingot", 1, [["Efficiency", 5]], None) # enchantments do not stack
+    Item("Iron Ingot", 1, [Enchantment("Efficiency", 5)], None) # enchantments do not stack
 ])
 def test_furnace_does_not_smelt_into_blocked_output(furnace, experience, blocked_output: Item):
     """

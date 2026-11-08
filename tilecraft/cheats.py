@@ -25,8 +25,7 @@ def give(screen, item_id: str):
         amount = int(amount)
         length = len(list(ITEM_TYPES.keys())) - 1
         if 0 <= code <= length:
-            add_item = Item(list(ITEM_TYPES.keys())[code], amount, None, list(ITEM_TYPES.values())[code].max_durability)
-            return add_item
+            return Item.new(list(ITEM_TYPES.keys())[code], amount)
         else:
             screen.print(f"Please enter a number between 0 and {length}.")
             return None
@@ -60,12 +59,7 @@ def enchant(screen, inventory: Inventory, enchantment: str):
             try:
                 lvl = int(lvl)
                 if name == "protection" or name == "efficiency" or name == "unbreaking":
-                    enchantments = inventory.hotbar_item.enchantments
-                    if enchantments is not None:
-                        enchantments.append(Enchantment(name.capitalize(), lvl))
-                    else:
-                        enchantments = [Enchantment(name.capitalize(), lvl)]
-                    return Item(inventory.hotbar_item.name, inventory.hotbar_item.number, enchantments, inventory.hotbar_item.durability)
+                    return inventory.hotbar_item.add_enchantment(Enchantment(name.capitalize(), lvl))
             except ValueError:
                 screen.print("Invalid Input")
     else:

@@ -5,7 +5,7 @@ import pygame
 from tilecraft.ui.game.item_rendering import render_info_box, render_durability_bar
 from tilecraft.ui.widget import ItemContainerWidget
 from tilecraft import ASSETS_DIR
-from tilecraft.constants import Coordinate, Item, Context 
+from tilecraft.constants import Coordinate, Context 
 from tilecraft.inventory import Inventory, Armour, HoldingItem
 
 class InventoryWidget(ItemContainerWidget):
@@ -111,7 +111,7 @@ class InventoryWidget(ItemContainerWidget):
         slot = self.inventory.items[index]
 
         if held is not None and slot is not None and held.name == slot.name and slot.number + held.number <= held.max_quantity:
-            slot.number += held.number
+            self.inventory.items[index] = slot.adjust_number(held.number)
             self.holding_item.item = None
         else:
             self.holding_item.item, self.inventory.items[index] = slot, held
@@ -127,11 +127,11 @@ class InventoryWidget(ItemContainerWidget):
 
         slot = self.inventory.items[index]
         if slot is None:
-            self.inventory.items[index] = Item(held.name, 1, held.enchantments, held.durability)
-            held.number -= 1
+            self.inventory.items[index] = held.with_number(1)
+            self.holding_item.item = held.adjust_number(-1)
         elif slot.name == held.name and slot.number + 1 <= held.max_quantity:
-            slot.number += 1
-            held.number -= 1
+            self.inventory.items[index] = slot.adjust_number(1)
+            self.holding_item.item = held.adjust_number(-1)
 
 
     def render(self, surface: pygame.Surface, context: Context) -> None:
@@ -154,7 +154,7 @@ class InventoryWidget(ItemContainerWidget):
             surface.blit(images[i], (cell.x, cell.y))
             pygame.draw.rect(surface, self.COLOUR, cell, self.WIDTH)
             if (item := self.inventory.items[i]) is not None:
-                if item.enchantments is not None:
+                if item.is_enchanted:
                     surface.blit(context.TC_GLINTS[item.name], (cell.x, cell.y))
                 if item.durability is not None and item.max_durability is not None:
                     render_durability_bar(surface, cell.x, cell.y, item.durability, item.max_durability)
@@ -284,7 +284,7 @@ class ArmourWidget(ItemContainerWidget):
             surface.blit(images[i], (cell.x, cell.y))
             pygame.draw.rect(surface, (83, 83, 83), cell, 2)
             if (item := self.armour.items[i]) is not None:
-                if item.enchantments is not None:
+                if item.is_enchanted:
                     surface.blit(context.TC_GLINTS[item.name], (cell.x, cell.y))
                 if item.durability is not None and item.max_durability is not None:
                     render_durability_bar(surface, cell.x, cell.y, item.durability, item.max_durability)
@@ -385,7 +385,7 @@ class HotbarWidget(ItemContainerWidget):
             surface.blit(context.INFOBAR_IMAGES["slot"], (coordinate.x, coordinate.y)) # background
             surface.blit(images[i], (coordinate.x, coordinate.y))
             if (item := self.inventory.items[i+27]) is not None:
-                if item.enchantments is not None:
+                if item.is_enchanted:
                     surface.blit(context.TC_GLINTS[item.name], (coordinate.x, coordinate.y))
                 if item.durability is not None and item.max_durability is not None:
                     render_durability_bar(surface, coordinate.x, coordinate.y, item.durability, item.max_durability)
@@ -428,7 +428,7 @@ class HoldingItemWidget(ItemContainerWidget):
 
         surface.blit(image, (x, y))
         surface.blit(self.__font.render(number, False, (255, 255, 255)), (x + 52, y + 52))
-        if item.enchantments is not None:
+        if item.is_enchanted:
             surface.blit(context.TC_GLINTS[item.name], (x, y))
         if item.durability is not None and item.max_durability is not None:
             render_durability_bar(surface, x, y, item.durability, item.max_durability)

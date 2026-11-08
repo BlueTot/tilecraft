@@ -2,7 +2,7 @@ from typing import Optional
 
 import pytest
 
-from tilecraft.constants import Item
+from tilecraft.constants import Enchantment, Item
 from tilecraft.inventory import Compressor
 
 
@@ -44,7 +44,6 @@ def test_compressor_produces_correct_output_after_five_seconds(compressor: Compr
     """
         Test that the compressor produces correct output after one cycle
     """
-    ingredient.number += 2
     compressor.items[0] = Item.clone(ingredient)
 
     advance(compressor, 5 * fps - 1, fps)
@@ -54,7 +53,7 @@ def test_compressor_produces_correct_output_after_five_seconds(compressor: Compr
     compressor.compress(fps)
 
     assert Item.equals_optional(compressor.items[1], product)
-    assert compressor.items[0].number == ingredient.number - 2
+    assert compressor.items[0] is None
 
 
 @pytest.mark.parametrize("item", [None, Item.new("Dirt", 1), Item.new("Iron Ingot", 1)])
@@ -85,7 +84,7 @@ def test_compressor_adds_to_existing_output_stack(compressor: Compressor):
 @pytest.mark.parametrize("output", [
     Item.new("Dirt", 1),
     Item.new("Iron Plate", 64),
-    Item("Iron Plate", 1, [["Efficiency", 5]], None)
+    Item("Iron Plate", 1, [Enchantment("Efficiency", 5)], None)
 ])
 def test_compressor_does_not_process_when_output_blocked(compressor: Compressor, output: Item):
     """

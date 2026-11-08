@@ -107,217 +107,217 @@ class LargeCraftingGrid(CraftingGrid):
             [Item.new("Oak Log", 1), None, None,
              None, None, None,
              None, None, None], 
-            Item.new("Oak Planks", 4).set_max_durability()
+            Item.new("Oak Planks", 4)
         ),
         CraftingRecipe(
             [Item.new("Oak Planks", 1), None, None,
              Item.new("Oak Planks", 1), None, None,
              None, None, None], 
-            Item.new("Stick", 4).set_max_durability()
+            Item.new("Stick", 4)
         ),
         CraftingRecipe(
             [Item.new("Oak Planks", 1), Item.new("Oak Planks", 1), None,
              Item.new("Oak Planks", 1), Item.new("Oak Planks", 1), None,
              None, None, None], 
-            Item.new("Crafting Table", 1).set_max_durability()
+            Item.new("Crafting Table", 1)
         ),
         CraftingRecipe(
             [Item.new("Oak Planks", 1), Item.new("Oak Planks", 1), Item.new("Oak Planks", 1),
              None, Item.new("Stick", 1), None,
              None, Item.new("Stick", 1), None], 
-            Item.new("Wooden Pickaxe", 1).set_max_durability()
+            Item.new("Wooden Pickaxe", 1)
         ),
         CraftingRecipe(
             [None, Item.new("Oak Planks", 1), Item.new("Oak Planks", 1),
              None, Item.new("Stick", 1), Item.new("Oak Planks", 1),
              None, Item.new("Stick", 1), None], 
-            Item.new("Wooden Axe", 1).set_max_durability()
+            Item.new("Wooden Axe", 1)
         ),
         CraftingRecipe(
             [None, Item.new("Oak Planks", 1), None,
              None, Item.new("Stick", 1), None,
              None, Item.new("Stick", 1), None], 
-            Item.new("Wooden Shovel", 1).set_max_durability()
+            Item.new("Wooden Shovel", 1)
         ),
         CraftingRecipe(
             [None, Item.new("Oak Planks", 1), Item.new("Oak Planks", 1),
              None, Item.new("Stick", 1), None,
              None, Item.new("Stick", 1), None], 
-            Item.new("Wooden Hoe", 1).set_max_durability()
+            Item.new("Wooden Hoe", 1)
         ),
         CraftingRecipe(
             [Item.new("Cobblestone", 1), Item.new("Cobblestone", 1), Item.new("Cobblestone", 1),
              Item.new("Cobblestone", 1), Item.new("Wooden Pickaxe", 1), Item.new("Cobblestone", 1),
              Item.new("Cobblestone", 1), Item.new("Cobblestone", 1), Item.new("Cobblestone", 1)], 
-            Item.new("Mine Entrance", 1).set_max_durability()
+            Item.new("Mine Entrance", 1)
         ),
         CraftingRecipe(
             [Item.new("Cobblestone", 1), Item.new("Cobblestone", 1), Item.new("Cobblestone", 1),
              None, Item.new("Stick", 1), None,
              None, Item.new("Stick", 1), None], 
-            Item.new("Stone Pickaxe", 1).set_max_durability()
+            Item.new("Stone Pickaxe", 1)
         ),
         CraftingRecipe(
             [None, Item.new("Cobblestone", 1), Item.new("Cobblestone", 1),
              None, Item.new("Stick", 1), Item.new("Cobblestone", 1),
              None, Item.new("Stick", 1), None], 
-            Item.new("Stone Axe", 1).set_max_durability()
+            Item.new("Stone Axe", 1)
         ),
         CraftingRecipe(
             [None, Item.new("Cobblestone", 1), None,
              None, Item.new("Stick", 1), None,
              None, Item.new("Stick", 1), None], 
-            Item.new("Stone Shovel", 1).set_max_durability()
+            Item.new("Stone Shovel", 1)
         ),
         CraftingRecipe(
             [None, Item.new("Cobblestone", 1), Item.new("Cobblestone", 1),
              None, Item.new("Stick", 1), None,
              None, Item.new("Stick", 1), None], 
-            Item.new("Stone Hoe", 1).set_max_durability()
+            Item.new("Stone Hoe", 1)
         ),
         CraftingRecipe(
             [Item.new("Cobblestone", 1), Item.new("Cobblestone", 1), Item.new("Cobblestone", 1),
              Item.new("Cobblestone", 1), None, Item.new("Cobblestone", 1),
              Item.new("Cobblestone", 1), Item.new("Cobblestone", 1), Item.new("Cobblestone", 1)], 
-            Item.new("Furnace", 1).set_max_durability()
+            Item.new("Furnace", 1)
         ),
         CraftingRecipe(
             [Item.new("Cobblestone", 1), Item.new("Cobblestone", 1), Item.new("Cobblestone", 1),
              Item.new("Cobblestone", 1), Item.new("Iron Ingot", 1), Item.new("Cobblestone", 1),
              Item.new("Cobblestone", 1), Item.new("Cobblestone", 1), Item.new("Cobblestone", 1)], 
-            Item.new("Compressor", 1).set_max_durability()
+            Item.new("Compressor", 1)
         ),
         CraftingRecipe(
             [Item.new("Stick", 1), Item.new("Cobblestone", 1), Item.new("Stick", 1),
              Item.new("Oak Planks", 1), None, Item.new("Oak Planks", 1),
              None, None, None], 
-            Item.new("Grindstone", 1).set_max_durability()
+            Item.new("Grindstone", 1)
         ),
         CraftingRecipe(
             [Item.new("Iron Ingot", 1), Item.new("Iron Ingot", 1), Item.new("Iron Ingot", 1),
              None, Item.new("Stick", 1), None,
              None, Item.new("Stick", 1), None], 
-            Item.new("Iron Pickaxe", 1).set_max_durability()
+            Item.new("Iron Pickaxe", 1)
         ),
         CraftingRecipe(
             [None, Item.new("Iron Ingot", 1), Item.new("Iron Ingot", 1),
              None, Item.new("Stick", 1), Item.new("Iron Ingot", 1),
              None, Item.new("Stick", 1), None], 
-            Item.new("Iron Axe", 1).set_max_durability()
+            Item.new("Iron Axe", 1)
         ),
         CraftingRecipe(
             [None, Item.new("Iron Ingot", 1), None,
              None, Item.new("Stick", 1), None,
              None, Item.new("Stick", 1), None], 
-            Item.new("Iron Shovel", 1).set_max_durability()
+            Item.new("Iron Shovel", 1)
         ),
         CraftingRecipe(
             [None, Item.new("Iron Ingot", 1), Item.new("Iron Ingot", 1),
              None, Item.new("Stick", 1), None,
              None, Item.new("Stick", 1), None], 
-            Item.new("Iron Hoe", 1).set_max_durability()
+            Item.new("Iron Hoe", 1)
         ),
         CraftingRecipe(
             [None, None, None,
              Item.new("Iron Ingot", 1), None, Item.new("Iron Ingot", 1),
              None, Item.new("Iron Ingot", 1), None], 
-            Item.new("Bucket", 1).set_max_durability()
+            Item.new("Bucket", 1)
         ),
         CraftingRecipe(
             [Item.new("Oak Planks", 1), Item.new("Iron Ingot", 1), Item.new("Oak Planks", 1),
              Item.new("Oak Planks", 1), Item.new("Oak Planks", 1), Item.new("Oak Planks", 1),
              None, Item.new("Oak Planks", 1), None], 
-            Item.new("Shield", 1).set_max_durability()
+            Item.new("Shield", 1)
         ),
         CraftingRecipe(
             [Item.new("Iron Ingot", 1), None, None,
              None, Item.new("Flint", 1), None,
              None, None, None], 
-            Item.new("Flint and Steel", 1).set_max_durability()
+            Item.new("Flint and Steel", 1)
         ),
         CraftingRecipe(
             [None, Item.new("Iron Plate", 1), None,
              None, None, None,
              None, Item.new("Iron Plate", 1), None], 
-            Item.new("Tier 1 Iron Plate", 1).set_max_durability()
+            Item.new("Tier 1 Iron Plate", 1)
         ),
         CraftingRecipe(
             [None, Item.new("Iron Plate", 1), None,
              Item.new("Iron Plate", 1), None, Item.new("Iron Plate", 1),
-             None, Item.new("Iron Plate", 1), None], 
-            Item.new("Tier 2 Iron Plate", 1).set_max_durability()
+             None, Item.new("Iron Plate", 1), None],
+            Item.new("Tier 2 Iron Plate", 1)
         ),
         CraftingRecipe(
             [Item.new("Iron Plate", 1), Item.new("Iron Plate", 1), Item.new("Iron Plate", 1),
              Item.new("Iron Plate", 1), None, Item.new("Iron Plate", 1),
-             Item.new("Iron Plate", 1), Item.new("Iron Plate", 1), Item.new("Iron Plate", 1)], 
-            Item.new("Tier 3 Iron Plate", 1).set_max_durability()
+             Item.new("Iron Plate", 1), Item.new("Iron Plate", 1), Item.new("Iron Plate", 1)],
+            Item.new("Tier 3 Iron Plate", 1)
         ),
         CraftingRecipe(
             [Item.new("Diamond", 1), Item.new("Diamond", 1), Item.new("Diamond", 1),
              None, Item.new("Stick", 1), None,
              None, Item.new("Stick", 1), None], 
-            Item.new("Diamond Pickaxe", 1).set_max_durability()
+            Item.new("Diamond Pickaxe", 1)
         ),
         CraftingRecipe(
             [None, Item.new("Diamond", 1), Item.new("Diamond", 1),
              None, Item.new("Stick", 1), Item.new("Diamond", 1),
              None, Item.new("Stick", 1), None], 
-            Item.new("Diamond Axe", 1).set_max_durability()
+            Item.new("Diamond Axe", 1)
         ),
         CraftingRecipe(
             [None, Item.new("Diamond", 1), None,
              None, Item.new("Stick", 1), None,
              None, Item.new("Stick", 1), None], 
-            Item.new("Diamond Shovel", 1).set_max_durability()
+            Item.new("Diamond Shovel", 1)
         ),
         CraftingRecipe(
             [None, Item.new("Diamond", 1), Item.new("Diamond", 1),
              None, Item.new("Stick", 1), None,
              None, Item.new("Stick", 1), None], 
-            Item.new("Diamond Hoe", 1).set_max_durability()
+            Item.new("Diamond Hoe", 1)
         ),
         CraftingRecipe(
             [None, Item.new("Diamond Plate", 1), None,
              None, None, None,
              None, Item.new("Diamond Plate", 1), None], 
-            Item.new("Tier 1 Diamond Plate", 1).set_max_durability()
+            Item.new("Tier 1 Diamond Plate", 1)
         ),
         CraftingRecipe(
             [None, Item.new("Diamond Plate", 1), None,
              Item.new("Diamond Plate", 1), None, Item.new("Diamond Plate", 1),
              None, Item.new("Diamond Plate", 1), None], 
-            Item.new("Tier 2 Diamond Plate", 1).set_max_durability()
+            Item.new("Tier 2 Diamond Plate", 1)
         ),
         CraftingRecipe(
             [Item.new("Diamond Plate", 1), Item.new("Diamond Plate", 1), Item.new("Diamond Plate", 1),
              Item.new("Diamond Plate", 1), None, Item.new("Diamond Plate", 1),
              Item.new("Diamond Plate", 1), Item.new("Diamond Plate", 1), Item.new("Diamond Plate", 1)], 
-            Item.new("Tier 3 Diamond Plate", 1).set_max_durability()
+            Item.new("Tier 3 Diamond Plate", 1)
         ),
         CraftingRecipe(
             [Item.new("Oak Planks", 1), Item.new("Oak Planks", 1), Item.new("Oak Planks", 1),
              Item.new("Oak Planks", 1), Item.new("Diamond", 1), Item.new("Oak Planks", 1),
              Item.new("Oak Planks", 1), Item.new("Oak Planks", 1), Item.new("Oak Planks", 1)], 
-            Item.new("Jukebox", 1).set_max_durability()
+            Item.new("Jukebox", 1)
         ),
         CraftingRecipe(
             [None, Item.new("Book", 1), None,
              Item.new("Diamond", 1), Item.new("Obsidian", 1), Item.new("Diamond", 1),
              Item.new("Obsidian", 1), Item.new("Obsidian", 1), Item.new("Obsidian", 1)], 
-            Item.new("Enchanting Table", 1).set_max_durability()
+            Item.new("Enchanting Table", 1)
         ),
         CraftingRecipe(
             [Item.new("Oak Planks", 1), Item.new("Oak Planks", 1), Item.new("Oak Planks", 1),
              Item.new("Book", 1), Item.new("Book", 1), Item.new("Book", 1),
              Item.new("Oak Planks", 1), Item.new("Oak Planks", 1), Item.new("Oak Planks", 1)], 
-            Item.new("Bookshelf", 1).set_max_durability()
+            Item.new("Bookshelf", 1)
         ),
         CraftingRecipe(
             [Item.new("Hay Bale", 1), None, None,
              None, None, None,
-             None, None, None], 
-            Item.new("Bread", 3).set_max_durability()
+             None, None, None],
+            Item.new("Bread", 3)
         ),
     ]
  

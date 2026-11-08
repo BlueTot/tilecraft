@@ -118,211 +118,211 @@ def test_small_crafting_invalid_ingredients_clear_previous_result():
             ["Oak Log", None, None, 
              None, None, None, 
              None, None, None], 
-            Item.new("Oak Planks", 4).set_max_durability()
+            Item.new("Oak Planks", 4)
         ),
         (
             ["Oak Planks", None, None,
              "Oak Planks", None, None,
              None, None, None],
-            Item.new("Stick", 4).set_max_durability()
+            Item.new("Stick", 4)
         ),
         (
             ["Oak Planks", "Oak Planks", None,
              "Oak Planks", "Oak Planks", None,
              None, None, None],
-            Item.new("Crafting Table", 1).set_max_durability()
+            Item.new("Crafting Table", 1)
         ),
         (
             ["Oak Planks", "Oak Planks", "Oak Planks",
              None, "Stick", None,
              None, "Stick", None],
-            Item.new("Wooden Pickaxe", 1).set_max_durability()
+            Item.new("Wooden Pickaxe", 1)
         ),
         (
             [None, "Oak Planks", "Oak Planks",
              None, "Stick", "Oak Planks",
              None, "Stick", None],
-            Item.new("Wooden Axe", 1).set_max_durability()
+            Item.new("Wooden Axe", 1)
         ),
         (
             [None, "Oak Planks", None,
              None, "Stick", None,
              None, "Stick", None],
-             Item.new("Wooden Shovel", 1).set_max_durability()
+             Item.new("Wooden Shovel", 1)
         ),
         (
             [None, "Oak Planks", "Oak Planks",
              None, "Stick", None,
              None, "Stick", None],
-            Item.new("Wooden Hoe", 1).set_max_durability()
+            Item.new("Wooden Hoe", 1)
         ),
         (
             ["Cobblestone", "Cobblestone", "Cobblestone",
              None, "Stick", None,
              None, "Stick", None],
-            Item.new("Stone Pickaxe", 1).set_max_durability()
+            Item.new("Stone Pickaxe", 1)
         ),
         (
             [None, "Cobblestone", "Cobblestone",
              None, "Stick", "Cobblestone",
              None, "Stick", None],
-            Item.new("Stone Axe", 1).set_max_durability()
+            Item.new("Stone Axe", 1)
         ),
         (
             [None, "Cobblestone", None,
              None, "Stick", None,
              None, "Stick", None],
-            Item.new("Stone Shovel", 1).set_max_durability()
+            Item.new("Stone Shovel", 1)
         ),
         (
             [None, "Cobblestone", "Cobblestone",
              None, "Stick", None,
              None, "Stick", None],
-            Item.new("Stone Hoe", 1).set_max_durability()
+            Item.new("Stone Hoe", 1)
         ),
         (
             ["Cobblestone", "Cobblestone", "Cobblestone",
              "Cobblestone", None, "Cobblestone",
              "Cobblestone", "Cobblestone", "Cobblestone"],
-            Item.new("Furnace", 1).set_max_durability()
+            Item.new("Furnace", 1)
         ),
         (
             ["Cobblestone", "Cobblestone", "Cobblestone",
              "Cobblestone", "Wooden Pickaxe", "Cobblestone",
              "Cobblestone", "Cobblestone", "Cobblestone"],
-            Item.new("Mine Entrance", 1).set_max_durability()
+            Item.new("Mine Entrance", 1)
         ),
         (
             ["Cobblestone", "Cobblestone", "Cobblestone",
              "Cobblestone", "Iron Ingot", "Cobblestone",
              "Cobblestone", "Cobblestone", "Cobblestone"],
-            Item.new("Compressor", 1).set_max_durability()
+            Item.new("Compressor", 1)
         ),
         (
             ["Stick", "Cobblestone", "Stick",
              "Oak Planks", None, "Oak Planks",
              None, None, None],
-            Item.new("Grindstone", 1).set_max_durability()
+            Item.new("Grindstone", 1)
         ),
         (
             ["Iron Ingot", "Iron Ingot", "Iron Ingot",
              None, "Stick", None,
              None, "Stick", None],
-            Item.new("Iron Pickaxe", 1).set_max_durability()
+            Item.new("Iron Pickaxe", 1)
         ),
         (
             [None, "Iron Ingot", "Iron Ingot",
              None, "Stick", "Iron Ingot",
              None, "Stick", None],
-            Item.new("Iron Axe", 1).set_max_durability()
+            Item.new("Iron Axe", 1)
         ),
         (
             [None, "Iron Ingot", None,
              None, "Stick", None,
              None, "Stick", None],
-            Item.new("Iron Shovel", 1).set_max_durability()
+            Item.new("Iron Shovel", 1)
         ),
         (
             [None, "Iron Ingot", "Iron Ingot",
              None, "Stick", None,
              None, "Stick", None],
-            Item.new("Iron Hoe", 1).set_max_durability()
+            Item.new("Iron Hoe", 1)
         ),
         (
             [None, None, None,
              "Iron Ingot", None, "Iron Ingot",
              None, "Iron Ingot", None],
-            Item.new("Bucket", 1).set_max_durability()
+            Item.new("Bucket", 1)
         ),
         (
             ["Oak Planks", "Iron Ingot", "Oak Planks",
              "Oak Planks", "Oak Planks", "Oak Planks",
              None, "Oak Planks", None],
-            Item.new("Shield", 1).set_max_durability()
+            Item.new("Shield", 1)
         ),
         (
             ["Iron Ingot", None, None, 
              None, "Flint", None,
              None, None, None],
-            Item.new("Flint and Steel", 1).set_max_durability()
+            Item.new("Flint and Steel", 1)
         ),
         (
             [None, "Iron Plate", None,
              None, None, None,
              None, "Iron Plate", None],
-            Item.new("Tier 1 Iron Plate", 1).set_max_durability()
+            Item.new("Tier 1 Iron Plate", 1)
         ),
         (
             [None, "Iron Plate", None,
              "Iron Plate", None, "Iron Plate",
              None, "Iron Plate", None],
-            Item.new("Tier 2 Iron Plate", 1).set_max_durability()
+            Item.new("Tier 2 Iron Plate", 1)
         ),
         (
             ["Iron Plate", "Iron Plate", "Iron Plate",
              "Iron Plate", None, "Iron Plate",
              "Iron Plate", "Iron Plate", "Iron Plate"],
-            Item.new("Tier 3 Iron Plate", 1).set_max_durability()
+            Item.new("Tier 3 Iron Plate", 1)
         ),
         (
             ["Diamond", "Diamond", "Diamond",
              None, "Stick", None,
              None, "Stick", None],
-            Item.new("Diamond Pickaxe", 1) .set_max_durability()
+            Item.new("Diamond Pickaxe", 1)
         ),
         (
             [None, "Diamond", "Diamond",
              None, "Stick", "Diamond",
              None, "Stick", None],
-            Item.new("Diamond Axe", 1).set_max_durability()
+            Item.new("Diamond Axe", 1)
         ),
         (
             [None, "Diamond", None,
              None, "Stick", None,
              None, "Stick", None],
-            Item.new("Diamond Shovel", 1).set_max_durability()
+            Item.new("Diamond Shovel", 1)
         ),
         (
             [None, "Diamond Plate", None,
              None, None, None,
              None, "Diamond Plate", None],
-            Item.new("Tier 1 Diamond Plate", 1).set_max_durability()
+            Item.new("Tier 1 Diamond Plate", 1)
         ),
         (
             [None, "Diamond Plate", None,
              "Diamond Plate", None, "Diamond Plate",
              None, "Diamond Plate", None],
-            Item.new("Tier 2 Diamond Plate", 1).set_max_durability()
+            Item.new("Tier 2 Diamond Plate", 1)
         ),
         (
             ["Diamond Plate", "Diamond Plate", "Diamond Plate",
              "Diamond Plate", None, "Diamond Plate",
              "Diamond Plate", "Diamond Plate", "Diamond Plate"],
-            Item.new("Tier 3 Diamond Plate", 1).set_max_durability()
+            Item.new("Tier 3 Diamond Plate", 1)
         ),
         (
             ["Oak Planks", "Oak Planks", "Oak Planks",
              "Oak Planks", "Diamond", "Oak Planks",
              "Oak Planks", "Oak Planks", "Oak Planks"],
-            Item.new("Jukebox", 1).set_max_durability()
+            Item.new("Jukebox", 1)
         ),
         (
             [None, "Book", None,
              "Diamond", "Obsidian", "Diamond",
              "Obsidian", "Obsidian", "Obsidian"],
-            Item.new("Enchanting Table", 1).set_max_durability()
+            Item.new("Enchanting Table", 1)
         ),
         (
             ["Oak Planks", "Oak Planks", "Oak Planks",
              "Book", "Book", "Book",
              "Oak Planks", "Oak Planks", "Oak Planks"],
-            Item.new("Bookshelf", 1).set_max_durability()
+            Item.new("Bookshelf", 1)
         ),
         (
             ["Hay Bale", None, None,
              None, None, None,
              None, None, None],
-            Item.new("Bread", 3).set_max_durability()
+            Item.new("Bread", 3)
         )
     ]
 )
