@@ -382,7 +382,7 @@ class Item:
             Returns a new instance of the item with the durability field set to `durability`
             Returns None if the resulting item has durability = 0.
         """
-        if self.durability is None or self.max_durability is None:
+        if self.max_durability is None:
             raise ValueError(f"Cannot set durability of item {self.name}")
         if durability < 0:
             raise ValueError("durability cannot be negative")
