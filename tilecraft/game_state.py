@@ -102,8 +102,8 @@ def advancements_update(screen: Screen, timer: SpeedrunTimer, advancements: list
         screen.print("Advancement unlocked: We Need to Go Deeper")
         advancements.append("We Need to Go Deeper")
 
-    for enchantment in (enchantments_list + armour_enchantment_list):
-        if enchantment is not None and "Enchanter" not in advancements: #Get an enchanted tool or armour piece
+    for enchantments in (enchantments_list + armour_enchantment_list):
+        if enchantments is not None and len(enchantments) > 0 and "Enchanter" not in advancements: #Get an enchanted tool or armour piece
             advancements.append("Enchanter")
             screen.print("Advancement unlocked: Enchanter")
             break
@@ -111,21 +111,18 @@ def advancements_update(screen: Screen, timer: SpeedrunTimer, advancements: list
     slot1, slot2, slot3 = armour_list[0], armour_list[1], armour_list[2]
     max_t1 = (
         slot1 is not None and
-        slot1.enchantments is not None and
         slot1.name == "Tier 1 Diamond Plate" and
         Enchantment("Protection", 5) in slot1.enchantments and
         Enchantment("Unbreaking", 3) in slot1.enchantments
     )
     max_t2 = (
         slot2 is not None and
-        slot2.enchantments is not None and
         slot2.name == "Tier 2 Diamond Plate" and
         Enchantment("Protection", 5) in slot2.enchantments and
         Enchantment("Unbreaking", 3) in slot2.enchantments
     )
     max_t3 = (
         slot3 is not None and
-        slot3.enchantments is not None and
         slot3.name == "Tier 3 Diamond Plate" and
         Enchantment("Protection", 5) in slot3.enchantments and
         Enchantment("Unbreaking", 3) in slot3.enchantments
@@ -309,7 +306,7 @@ def commands(number: int, val: str, game_state: GameState) -> None:
                 if (game_state.world.bound_village[j][0][0] < game_state.player.x < game_state.world.bound_village[j][0][2]) and (
                         game_state.world.bound_village[j][1][0] < game_state.player.y < game_state.world.bound_village[j][1][2]):
                     hay = game_state.rng.next_random(25, 45)
-                    game_state.player.inventory.add(Item("Hay Bale", hay, None, None))
+                    game_state.player.inventory.add(Item.new("Hay Bale", hay))
                     game_state.screen.print("+" + str(hay) + " Hay Bale")
                     actualX = game_state.world.bound_village[j][0][1]
                     actualY = game_state.world.bound_village[j][1][1]
@@ -329,7 +326,7 @@ def commands(number: int, val: str, game_state: GameState) -> None:
                 if (game_state.world.bound_village2[j][0][0] < game_state.player.x < game_state.world.bound_village2[j][0][2]) and (
                         game_state.world.bound_village2[j][1][0] < game_state.player.y < game_state.world.bound_village2[j][1][2]):
                     beds = game_state.rng.next_random(2, 7)
-                    game_state.player.inventory.add(Item("Bed", beds, None, None))
+                    game_state.player.inventory.add(Item.new("Bed", beds))
                     game_state.screen.print("+" + str(beds) + " Beds")
                     actualX = game_state.world.bound_village2[j][0][1]
                     actualY = game_state.world.bound_village2[j][1][1]
@@ -387,13 +384,13 @@ def commands(number: int, val: str, game_state: GameState) -> None:
                     # UPDATE AND PRINT INVENTORY VALUES
                     if blacksmith_iron > 0:
                         game_state.screen.print(f"+{blacksmith_iron} Iron Ingot")
-                        game_state.player.inventory.add(Item("Iron Ingot", blacksmith_iron, None, None))
+                        game_state.player.inventory.add(Item.new("Iron Ingot", blacksmith_iron))
                     if blacksmith_diamond > 0:
                         game_state.screen.print(f"+{blacksmith_diamond} Diamond")
-                        game_state.player.inventory.add(Item("Diamond", blacksmith_diamond, None, None))
+                        game_state.player.inventory.add(Item.new("Diamond", blacksmith_diamond))
                     if blacksmith_bread > 0:
                         game_state.screen.print(f"+{blacksmith_bread} Bread")
-                        game_state.player.inventory.add(Item("Bread", blacksmith_bread, None, None))
+                        game_state.player.inventory.add(Item.new("Bread", blacksmith_bread))
 
                     actualX = game_state.world.bound_village3[j][0][1]
                     actualY = game_state.world.bound_village3[j][1][1]
@@ -415,8 +412,8 @@ def commands(number: int, val: str, game_state: GameState) -> None:
                     library_books = game_state.rng.next_random(7, 14)
                     game_state.screen.print(f"+{library_bookshelf} Bookshelf")
                     game_state.screen.print(f"+{library_books} Books")
-                    game_state.player.inventory.add(Item("Bookshelf", library_bookshelf, None, None))
-                    game_state.player.inventory.add(Item("Book", library_books, None, None))
+                    game_state.player.inventory.add(Item.new("Bookshelf", library_bookshelf))
+                    game_state.player.inventory.add(Item.new("Book", library_books))
                     actualX = game_state.world.bound_village4[j][0][1]
                     actualY = game_state.world.bound_village4[j][1][1]
                     game_state.world.empty_vil4.append([actualX, actualY])
@@ -477,7 +474,7 @@ def commands(number: int, val: str, game_state: GameState) -> None:
             for j in range(len(game_state.world.bound_bastion)):
                 if (game_state.world.bound_bastion[j][0][0] < game_state.player.x < game_state.world.bound_bastion[j][0][2]) and (
                         game_state.world.bound_bastion[j][1][0] < game_state.player.y < game_state.world.bound_bastion[j][1][2]):
-                    game_state.player.inventory.add(Item("Pigstep Disc", 1, None, None))
+                    game_state.player.inventory.add(Item.new("Pigstep Disc", 1))
                     game_state.screen.print("+1 Pigstep Disc")
                     actualX = game_state.world.bound_bastion[j][0][1]
                     actualY = game_state.world.bound_bastion[j][1][1]
@@ -527,19 +524,19 @@ def commands(number: int, val: str, game_state: GameState) -> None:
                     R_golden_carrot_val = game_state.rng.next_random(0, 6)
                     R_golden_apple_val = game_state.rng.next_random(0, 2)
                     R_obsidian_val = game_state.rng.next_random(0, 3)
-                    game_state.player.inventory.add(Item("Iron Ingot", R_iron_val, None, None))  # Add Iron Ingot
+                    game_state.player.inventory.add(Item.new("Iron Ingot", R_iron_val))  # Add Iron Ingot
                     game_state.screen.print(f"+{R_iron_val} Iron Ingot")
-                    game_state.player.inventory.add(Item("Flint", R_flint_val, None, None))  # Add Flint
+                    game_state.player.inventory.add(Item.new("Flint", R_flint_val))  # Add Flint
                     game_state.screen.print(f"+{R_flint_val} Flint")
                     if R_golden_carrot_val > 0:  # Add Golden Carrot
                         game_state.screen.print(f"+{R_golden_carrot_val} Golden Carrot")
-                        game_state.player.inventory.add(Item("Golden Carrot", R_golden_carrot_val, None, None))
+                        game_state.player.inventory.add(Item.new("Golden Carrot", R_golden_carrot_val))
                     if R_golden_apple_val > 0:  # Add Golden Apple
                         game_state.screen.print(f"+{R_golden_apple_val} Golden Apple")
-                        game_state.player.inventory.add(Item("Golden Apple", R_golden_apple_val, None, None))
+                        game_state.player.inventory.add(Item.new("Golden Apple", R_golden_apple_val))
                     if R_obsidian_val > 0:  # Add Obsidian
                         game_state.screen.print(f"+{R_obsidian_val} Obsidian")
-                        game_state.player.inventory.add(Item("Obsidian", R_obsidian_val, None, None))
+                        game_state.player.inventory.add(Item.new("Obsidian", R_obsidian_val))
                     actualX = game_state.world.bound_ruined_portal[j][0][1]
                     actualY = game_state.world.bound_ruined_portal[j][1][1]
                     game_state.world.empty_ruined_portal1.append([actualX, actualY])

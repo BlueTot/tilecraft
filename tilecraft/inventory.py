@@ -172,12 +172,12 @@ class EnchantmentPair:
     main_enchantment: Optional[Enchantment]
     optional_enchantment: Optional[Enchantment]
 
-    def enchantment_list(self) -> Optional[list[Enchantment]]:
+    def enchantment_list(self) -> list[Enchantment]:
         """
-            Returns a list of enchantments excluding None if possible, otherwise None
+            Returns a list of enchantments excluding None if possible
         """
         if self.main_enchantment is None:
-            return None
+            return []
         if self.optional_enchantment is None:
             return [Enchantment.clone(self.main_enchantment)]
         return [Enchantment.clone(self.main_enchantment), Enchantment.clone(self.optional_enchantment)]
@@ -263,7 +263,7 @@ class EnchantingTable:
             Box 3 - Enchants start at LEVEL 0, MAX 5, extras start LEVEL 3, MAX 3
         """
 
-        if self.items[0] is None or self.items[0].enchantments is not None:
+        if self.items[0] is None or self.items[0].is_enchanted:
             self.__options = [EnchantmentPair(None, None) for _ in range(self.NUM_BOXES)]
             return
 
@@ -456,7 +456,7 @@ class Grindstone:
             return
 
         # disenchant main slot
-        if self.items[1] is None and self.items[0].enchantments is not None:
+        if self.items[1] is None and self.items[0].is_enchanted:
             self.items[2] = Item.clone(self.items[0]).disenchant()
             return
 

@@ -24,7 +24,7 @@ def prepare_enchanting(table: EnchantingTable, *, lapis, experience) -> Item:
     """
         Prepare selectable options and resources; return the original input item.
     """
-    original = Item("Iron Pickaxe", 1, None, 10)
+    original = Item("Iron Pickaxe", 1, [], 10)
     table.items[0] = original
     table.items[1] = Item.new("Lapis Lazuli", lapis) if lapis > 0 else None
     table.experience.levels = float(experience)
@@ -99,7 +99,7 @@ def test_enchanting_generates_options_for_tools_and_armour(
     ])
     assert [table.optional_enchantment_at(1), table.optional_enchantment_at(2)] == [expected_optional(i) for i in expected_extras[boundary]]
     assert table.rng.next_random.call_args_list == [call(*bounds) for bounds in random_ranges]
-    assert table.items[0].enchantments is None
+    assert not table.items[0].is_enchanted
     table.experience.subtract.assert_not_called()
 
 
@@ -155,7 +155,7 @@ def test_enchanting_does_not_consume_resources_when_cost_cannot_be_paid(table: E
     table.enchant(choice)
 
     assert table.items[0] is original
-    assert original.enchantments is None
+    assert not original.is_enchanted
     assert original.durability == 10
     if lapis_count > 0:
         assert table.items[1].number == lapis_count
@@ -180,7 +180,7 @@ def test_enchanting_upgrade_cost_and_maximum_level(
         Upgrade once for four bookshelves, refresh options, and stop at level five.
     """
     table.enchanting_level = level
-    original = Item("Iron Pickaxe", 1, None, 10)
+    original = Item("Iron Pickaxe", 1, [], 10)
     table.items[0] = original
     table.items[1] = Item.new("Lapis Lazuli", 7)
     table.items[2] = Item.new("Bookshelf", bookshelves) if bookshelves > 0 else None
@@ -200,7 +200,7 @@ def test_enchanting_upgrade_cost_and_maximum_level(
     else:
         assert table.items[2] is None
     assert table.items[0] is original
-    assert original.enchantments is None
+    assert not original.is_enchanted
     assert original.durability == 10
     assert table.items[1].number == 7
     table.experience.subtract.assert_not_called()
@@ -301,10 +301,10 @@ def test_enchanting_never_produces_none_enchantments(
     if level == 0 and (choice < 3 or boundary == 0):
         # Disabled options must leave the original item and resources unchanged.
         assert result is original
-        assert result.enchantments is None
+        assert not result.is_enchanted
         assert table.items[1].number == 3
         table.experience.subtract.assert_not_called()
     else:
-        assert result.enchantments is not None
+        assert result.is_enchanted
         assert result.enchantments
         assert None not in result.enchantments

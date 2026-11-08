@@ -238,7 +238,7 @@ class Item:
 
     name: str
     number: int
-    enchantments: Optional[tuple[Enchantment, ...]]
+    enchantments: tuple[Enchantment, ...]
     durability: Optional[int]
 
     VALID_TILES = {
@@ -249,8 +249,7 @@ class Item:
     def __post_init__(self) -> None:
 
         # normalise enchantments as tuple, as type hints do not prevent passing a list at runtime
-        if self.enchantments is not None:
-            object.__setattr__(self, "enchantments", tuple(self.enchantments))
+        object.__setattr__(self, "enchantments", tuple(self.enchantments))
 
         if self.number <= 0:
             raise ValueError("number must be positive")
@@ -302,7 +301,7 @@ class Item:
     @property
     def rarity(self) -> int:
         """ Rarity of the item, as an integer """
-        if self.enchantments is None:
+        if not self.is_enchanted:
             return ITEM_TYPES[self.name].rarity
         return ITEM_TYPES[self.name].rarity + 1
 
@@ -325,6 +324,12 @@ class Item:
         return self.name if self.has_tile else None
 
 
+    @property
+    def is_enchanted(self) -> bool:
+        """ True if the item has at least one enchantment """
+        return len(self.enchantments) > 0
+
+
     #########################################################
     #                    CONSTRUCTORS                       #
     #########################################################
@@ -333,7 +338,7 @@ class Item:
     @classmethod
     def new(cls, name: str, number: int) -> Item:
         """ Return a new unenchanted item set to the maximum durability """
-        return cls(name, number, None, ITEM_TYPES[name].max_durability)
+        return cls(name, number, (), ITEM_TYPES[name].max_durability)
 
 
     @classmethod
@@ -362,14 +367,14 @@ class Item:
         return self.with_number(self.number + delta)
 
 
-    def with_enchantments(self, enchantments: Optional[Iterable[Enchantment]]) -> Item:
+    def with_enchantments(self, enchantments: Iterable[Enchantment]) -> Item:
         """ Returns a new instance of the item with the enchantments field set to `enchantments` """
-        return replace(self, enchantments=(tuple(enchantments) if enchantments is not None else None))
+        return replace(self, enchantments=tuple(enchantments))
 
 
     def add_enchantment(self, enchantment: Enchantment) -> Item:
         """ Returns a new instance of the item with an added enchantment """
-        return self.with_enchantments((self.enchantments or ()) + (enchantment,))
+        return self.with_enchantments(self.enchantments + (enchantment,))
 
 
     def with_durability(self, durability: int) -> Optional[Item]:
@@ -400,7 +405,7 @@ class Item:
 
     def disenchant(self) -> Item:
         """ Returns a new instance of the item, with all enchantments removed """
-        return self.with_enchantments(None)
+        return self.with_enchantments(())
 
 
     @staticmethod

@@ -148,7 +148,7 @@ class SmallCraftingWidget(ItemContainerWidget):
             surface.blit(images[i], (cell.x, cell.y))
             pygame.draw.rect(surface, (83, 83,83), cell, 2)
             if (item := self.small_crafting_grid.items[i]) is not None:
-                if item.enchantments is not None:
+                if item.is_enchanted:
                     surface.blit(context.TC_GLINTS[item.name], (cell.x, cell.y))
                 if item.durability is not None and item.max_durability is not None:
                     render_durability_bar(surface, cell.x, cell.y, item.durability, item.max_durability)
@@ -289,7 +289,7 @@ class CraftingTableWidget(ItemContainerWidget):
             surface.blit(images[i], (cell.x, cell.y))
             pygame.draw.rect(surface, (83, 83, 83), cell, 2)
             if (item := self.crafting_grid.items[i]) is not None:
-                if item.enchantments is not None:
+                if item.is_enchanted:
                     surface.blit(context.TC_GLINTS[item.name], (cell.x, cell.y))
                 if item.durability is not None and item.max_durability is not None:
                     render_durability_bar(surface, cell.x, cell.y, item.durability, item.max_durability)

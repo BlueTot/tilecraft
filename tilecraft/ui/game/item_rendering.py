@@ -63,7 +63,7 @@ def render_info_box(display: pygame.Surface, item: Optional[Item], x: int, y: in
     try:
         if item is not None: #Check to prevent crashes
             length_list = [len(item.name * 15)]
-            if item.enchantments is not None:
+            if item.is_enchanted:
                 width = (1 + len(item.enchantments)) * 37
                 for enchantment in item.enchantments:
                     length_list.append(len(str(enchantment.name) + decimal_to_roman(str(enchantment.level))) * 15)
@@ -80,19 +80,17 @@ def render_info_box(display: pygame.Surface, item: Optional[Item], x: int, y: in
             pygame.draw.rect(display, (0, 0, 0), (x, y, length, width))
             display.blit(font.render(item.name, False, item.colour), (x + 15, y + 15))
             if item.durability is not None: #WITH DURABILITY
-                if item.enchantments is not None:
-                    for i, enchantment in enumerate(item.enchantments):
-                        display.blit(
-                            font.render(f'{enchantment.name} {decimal_to_roman(enchantment.level)}', False, (175, 175, 175)), 
-                            (x + 15, y + 15 + (i + 1) * 22)
-                        )
+                for i, enchantment in enumerate(item.enchantments):
+                    display.blit(
+                        font.render(f'{enchantment.name} {decimal_to_roman(enchantment.level)}', False, (175, 175, 175)), 
+                        (x + 15, y + 15 + (i + 1) * 22)
+                    )
                 display.blit(font.render(f"Durability: {item.durability}/{item.max_durability}", False, (175, 175, 175)), (x + 15, y + width - 20))
             else: #EVERYTHING ELSE
-                if item.enchantments is not None:
-                    for i, enchantment in enumerate(item.enchantments):
-                        display.blit(
-                            font.render(f'{enchantment.name} {decimal_to_roman(enchantment.level)}', False, (175, 175, 175)), 
-                            (x + 15, y + 15 + (i + 1) * 22)
-                        )
+                for i, enchantment in enumerate(item.enchantments):
+                    display.blit(
+                        font.render(f'{enchantment.name} {decimal_to_roman(enchantment.level)}', False, (175, 175, 175)), 
+                        (x + 15, y + 15 + (i + 1) * 22)
+                    )
     except IndexError:
         pass

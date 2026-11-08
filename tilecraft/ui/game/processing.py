@@ -136,7 +136,7 @@ class FurnaceWidget(ItemContainerWidget):
             pygame.draw.rect(surface, (83, 83, 83), cell, 2)
             if (item := self.furnace.items[i]) is None:
                 continue
-            if item.enchantments is not None:
+            if item.is_enchanted:
                 surface.blit(context.TC_GLINTS[item.name], (cell.x, cell.y))
             if item.durability is not None and item.max_durability is not None:
                 render_durability_bar(surface, cell.x, cell.y, item.durability, item.max_durability)
@@ -303,7 +303,7 @@ class EnchantingTableWidget(ItemContainerWidget):
             pygame.draw.rect(surface, (83, 83, 83), cell, 2)
             if (item := self.enchanting_table.items[i]) is None:
                 continue
-            if item.enchantments is not None:
+            if item.is_enchanted:
                 surface.blit(context.TC_GLINTS[item.name], (cell.x, cell.y))
             if item.durability is not None and item.max_durability is not None:
                 render_durability_bar(surface, cell.x, cell.y, item.durability, item.max_durability)
@@ -459,7 +459,7 @@ class CompressorWidget(ItemContainerWidget):
             pygame.draw.rect(surface, (83, 83, 83), cell, 2)
             if (item := self.compressor.items[i]) is None:
                 continue
-            if item.enchantments is not None:
+            if item.is_enchanted:
                 surface.blit(context.TC_GLINTS[item.name], (cell.x, cell.y))
             if item.durability is not None and item.max_durability is not None:
                 render_durability_bar(surface, cell.x, cell.y, item.durability, item.max_durability)
@@ -560,7 +560,7 @@ class GrindstoneWidget(ItemContainerWidget):
             if (
                 self.grindstone.items[0] is not None and
                 self.grindstone.items[1] is None and
-                self.grindstone.items[0].enchantments is not None
+                self.grindstone.items[0].is_enchanted
             ):
                 self.grindstone.repair_and_disenchant()
             self.grindstone.items = [None, None, None]
@@ -607,7 +607,7 @@ class GrindstoneWidget(ItemContainerWidget):
             pygame.draw.rect(surface, (83, 83, 83), cell, 2)
             if (item := self.grindstone.items[i]) is None:
                 continue
-            if item.enchantments is not None:
+            if item.is_enchanted:
                 surface.blit(context.TC_GLINTS[item.name], (cell.x, cell.y))
             if item.durability is not None and item.max_durability is not None:
                 render_durability_bar(surface, cell.x, cell.y, item.durability, item.max_durability)

@@ -154,7 +154,7 @@ class InventoryWidget(ItemContainerWidget):
             surface.blit(images[i], (cell.x, cell.y))
             pygame.draw.rect(surface, self.COLOUR, cell, self.WIDTH)
             if (item := self.inventory.items[i]) is not None:
-                if item.enchantments is not None:
+                if item.is_enchanted:
                     surface.blit(context.TC_GLINTS[item.name], (cell.x, cell.y))
                 if item.durability is not None and item.max_durability is not None:
                     render_durability_bar(surface, cell.x, cell.y, item.durability, item.max_durability)
@@ -284,7 +284,7 @@ class ArmourWidget(ItemContainerWidget):
             surface.blit(images[i], (cell.x, cell.y))
             pygame.draw.rect(surface, (83, 83, 83), cell, 2)
             if (item := self.armour.items[i]) is not None:
-                if item.enchantments is not None:
+                if item.is_enchanted:
                     surface.blit(context.TC_GLINTS[item.name], (cell.x, cell.y))
                 if item.durability is not None and item.max_durability is not None:
                     render_durability_bar(surface, cell.x, cell.y, item.durability, item.max_durability)
@@ -385,7 +385,7 @@ class HotbarWidget(ItemContainerWidget):
             surface.blit(context.INFOBAR_IMAGES["slot"], (coordinate.x, coordinate.y)) # background
             surface.blit(images[i], (coordinate.x, coordinate.y))
             if (item := self.inventory.items[i+27]) is not None:
-                if item.enchantments is not None:
+                if item.is_enchanted:
                     surface.blit(context.TC_GLINTS[item.name], (coordinate.x, coordinate.y))
                 if item.durability is not None and item.max_durability is not None:
                     render_durability_bar(surface, coordinate.x, coordinate.y, item.durability, item.max_durability)
@@ -428,7 +428,7 @@ class HoldingItemWidget(ItemContainerWidget):
 
         surface.blit(image, (x, y))
         surface.blit(self.__font.render(number, False, (255, 255, 255)), (x + 52, y + 52))
-        if item.enchantments is not None:
+        if item.is_enchanted:
             surface.blit(context.TC_GLINTS[item.name], (x, y))
         if item.durability is not None and item.max_durability is not None:
             render_durability_bar(surface, x, y, item.durability, item.max_durability)

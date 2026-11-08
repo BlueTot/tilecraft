@@ -62,7 +62,7 @@ def test_add_item_to_empty_inventory():
     """
 
     inventory = Inventory()
-    item = Item(name="Dirt", number=10, enchantments=None, durability=None)
+    item = Item.new("Dirt", 10)
 
     inventory.add(item)
 
@@ -75,7 +75,7 @@ def test_adding_item_to_inventory_does_not_modify_it():
     """
 
     inventory = Inventory()
-    item = Item(name="Dirt", number=25, enchantments=None, durability=None)
+    item = Item.new("Dirt", 25)
 
     inventory.add(item)
     assert item.number == 25
@@ -101,11 +101,11 @@ def test_add_item_to_partial_stack_adds_to_it():
     inventory = Inventory()
 
     base_number = 30
-    base_item = Item(name="Dirt", number=base_number, enchantments=None, durability=None)
+    base_item = Item.new("Dirt", base_number)
     inventory.add(base_item)
 
     new_number = 30
-    new_item = Item(name="Dirt", number=new_number, enchantments=None, durability=None)
+    new_item = Item.new("Dirt", new_number)
     inventory.add(new_item)
 
     assert inventory_contains_item(inventory, "Dirt", base_number + new_number)
@@ -117,8 +117,8 @@ def test_add_items_with_total_count_64_uses_one_slot():
         uses one slot in the inventory
     """
     inventory = Inventory()
-    inventory.add(Item("Dirt", 40, None, None))
-    inventory.add(Item("Dirt", 24, None, None))
+    inventory.add(Item.new("Dirt", 40))
+    inventory.add(Item.new("Dirt", 24))
 
     assert count_number_of_slots(inventory, "Dirt") == 1
     assert count_items(inventory, "Dirt") == 64
@@ -130,10 +130,10 @@ def test_adding_items_preserves_total_quantity():
     """
 
     inventory = Inventory()
-    inventory.add(Item("Dirt", 60, None, None))
+    inventory.add(Item.new("Dirt", 60))
 
     before = count_items(inventory, "Dirt")
-    inventory.add(Item("Dirt", 10, None, None))
+    inventory.add(Item.new("Dirt", 10))
     after = count_items(inventory, "Dirt")
 
     assert after == before + 10
@@ -156,8 +156,8 @@ def test_stackable_items_are_split_correctly(quantity: int, expected_stacks: lis
         multiple stacks correctly
     """
 
-    inventory = Inventory() 
-    inventory.add(Item("Dirt", quantity, None, None))
+    inventory = Inventory()
+    inventory.add(Item.new("Dirt", quantity))
 
     actual_stacks = sorted(
         item.number
@@ -175,10 +175,10 @@ def test_add_fills_existing_partial_stacks_before_empty_slots():
     """
 
     inventory = Inventory()
-    inventory.items[0] = Item("Dirt", 60, None, None)
-    inventory.items[1] = Item("Dirt", 50, None, None)
+    inventory.items[0] = Item.new("Dirt", 60)
+    inventory.items[1] = Item.new("Dirt", 50)
 
-    inventory.add(Item("Dirt", 10, None, None))
+    inventory.add(Item.new("Dirt", 10))
 
     stacks = sorted(
         item.number
@@ -195,7 +195,7 @@ def test_add_non_stackable_items_uses_separate_slots():
     """
 
     inventory = Inventory()
-    inventory.add(Item("Wooden Pickaxe", 10, None, None))
+    inventory.add(Item.new("Wooden Pickaxe", 10))
 
     assert count_items(inventory, "Wooden Pickaxe") == 10
     assert count_number_of_slots(inventory, "Wooden Pickaxe") == 10
@@ -208,8 +208,8 @@ def test_different_item_types_do_not_combine():
 
     inventory = Inventory()
 
-    inventory.add(Item("Dirt", 10, None, None))
-    inventory.add(Item("Sand", 12, None, None))
+    inventory.add(Item.new("Dirt", 10))
+    inventory.add(Item.new("Sand", 12))
 
     assert count_items(inventory, "Dirt") == 10
     assert count_items(inventory, "Sand") == 12
@@ -223,12 +223,12 @@ def test_full_inventory_returns_correct_amount_remaining():
     """
 
     inventory = Inventory()
-    remaining = inventory.add(Item("Dirt", 36*64 - 32, None, None))
+    remaining = inventory.add(Item.new("Dirt", 36*64 - 32))
     assert count_items(inventory, "Dirt") == 36*64 - 32
     assert remaining == 0
 
-    remaining = inventory.add(Item("Dirt", 48, None, None))
-    assert remaining == 16 
+    remaining = inventory.add(Item.new("Dirt", 48))
+    assert remaining == 16
 
 
 def test_full_inventory_still_accepts_items_into_matching_partial_stacks():
@@ -238,11 +238,11 @@ def test_full_inventory_still_accepts_items_into_matching_partial_stacks():
     """
 
     inventory = Inventory()
-    assert inventory.add(Item("Dirt", 35*64, None, None)) == 0
-    assert inventory.add(Item("Oak Log", 32, None, None)) == 0
+    assert inventory.add(Item.new("Dirt", 35*64)) == 0
+    assert inventory.add(Item.new("Oak Log", 32)) == 0
 
     assert all(slot is not None for slot in inventory.items)
-    assert inventory.add(Item("Oak Log", 16, None, None)) == 0
+    assert inventory.add(Item.new("Oak Log", 16)) == 0
     assert count_items(inventory, "Oak Log") == 32 + 16
 
 
@@ -265,7 +265,7 @@ def test_select_hotbar_returns_correct_item():
 
     inventory = Inventory()
     for index in range(9):
-        inventory.items[index+27] = Item("Dirt", index+1, None, None)
+        inventory.items[index+27] = Item.new("Dirt", index+1)
 
     for index in range(9):
         inventory.selected_hotbar = index
@@ -281,7 +281,7 @@ def test_setting_hotbar_item_updates_selected_slot():
 
     inventory = Inventory()
     inventory.selected_hotbar = 3
-    item = Item("Dirt", 10, None, None)
+    item = Item.new("Dirt", 10)
 
     inventory.hotbar_item = item
 

@@ -25,8 +25,7 @@ def give(screen, item_id: str):
         amount = int(amount)
         length = len(list(ITEM_TYPES.keys())) - 1
         if 0 <= code <= length:
-            add_item = Item(list(ITEM_TYPES.keys())[code], amount, None, list(ITEM_TYPES.values())[code].max_durability)
-            return add_item
+            return Item.new(list(ITEM_TYPES.keys())[code], amount)
         else:
             screen.print(f"Please enter a number between 0 and {length}.")
             return None
