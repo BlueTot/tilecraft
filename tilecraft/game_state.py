@@ -8,7 +8,8 @@ import pygame
 
 from tilecraft import ASSETS_DIR
 from .cheats import print_cheats, give, enchant, teleport, experience
-from .constants import ITEM_TYPES, Enchantment, Item, RandomNumberGenerator
+from .constants import RandomNumberGenerator
+from .items import ITEM_TYPES, Enchantment, Item
 from .player import Player
 from .world import TilecraftWorld
 

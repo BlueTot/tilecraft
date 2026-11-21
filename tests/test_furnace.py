@@ -1,6 +1,6 @@
 import pytest
 
-from tilecraft.constants import Enchantment, Item
+from tilecraft.items import Enchantment, Item
 from tilecraft.inventory import FurnaceInterface
 from tilecraft.player_info import Experience
 

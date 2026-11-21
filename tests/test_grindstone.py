@@ -3,7 +3,7 @@ from typing import Optional
 import pytest
 from unittest.mock import create_autospec
 
-from tilecraft.constants import Enchantment, Item
+from tilecraft.items import Enchantment, Item
 from tilecraft.inventory import Grindstone
 from tilecraft.player_info import Experience
 

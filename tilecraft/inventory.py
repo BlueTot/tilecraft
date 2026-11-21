@@ -4,7 +4,8 @@ from dataclasses import dataclass
 from typing import Optional
 
 
-from .constants import Enchantment, Item, RandomNumberGenerator
+from .constants import RandomNumberGenerator
+from .items import Enchantment, Item
 from .player_info import Experience
 
 

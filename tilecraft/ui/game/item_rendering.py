@@ -2,7 +2,7 @@ import math
 from typing import Optional
 import pygame
 
-from tilecraft.constants import Item
+from tilecraft.items import Item
 
 def durability_colour(durability: int, max_durability: int) -> Optional[str]:
     """

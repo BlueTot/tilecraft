@@ -2,7 +2,7 @@ import dataclasses
 
 import pytest
 
-from tilecraft.constants import Enchantment, Item
+from tilecraft.items import Enchantment, Item
 
 
 ##################################
