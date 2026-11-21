@@ -134,3 +134,33 @@ def test_adding_enchantments_adds_to_existing_list(original: list[Enchantment]):
     base = Item.new("Wooden Pickaxe", 1).with_enchantments(original)
     
     assert list(base.add_enchantment(enchantment_to_add).enchantments) == original + [enchantment_to_add]
+
+
+@pytest.mark.parametrize(("name", "level"), [
+    ("Efficiency", 5),
+    ("Unbreaking", 3)
+])
+def test_enchantment_constructors_are_correct(name: str, level: int):
+    """ Asserts that both Enchantment constructors work correctly """
+    first_constructor = Enchantment(name, level)
+    second_constructor = Enchantment.new_optional(name, level)
+    assert first_constructor == second_constructor
+    assert first_constructor.name == name and first_constructor.level == level
+
+
+@pytest.mark.parametrize("level", [0, -1])
+def test_enchantment_raises_error_when_instantiated_with_non_positive_level(level: int):
+    """ Asserts Enchantment constructor throws an exception when instantiated with a non-positive level """
+    with pytest.raises(ValueError):
+        _ = Enchantment("Efficiency", level)
+
+
+def test_enchantment_new_optional_returns_none_for_level_zero():
+    """ Asserts Enchantment.new_optional returns None when level is 0 """
+    assert Enchantment.new_optional("Efficiency", 0) is None
+
+
+def test_enchantment_new_optional_raises_error_when_level_is_negative():
+    """ Asserts Enchantment.new_optional raises an error when level is negative """
+    with pytest.raises(ValueError):
+        _ = Enchantment.new_optional("Efficiency", -1)

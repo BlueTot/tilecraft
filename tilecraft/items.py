@@ -12,7 +12,7 @@ class Enchantment:
 
 
     def __post_init__(self) -> None:
-        if self.level == 0:
+        if self.level <= 0:
             raise ValueError("Enchantment level must not be 0")
 
 
@@ -21,6 +21,8 @@ class Enchantment:
         """
             Returns None if `level` is 0, otherwise a new Enchantment
         """
+        if level < 0:
+            raise ValueError("Enchantment level cannot be negative")
         if level == 0:
             return None
         return cls(name, level)
