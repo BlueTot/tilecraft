@@ -1,10 +1,9 @@
-from tkinter import E
-
 import pytest
 from unittest.mock import call, create_autospec
 
-from tilecraft.constants import Enchantment, Item, RandomNumberGenerator
+from tilecraft.constants import RandomNumberGenerator
 from tilecraft.inventory import EnchantingTable
+from tilecraft.items import Enchantment, Item
 from tilecraft.player_info import Experience
 
 

@@ -1,10 +1,11 @@
 import math
 import pygame
 
-from .constants import Context, RandomNumberGenerator, Item
+from .constants import Context, RandomNumberGenerator
 from .generation import Tile, UndergroundGeneratePortal, OverworldGeneratePortal
 from .inventory import Inventory, Armour, FurnaceInterface, EnchantingTable, Compressor, Grindstone, HoldingItem
 from .crafting import SmallCraftingGrid, LargeCraftingGrid
+from .items import Item
 from .player_info import Health, Hunger, Experience
 from .world import TilecraftWorld
 

@@ -1,4 +1,4 @@
-from .constants import ITEM_TYPES, Enchantment, Item
+from .items import ITEM_TYPES, Enchantment, Item
 from .inventory import Inventory
 from .player_info import Experience
 

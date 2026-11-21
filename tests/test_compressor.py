@@ -2,7 +2,7 @@ from typing import Optional
 
 import pytest
 
-from tilecraft.constants import Enchantment, Item
+from tilecraft.items import Enchantment, Item
 from tilecraft.inventory import Compressor
 
 

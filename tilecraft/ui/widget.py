@@ -2,7 +2,8 @@ from abc import ABC, abstractmethod
 from typing import Optional
 import pygame
 
-from tilecraft.constants import ITEM_IMAGE_MAPPING, Context, Item
+from tilecraft.constants import ITEM_IMAGE_MAPPING, Context
+from tilecraft.items import Item
 
 
 class Widget(ABC):

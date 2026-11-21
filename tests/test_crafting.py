@@ -2,7 +2,7 @@ from typing import Optional
 
 import pytest
 
-from tilecraft.constants import Item
+from tilecraft.items import Item
 from tilecraft.crafting import SmallCraftingGrid, LargeCraftingGrid
 
 

@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from typing import Optional
 from dataclasses import dataclass
 
-from .constants import Item
+from .items import Item
 
 
 @dataclass
