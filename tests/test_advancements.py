@@ -175,6 +175,38 @@ class WeNeedToGoDeeperAdvancement(Advancement):
         return [ callback ]
 
 
+class EnchanterAdvancement(Advancement):
+    """ Enchanter """
+
+    @property
+    def name(self) -> str:
+        return "Enchanter"
+
+    def completion_methods(self) -> list[Callable[[], None]]:
+        def make_inventory_callback(item_name: str, enchantments: list[Enchantment]) -> Callable[[], None]:
+            def callback() -> None:
+                self.context.inventory.add(Item.new(item_name, 1).with_enchantments(enchantments))
+            return callback
+
+        def make_armour_callback(index: int, item_name: str, enchantments: list[Enchantment]) -> Callable[[], None]:
+            def callback() -> None:
+                self.context.armour.items[index] = Item.new(item_name, 1).with_enchantments(enchantments)
+            return callback
+
+        callbacks = []
+        callbacks.extend([
+            make_inventory_callback(name, enchantments)
+            for name in ("Wooden Pickaxe", "Tier 1 Iron Plate")
+            for enchantments in ([Enchantment("Efficiency", 5)], [Enchantment("Protection", 4), Enchantment("Unbreaking", 3)])
+        ])
+        callbacks.extend([
+            make_armour_callback(0, "Tier 1 Iron Plate", [Enchantment("Protection", 4)]),
+            make_armour_callback(1, "Tier 2 Diamond Plate", [Enchantment("Efficiency", 3), Enchantment("Unbreaking", 1)]),
+            make_armour_callback(2, "Tier 3 Iron Plate", [Enchantment("Unbreaking", 2), Enchantment("Unbreaking", 2)])
+        ])
+        return callbacks
+
+
 class GodGearAdvancement(Advancement):
     """ God Gear """
 
@@ -207,6 +239,7 @@ class GodGearAdvancement(Advancement):
     CoverMeWithDiamondsAdvancement,
     IceBucketChallengeAdvancement,
     WeNeedToGoDeeperAdvancement,
+    EnchanterAdvancement,
     GodGearAdvancement
 ])
 def test_advancements_trigger_correctly(constructor: Callable[[GameContext], Advancement]):
