@@ -107,6 +107,74 @@ class IsntItIronPickAdvancement(Advancement):
         return [ callback ]
 
 
+class SuitUpAdvancement(Advancement):
+    """ Suit Up"""
+
+    @property
+    def name(self):
+        return "Suit Up"
+
+    def completion_methods(self):
+        def make_callback(item_name: str) -> Callable[[], None]:
+            def callback():
+                self.context.inventory.add(Item.new(item_name, 1))
+            return callback
+        return [make_callback(name) for name in ("Tier 1 Iron Plate", "Tier 2 Iron Plate", "Tier 3 Iron Plate")]
+
+class DiamondsAdvancement(Advancement):
+    """ Diamonds! """
+
+    @property
+    def name(self):
+        return "Diamonds!"
+
+    def completion_methods(self):
+        def callback() -> None:
+            self.context.inventory.add(Item.new("Diamond", 1))
+        return [ callback ]
+
+
+class CoverMeWithDiamondsAdvancement(Advancement):
+    """ Cover Me with Diamonds """
+
+    @property
+    def name(self):
+        return "Cover Me with Diamonds"
+
+    def completion_methods(self):
+        def make_callback(item_name: str) -> Callable[[], None]:
+            def callback():
+                self.context.inventory.add(Item.new(item_name, 1))
+            return callback
+        return [make_callback(name) for name in ("Tier 1 Diamond Plate", "Tier 2 Diamond Plate", "Tier 3 Diamond Plate")]
+
+
+class IceBucketChallengeAdvancement(Advancement):
+    """ Ice Bucket Challenge """
+
+    @property
+    def name(self):
+        return "Ice Bucket Challenge"
+
+    def completion_methods(self):
+        def callback() -> None:
+            self.context.inventory.add(Item.new("Obsidian", 1))
+        return [ callback ]
+
+
+class WeNeedToGoDeeperAdvancement(Advancement):
+    """ We Need to Go Deeper """
+
+    @property
+    def name(self):
+        return "We Need to Go Deeper"
+
+    def completion_methods(self):
+        def callback() -> None:
+            self.context.dimension = "Nether"
+        return [ callback ]
+
+
 ##################################
 #             TESTS              #
 ##################################
@@ -117,7 +185,12 @@ class IsntItIronPickAdvancement(Advancement):
     GettingAnUpgradeAdvancement,
     IntoTheDepthsAdvancement,
     AcquireHardwareAdvancement,
-    IsntItIronPickAdvancement
+    IsntItIronPickAdvancement,
+    SuitUpAdvancement,
+    DiamondsAdvancement,
+    CoverMeWithDiamondsAdvancement,
+    IceBucketChallengeAdvancement,
+    WeNeedToGoDeeperAdvancement
 ])
 def test_advancements_trigger_correctly(constructor: Callable[[GameContext], Advancement]):
     """ Asserts that all advancements trigger when their precondition is met """
