@@ -37,8 +37,8 @@ class Advancement(ABC):
 
 
     @abstractmethod
-    def complete(self) -> None:
-        """ Complete the advancement by triggering one or more gamestate actions """
+    def completion_methods(self) -> list[Callable[[], None]]:
+        """ Returns a list of possible ways to complete the advancement """
         
 
 class StoneAgeAdvancement(Advancement):
@@ -48,8 +48,11 @@ class StoneAgeAdvancement(Advancement):
     def name(self):
         return "Stone Age"
 
-    def complete(self) -> None:
-        self.context.inventory.add(Item.new("Cobblestone", 1))
+    def completion_methods(self) -> list[Callable[[], None]]:
+        def callback() -> None:
+            self.context.inventory.add(Item.new("Cobblestone", 1))
+        return [ callback ]
+
 
 
 class GettingAnUpgradeAdvancement(Advancement):
@@ -59,8 +62,10 @@ class GettingAnUpgradeAdvancement(Advancement):
     def name(self):
         return "Getting an Upgrade"
 
-    def complete(self) -> None:
-        self.context.inventory.add(Item.new("Stone Pickaxe", 1))
+    def completion_methods(self) -> list[Callable[[], None]]:
+        def callback() -> None:
+            self.context.inventory.add(Item.new("Stone Pickaxe", 1))
+        return [ callback ]
 
 
 class IntoTheDepthsAdvancement(Advancement):
@@ -70,8 +75,10 @@ class IntoTheDepthsAdvancement(Advancement):
     def name(self):
         return "Into the Depths"
 
-    def complete(self):
-        self.context.dimension = "Underground"
+    def completion_methods(self) -> list[Callable[[], None]]:
+        def callback() -> None:
+            self.context.dimension = "Underground"
+        return [ callback ]
 
 
 class AcquireHardwareAdvancement(Advancement):
@@ -81,8 +88,10 @@ class AcquireHardwareAdvancement(Advancement):
     def name(self):
         return "Acquire Hardware"
 
-    def complete(self):
-        self.context.inventory.add(Item.new("Iron Ingot", 1))
+    def completion_methods(self) -> list[Callable[[], None]]:
+        def callback() -> None:
+            self.context.inventory.add(Item.new("Iron Ingot", 1))
+        return [ callback ]
 
 
 class IsntItIronPickAdvancement(Advancement):
@@ -92,8 +101,10 @@ class IsntItIronPickAdvancement(Advancement):
     def name(self):
         return "Isn't it Iron Pick"
 
-    def complete(self):
-        self.context.inventory.add(Item.new("Iron Pickaxe", 1))
+    def completion_methods(self) -> list[Callable[[], None]]:
+        def callback() -> None:
+            self.context.inventory.add(Item.new("Iron Pickaxe", 1))
+        return [ callback ]
 
 
 ##################################
@@ -113,10 +124,20 @@ def test_advancements_trigger_correctly(constructor: Callable[[GameContext], Adv
 
     screen = create_autospec(Screen, instance=True)
     timer = Mock(spec=SpeedrunTimer)
-    context = GameContext(Inventory(), Armour(), "Overworld")
-    advancement = constructor(context)
-    advancements = []
 
-    advancement.complete()
-    advancements = advancements_update(screen, timer, advancements, context.inventory.items, context.armour.items, context.dimension)
-    assert advancement.name in advancements
+    index = 0
+    length = 1
+    
+    while index < length:
+        context = GameContext(Inventory(), Armour(), "Overworld")
+        advancement = constructor(context)
+        methods = advancement.completion_methods()
+        length = len(methods)
+        completion_method = methods[index]
+        advancements = []
+
+        completion_method()
+
+        advancements = advancements_update(screen, timer, advancements, context.inventory.items, context.armour.items, context.dimension)
+        assert advancement.name in advancements
+        index += 1
