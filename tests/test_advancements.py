@@ -1,11 +1,10 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Callable
-from unittest.mock import Mock, create_autospec
 
 import pytest
 
-from tilecraft.game_state import Screen, SpeedrunTimer, advancements_update
+from tilecraft.game_state import advancements_update
 from tilecraft.inventory import Armour, Inventory
 from tilecraft.items import Enchantment, Item
 
@@ -245,9 +244,6 @@ class GodGearAdvancement(Advancement):
 def test_advancements_trigger_correctly(constructor: Callable[[GameContext], Advancement]):
     """ Asserts that all advancements trigger when their precondition is met """
 
-    screen = create_autospec(Screen, instance=True)
-    timer = Mock(spec=SpeedrunTimer)
-
     index = 0
     length = 1
     
@@ -261,6 +257,7 @@ def test_advancements_trigger_correctly(constructor: Callable[[GameContext], Adv
 
         completion_method()
 
-        advancements = advancements_update(screen, timer, advancements, context.inventory.items, context.armour.items, context.dimension)
+        newly_unlocked = advancements_update(advancements, context.inventory.items, context.armour.items, context.dimension)
         assert advancement.name in advancements
+        assert advancement.name in newly_unlocked
         index += 1

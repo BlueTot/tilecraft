@@ -187,7 +187,17 @@ class GameScreen(GameRunningScreen):
         self.hotbar_widget.render(world_map, self.context) # render hotbar
 
         self.game_state.timer.render(world_map, self.game_state.play_time_seconds)
-        advancements_update(self.game_state.screen, self.game_state.timer, self.game_state.player.advancements, self.game_state.player.inventory.items, self.game_state.player.armour.items, self.game_state.player.dimension)  # Update Advancements
+
+        # update advancements and print notifications to screen
+        newly_unlocked_advancements = advancements_update(
+            self.game_state.player.advancements, self.game_state.player.inventory.items,
+            self.game_state.player.armour.items, self.game_state.player.dimension
+        )
+        for advancement in newly_unlocked_advancements:
+            self.game_state.screen.print(f"Advancement unlocked: {advancement}")
+            if advancement == "God Gear":
+                self.game_state.timer.running = False
+        
         self.game_state.screen.render(world_map) #Render Text self.game_state.screen
 
         # general rendering
