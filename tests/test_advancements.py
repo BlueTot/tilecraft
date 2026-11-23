@@ -4,7 +4,7 @@ from typing import Callable
 
 import pytest
 
-from tilecraft.player import AdvancementsManager
+from tilecraft.advancements import AdvancementsManager
 from tilecraft.inventory import Armour, Inventory
 from tilecraft.items import Enchantment, Item
 
