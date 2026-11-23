@@ -1,6 +1,8 @@
 import math
 import pygame
 
+
+from .advancements import AdvancementsManager
 from .constants import Context, RandomNumberGenerator
 from .generation import Tile, UndergroundGeneratePortal, OverworldGeneratePortal
 from .inventory import Inventory, Armour, FurnaceInterface, EnchantingTable, Compressor, Grindstone, HoldingItem
@@ -21,7 +23,6 @@ class Player:
     def __init__(self, context: Context, rng: RandomNumberGenerator, world: TilecraftWorld):
         self.world = world
 
-        self.advancements = []
         self.image = pygame.Surface((32, 32))  # Create Player Image
         self.image.fill((255, 0, 0))  # Fill Player Red
         self.rect = pygame.Rect((359, 359), (32, 32))  # Create Player Rect
@@ -75,6 +76,8 @@ class Player:
         self.compressor = Compressor() # compressor interface
         self.grindstone = Grindstone(self.experience) # grindstone interface
         self.holding_item = HoldingItem()
+
+        self.advancements_manager = AdvancementsManager()
 
 
     def eat(self) -> bool:
