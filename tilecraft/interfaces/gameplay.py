@@ -3,7 +3,7 @@ import pygame
 from tilecraft import ASSETS_DIR
 from tilecraft.constants import SCREEN_WIDTH, Context
 from tilecraft.interfaces.interface import Interface, GameRunningScreen, ScreenID
-from tilecraft.game_state import advancements_update, GameState
+from tilecraft.game_state import GameState
 from tilecraft.ui.game import (
     DebugWidget,
     ExperienceBarWidget,
@@ -48,12 +48,12 @@ class GameScreen(GameRunningScreen):
                     self.request_screen(ScreenID.INVENTORY)
 
                 if event.key == pygame.K_f: # advancements key
-                    if not self.game_state.player.advancements:
+                    if not self.game_state.player.advancements_manager.completed_advancements:
                         self.game_state.screen.print("YOU HAVE NOT EARNED ANY ADVANCEMENTS")
                     else:
                         self.game_state.screen.print("Advancements: ")
-                        for i in self.game_state.player.advancements:
-                            self.game_state.screen.print(f"- {i}")
+                        for advancement in self.game_state.player.advancements_manager.completed_advancements:
+                            self.game_state.screen.print(f"- {advancement}")
 
                 if event.key == pygame.K_t: # input and chat key
                     self.game_state.screen.start_typing('')
@@ -189,9 +189,8 @@ class GameScreen(GameRunningScreen):
         self.game_state.timer.render(world_map, self.game_state.play_time_seconds)
 
         # update advancements and print notifications to screen
-        newly_unlocked_advancements = advancements_update(
-            self.game_state.player.advancements, self.game_state.player.inventory.items,
-            self.game_state.player.armour.items, self.game_state.player.dimension
+        newly_unlocked_advancements = self.game_state.player.advancements_manager.update(
+            self.game_state.player.inventory, self.game_state.player.armour, self.game_state.player.dimension
         )
         for advancement in newly_unlocked_advancements:
             self.game_state.screen.print(f"Advancement unlocked: {advancement}")

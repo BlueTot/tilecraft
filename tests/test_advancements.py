@@ -4,7 +4,7 @@ from typing import Callable
 
 import pytest
 
-from tilecraft.game_state import advancements_update
+from tilecraft.player import AdvancementsManager
 from tilecraft.inventory import Armour, Inventory
 from tilecraft.items import Enchantment, Item
 
@@ -253,11 +253,11 @@ def test_advancements_trigger_correctly(constructor: Callable[[GameContext], Adv
         methods = advancement.completion_methods()
         length = len(methods)
         completion_method = methods[index]
-        advancements = []
+        advancements_manager = AdvancementsManager()
 
         completion_method()
 
-        newly_unlocked = advancements_update(advancements, context.inventory.items, context.armour.items, context.dimension)
-        assert advancement.name in advancements
+        newly_unlocked = advancements_manager.update(context.inventory, context.armour, context.dimension)
+        assert advancement.name in advancements_manager.completed_advancements
         assert advancement.name in newly_unlocked
         index += 1

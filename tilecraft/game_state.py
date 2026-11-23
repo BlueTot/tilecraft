@@ -2,14 +2,13 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from typing import Optional
 
 import pygame
 
 from tilecraft import ASSETS_DIR
 from .cheats import print_cheats, give, enchant, teleport, experience
 from .constants import RandomNumberGenerator
-from .items import ITEM_TYPES, Enchantment, Item
+from .items import ITEM_TYPES, Item
 from .player import Player
 from .world import TilecraftWorld
 
@@ -60,101 +59,6 @@ class SpeedrunTimer:
             self.font.render( self.latest_time_string, True, (0, 0, 0), (255, 255, 255)), 
             (504 - (13 * len(self.latest_time_string)), 0)
         ) #Render Speedrun Timer
-
-
-#Check for completed advancements
-def advancements_update(advancements: list[str], inventory_list: list[Optional[Item]], armour_list: list[Optional[Item]], dimension: str) -> list[str]:
-    """
-        Update the advancements list, returning the list of newly unlocked advancements
-    """
-
-    name_list = [item.name if item is not None else None for item in inventory_list]
-    enchantments_list = [item.enchantments if item is not None else None for item in inventory_list]
-    armour_enchantment_list = [item.enchantments if item is not None else None for item in armour_list]
-    newly_unlocked = []
-
-    if "Stone Age" not in advancements and "Cobblestone" in name_list: #Get Cobblestone
-        advancements.append("Stone Age")
-        newly_unlocked.append("Stone Age")
-
-    if "Getting an Upgrade" not in advancements and "Stone Pickaxe" in name_list: #Get a Stone Pickaxe
-        advancements.append("Getting an Upgrade")
-        newly_unlocked.append("Getting an Upgrade")
-
-    if "Into the Depths" not in advancements and dimension == "Underground": #Enter the underground
-        newly_unlocked.append("Into the Depths")
-        advancements.append("Into the Depths")
-
-    if "Acquire Hardware" not in advancements and "Iron Ingot" in name_list: #Get an Iron Ingot
-        advancements.append("Acquire Hardware")
-        newly_unlocked.append("Acquire Hardware")
-
-    if "Isn't it Iron Pick" not in advancements and "Iron Pickaxe" in name_list: #Get an Iron Pickaxe
-        advancements.append("Isn't it Iron Pick")
-        newly_unlocked.append("Isn't it Iron Pick")
-
-    if ("Suit Up" not in advancements) and ("Tier 1 Iron Plate" in name_list or "Tier 2 Iron Plate" in name_list or "Tier 3 Iron Plate" in name_list): #Get Iron Armour
-        advancements.append("Suit Up")
-        newly_unlocked.append("Suit Up")
-
-    if "Diamonds!" not in advancements and "Diamond" in name_list: #Get Diamonds
-        advancements.append("Diamonds!")
-        newly_unlocked.append("Diamonds!")
-
-    if ("Cover Me with Diamonds" not in advancements) and ("Tier 1 Diamond Plate" in name_list or "Tier 2 Diamond Plate" in name_list or "Tier 3 Diamond Plate" in name_list): #Get Diamond Armour
-        advancements.append("Cover Me with Diamonds")
-        newly_unlocked.append("Cover Me with Diamonds")
-
-    if "Ice Bucket Challenge" not in advancements and "Obsidian" in name_list: #Get Obsidian
-        advancements.append("Ice Bucket Challenge")
-        newly_unlocked.append("Ice Bucket Challenge")
-
-    if "We Need to Go Deeper" not in advancements and dimension == 'Nether': #Go to the Nether
-        newly_unlocked.append("We Need to Go Deeper")
-        advancements.append("We Need to Go Deeper")
-
-    for enchantments in (enchantments_list + armour_enchantment_list):
-        if enchantments is not None and len(enchantments) > 0 and "Enchanter" not in advancements: #Get an enchanted tool or armour piece
-            advancements.append("Enchanter")
-            newly_unlocked.append("Enchanter")
-            break
-
-    slot1, slot2, slot3 = armour_list[0], armour_list[1], armour_list[2]
-    max_t1 = (
-        slot1 is not None and
-        slot1.name == "Tier 1 Diamond Plate" and
-        Enchantment("Protection", 5) in slot1.enchantments and
-        Enchantment("Unbreaking", 3) in slot1.enchantments
-    )
-    max_t2 = (
-        slot2 is not None and
-        slot2.name == "Tier 2 Diamond Plate" and
-        Enchantment("Protection", 5) in slot2.enchantments and
-        Enchantment("Unbreaking", 3) in slot2.enchantments
-    )
-    max_t3 = (
-        slot3 is not None and
-        slot3.name == "Tier 3 Diamond Plate" and
-        Enchantment("Protection", 5) in slot3.enchantments and
-        Enchantment("Unbreaking", 3) in slot3.enchantments
-    )
-
-    if max_t1 and max_t2 and max_t3 and "God Gear" not in advancements: #Get a full set of Protection V Unbreaking III Diamond Armour
-        advancements.append("God Gear")
-        newly_unlocked.append("God Gear")
-
-    return newly_unlocked
-
-
-def check_music_player(screen: Screen, timer: SpeedrunTimer, advancements: list[str]) -> list[str]:
-    """
-        Update the music player advancement's status
-    """
-    if "Music Player" not in advancements:  # Music Player: Play Pigstep
-        advancements.append("Music Player")
-        screen.print("Advancement unlocked: Music Player")
-        timer.running = False
-    return advancements
 
 
 class Screen:
@@ -517,7 +421,10 @@ def commands(number: int, val: str, game_state: GameState) -> None:
                 pygame.mixer.music.load(str(ASSETS_DIR / "pigstep.mp3"))
                 pygame.mixer.music.set_volume(10)
                 pygame.mixer.music.play()
-                check_music_player(game_state.screen, game_state.timer, game_state.player.advancements) #Update Advancement and Speedrun Details
+                unlocked = game_state.player.advancements_manager.check_music_player()
+                if unlocked:
+                    game_state.screen.print("Advancement unlocked: Music Player")
+                    game_state.timer.running = False
             else:
                 game_state.screen.print("Error: Not Enough Resources")
 
